@@ -1,0 +1,44 @@
+# Laravel
+/.env
+/storage/app/public
+/storage/cache
+/storage/debugbar
+/storage/framework/cache
+/storage/framework/sessions
+/storage/framework/views
+/storage/framework/testing
+/storage/logs
+/bootstrap/cache
+/.composer-audit
+/public/storage
+/public/hot
+
+
+# Node
+/node_modules
+/.pnp
+.pnp.js
+
+# Vite
+/dist
+/.vite
+
+# IDEs / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Laravel IDE Helper
+/app/Models/*_helper.php
+
+# Logs
+*.log
+
+# Zips
+*.zip   
+
+# Caches and agent directories
+.phpunit.result.cache
+.claude/    
+
+vendor
