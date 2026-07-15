@@ -29,10 +29,7 @@
         <div class="relative z-10 flex flex-col justify-between p-12 w-full">
             {{-- Logo --}}
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
-                    <i class="fas fa-hotel text-white text-lg"></i>
-                </div>
-                <span class="text-white font-bold text-xl tracking-tight">{{ $hotelName }}</span>
+                <img src="{{ asset('images/logo.png') }}" alt="{{ $hotelName }}" class="h-16 w-auto object-contain bg-white p-1.5 rounded-2xl shadow-sm">
             </div>
 
             {{-- Center Content --}}
