@@ -150,16 +150,28 @@
                 {{-- Quick Login Buttons --}}
                 <div class="pt-4 border-t border-slate-100 mt-6">
                     <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3 text-center">Quick Login (Demo)</p>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="document.getElementById('email').value = 'superadmin@merahkie.com'; document.getElementById('password').value = '123456'; document.getElementById('login-form').submit();"
+                                class="flex flex-col items-center justify-center gap-1.5 p-2 border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 rounded-lg text-[10px] font-bold text-slate-700 hover:text-indigo-600 transition-all cursor-pointer">
+                            <i class="fas fa-crown text-indigo-600 text-sm"></i> Super Admin
+                        </button>
                         <button type="button" onclick="document.getElementById('email').value = 'admin@merahkie.com'; document.getElementById('password').value = '123456'; document.getElementById('login-form').submit();"
-                                class="flex items-center justify-center gap-2 px-3 py-2.5 border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 rounded-lg text-xs font-semibold text-slate-700 hover:text-indigo-600 transition-all cursor-pointer">
-                            <i class="fas fa-user-shield text-indigo-500"></i> Login as Admin
+                                class="flex flex-col items-center justify-center gap-1.5 p-2 border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 rounded-lg text-[10px] font-bold text-slate-700 hover:text-indigo-600 transition-all cursor-pointer">
+                            <i class="fas fa-user-shield text-indigo-500 text-sm"></i> Hotel Admin
                         </button>
                         <button type="button" onclick="document.getElementById('email').value = 'receptionist@merahkie.com'; document.getElementById('password').value = '123456'; document.getElementById('login-form').submit();"
-                                class="flex items-center justify-center gap-2 px-3 py-2.5 border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 rounded-lg text-xs font-semibold text-slate-700 hover:text-indigo-600 transition-all cursor-pointer">
-                            <i class="fas fa-user text-indigo-500"></i> Login as Staff
+                                class="flex flex-col items-center justify-center gap-1.5 p-2 border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 rounded-lg text-[10px] font-bold text-slate-700 hover:text-indigo-600 transition-all cursor-pointer">
+                            <i class="fas fa-user text-indigo-500 text-sm"></i> Receptionist
                         </button>
                     </div>
+                </div>
+
+                {{-- Public Hotel Registration Link --}}
+                <div class="mt-5 text-center">
+                    <p class="text-xs text-slate-500">
+                        Want to list your property? 
+                        <a href="/register-hotel" class="text-indigo-600 hover:text-indigo-700 font-semibold hover:underline">Register your Hotel here</a>
+                    </p>
                 </div>
             </form>
 

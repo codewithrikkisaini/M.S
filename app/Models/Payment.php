@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class Payment extends Model
 {
-    protected $fillable = ['reservation_id', 'amount', 'payment_type', 'paid_at'];
+    use BelongsToTenant;
+
+    protected $fillable = ['reservation_id', 'amount', 'payment_type', 'paid_at', 'hotel_id'];
 
     protected $casts = [
         'paid_at' => 'datetime',

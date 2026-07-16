@@ -4,16 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class Reservation extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'guest_id', 'check_in_date',
         'check_out_date', 'adults', 'children',
         'discount_type', 'discount_value', 'tax_rate',
-        'special_notes', 'status'
+        'special_notes', 'status', 'hotel_id'
     ];
 
     public function guest()

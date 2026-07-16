@@ -3,10 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
+use Illuminate\Support\Facades\Auth;
 
 class Setting extends Model
 {
-    protected $fillable = ['key', 'value'];
+    use BelongsToTenant;
+
+    protected $fillable = ['key', 'value', 'hotel_id'];
 
     /**
      * Request-level cache to avoid duplicate queries.
@@ -18,11 +22,14 @@ class Setting extends Model
      */
     public static function get(string $key, mixed $default = null): mixed
     {
-        if (!array_key_exists($key, static::$cache)) {
+        $hotelId = Auth::check() ? Auth::user()->hotel_id : null;
+        $cacheKey = ($hotelId ?: 'global') . '_' . $key;
+
+        if (!array_key_exists($cacheKey, static::$cache)) {
             $setting = static::where('key', $key)->first();
-            static::$cache[$key] = $setting ? $setting->value : $default;
+            static::$cache[$cacheKey] = $setting ? $setting->value : $default;
         }
-        return static::$cache[$key];
+        return static::$cache[$cacheKey];
     }
 
     /**
@@ -30,8 +37,14 @@ class Setting extends Model
      */
     public static function set(string $key, mixed $value): void
     {
-        static::updateOrCreate(['key' => $key], ['value' => $value]);
-        static::$cache[$key] = $value;
+        $hotelId = Auth::check() ? Auth::user()->hotel_id : null;
+        $cacheKey = ($hotelId ?: 'global') . '_' . $key;
+
+        static::updateOrCreate(
+            ['key' => $key, 'hotel_id' => $hotelId],
+            ['value' => $value]
+        );
+        static::$cache[$cacheKey] = $value;
     }
 
     /**
@@ -40,7 +53,12 @@ class Setting extends Model
     public static function all_map(): array
     {
         $settings = static::all()->pluck('value', 'key')->toArray();
-        static::$cache = array_merge(static::$cache, $settings);
+        $hotelId = Auth::check() ? Auth::user()->hotel_id : null;
+        $prefix = ($hotelId ?: 'global') . '_';
+        
+        foreach ($settings as $key => $val) {
+            static::$cache[$prefix . $key] = $val;
+        }
         return $settings;
     }
 }

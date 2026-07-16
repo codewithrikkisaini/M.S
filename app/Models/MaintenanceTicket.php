@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class MaintenanceTicket extends Model
 {
+    use BelongsToTenant;
+
     protected $table = 'maintenance_tickets';
 
     protected $fillable = [
@@ -15,7 +18,8 @@ class MaintenanceTicket extends Model
         'assigned_to',
         'status',
         'notes',
-        'reported_by'
+        'reported_by',
+        'hotel_id'
     ];
 
     public function room()

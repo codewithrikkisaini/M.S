@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class Invoice extends Model
 {
-    protected $fillable = ['invoice_number', 'checkout_id'];
+    use BelongsToTenant;
+
+    protected $fillable = ['invoice_number', 'checkout_id', 'hotel_id'];
 
     public function checkout()
     {

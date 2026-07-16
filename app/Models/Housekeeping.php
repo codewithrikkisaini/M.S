@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class Housekeeping extends Model
 {
+    use BelongsToTenant;
+
     protected $table = 'housekeeping';
-    protected $fillable = ['room_id', 'status', 'updated_by', 'notes'];
+    protected $fillable = ['room_id', 'status', 'updated_by', 'notes', 'hotel_id'];
 
     public function room()
     {

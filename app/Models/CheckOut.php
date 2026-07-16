@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class CheckOut extends Model
 {
+    use BelongsToTenant;
+
     protected $table = 'checkouts';
-    protected $fillable = ['reservation_id', 'checkout_datetime', 'nights', 'subtotal', 'discount', 'tax', 'tax_rate', 'total_amount'];
+    protected $fillable = ['reservation_id', 'checkout_datetime', 'nights', 'subtotal', 'discount', 'tax', 'tax_rate', 'total_amount', 'hotel_id'];
     
     protected $casts = [
         'checkout_datetime' => 'datetime',

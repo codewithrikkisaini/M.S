@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class Room extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
-    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor'];
+    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'hotel_id'];
 
     public function roomType()
     {
