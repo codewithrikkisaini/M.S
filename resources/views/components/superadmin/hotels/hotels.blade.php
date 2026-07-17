@@ -63,9 +63,21 @@
                             </span>
                         </td>
                         <td class="text-right">
+                            @if($h->status === 'pending')
+                            <button onclick="confirm('Are you sure you want to approve this hotel?') || event.stopImmediatePropagation()"
+                                    wire:click="approveHotel({{ $h->id }})" 
+                                    class="text-emerald-600 hover:text-emerald-800 text-xs font-bold transition-colors cursor-pointer mr-2">
+                                <i class="fas fa-check mr-1"></i> Approve
+                            </button>
+                            <button onclick="confirm('Are you sure you want to reject this hotel?') || event.stopImmediatePropagation()"
+                                    wire:click="rejectHotel({{ $h->id }})" 
+                                    class="text-rose-500 hover:text-rose-700 text-xs font-bold transition-colors cursor-pointer mr-2">
+                                <i class="fas fa-times mr-1"></i> Reject
+                            </button>
+                            @endif
                             <button onclick="confirm('Are you sure you want to delete this hotel and all associated users/data?') || event.stopImmediatePropagation()" 
                                     wire:click="deleteHotel({{ $h->id }})" 
-                                    class="text-rose-600 hover:text-rose-800 text-xs font-bold transition-colors ml-4 cursor-pointer">
+                                    class="text-rose-600 hover:text-rose-800 text-xs font-bold transition-colors cursor-pointer">
                                 <i class="far fa-trash-alt mr-1"></i> Delete
                             </button>
                         </td>

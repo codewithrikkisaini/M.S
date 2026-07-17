@@ -123,13 +123,45 @@ new class extends Component
         ]);
     }
 
+    public function approveHotel($id): void
+    {
+        $hotel = Hotel::findOrFail($id);
+        $hotel->update(['status' => 'approved']);
+
+        // Activate the admin user for this hotel
+        User::withoutGlobalScope('tenant')
+            ->where('hotel_id', $hotel->id)
+            ->where('status', 'inactive')
+            ->update(['status' => 'active']);
+
+        $this->loadHotels();
+        
+        $this->dispatch('toast', [
+            'type' => 'success',
+            'message' => "Hotel '{$hotel->name}' has been approved and its Admin account activated."
+        ]);
+    }
+
+    public function rejectHotel($id): void
+    {
+        $hotel = Hotel::findOrFail($id);
+        $hotel->update(['status' => 'rejected']);
+
+        $this->loadHotels();
+        
+        $this->dispatch('toast', [
+            'type' => 'warning',
+            'message' => "Hotel '{$hotel->name}' registration application has been rejected."
+        ]);
+    }
+
     public function deleteHotel($id): void
     {
         $hotel = Hotel::findOrFail($id);
         $hotelName = $hotel->name;
 
         // Delete all users and hotel data
-        User::where('hotel_id', $hotel->id)->delete();
+        User::withoutGlobalScope('tenant')->where('hotel_id', $hotel->id)->delete();
         Setting::where('hotel_id', $hotel->id)->delete();
         $hotel->delete();
 

@@ -4,13 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
 // ─── Public ────────────────────────────────────────────────────────────────
-Route::get('/', fn() => redirect()->route('login'));
+Route::get('/', fn() => view('welcome'));
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/test', function () {
-    return 'Live Update Working ✅';
-});
+
 
 // ─── Setup Route ───────────────────────────────────────────────────────────
 Route::get('/setup-project', function () {
@@ -224,14 +222,16 @@ Route::get('/setup-project', function () {
     }
 });
 
-// ─── Public Registration ───────────────────────────────────────────────────
+// ─── Public Registration & Booking ─────────────────────────────────────────
 Route::livewire('/register-hotel', 'public.register.register')->name('register-hotel');
+Route::livewire('/book/{hotel_id?}', 'public.booking-engine.booking-engine')->name('booking-engine');
 
 // ─── Auth-protected (all MFC via Route::livewire) ──────────────────────────
 Route::middleware('auth')->group(function () {
 
     // Dashboard
     Route::livewire('/dashboard', 'dashboard')->name('dashboard');
+    Route::livewire('/onboarding', 'public.onboarding.onboarding')->name('onboarding');
 
     // Super Admin Routes
     Route::middleware('superadmin')->group(function () {
@@ -240,6 +240,7 @@ Route::middleware('auth')->group(function () {
         Route::livewire('/superadmin/saas-plans', 'superadmin.saas-plans.saas-plans')->name('superadmin.saas-plans.index');
         Route::livewire('/superadmin/saas-billing', 'superadmin.saas-billing.saas-billing')->name('superadmin.saas-billing.index');
         Route::livewire('/superadmin/saas-invoices', 'superadmin.saas-invoices.saas-invoices')->name('superadmin.saas-invoices.index');
+        Route::livewire('/superadmin/global-settings', 'superadmin.global-settings.global-settings')->name('superadmin.global-settings');
     });
 
     // Admin-only Routes
@@ -255,6 +256,12 @@ Route::middleware('auth')->group(function () {
         Route::livewire('/settings', 'settings')->name('settings');
         Route::livewire('/billing', 'billing.billing')->name('billing.index');
 
+        // Integrations & Enterprise Features
+        Route::livewire('/integrations/channels', 'integrations.channel-manager.channel-manager')->name('integrations.channels');
+        Route::livewire('/integrations/stripe', 'integrations.stripe-settings.stripe-settings')->name('integrations.stripe');
+        Route::livewire('/integrations/templates', 'integrations.notification-templates.notification-templates')->name('integrations.templates');
+        Route::livewire('/integrations/api', 'integrations.api-management.api-management')->name('integrations.api');
+        Route::livewire('/enterprise/activity-logs', 'enterprise.activity-logs.activity-logs')->name('enterprise.logs');
     });
 
 
