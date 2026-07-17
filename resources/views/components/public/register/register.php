@@ -92,6 +92,6 @@ new class extends Component
 
     public function render(): mixed
     {
-        return $this->view();
+        return $this->view()->layout('layouts.guest');
     }
 };

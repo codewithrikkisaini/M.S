@@ -134,11 +134,20 @@ Route::get('/setup-project', function () {
     }
 });
 
+// ─── Public Registration ───────────────────────────────────────────────────
+Route::livewire('/register-hotel', 'public.register.register')->name('register-hotel');
+
 // ─── Auth-protected (all MFC via Route::livewire) ──────────────────────────
 Route::middleware('auth')->group(function () {
 
     // Dashboard
     Route::livewire('/dashboard', 'dashboard')->name('dashboard');
+
+    // Super Admin Routes
+    Route::middleware('superadmin')->group(function () {
+        Route::livewire('/superadmin/dashboard', 'superadmin.dashboard.dashboard')->name('superadmin.dashboard');
+        Route::livewire('/superadmin/hotels', 'superadmin.hotels.hotels')->name('superadmin.hotels.index');
+    });
 
     // Admin-only Routes
     Route::middleware('admin')->group(function () {

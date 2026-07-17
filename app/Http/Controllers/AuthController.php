@@ -20,8 +20,17 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            if ($user->status !== 'active') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->withErrors([
+                    'email' => 'Your account or hotel is pending approval or suspended.',
+                ])->onlyInput('email');
+            }
             $request->session()->regenerate();
-            if (Auth::user()->hasRole('superadmin')) {
+            if ($user->hasRole('superadmin')) {
                 return redirect()->route('superadmin.dashboard');
             }
             return redirect()->intended('dashboard');

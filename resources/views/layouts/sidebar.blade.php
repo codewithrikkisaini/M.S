@@ -10,7 +10,9 @@
             <div class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/10 border border-indigo-400/10">
                 <i class="fas fa-hotel text-white text-sm"></i>
             </div>
-            <span class="text-white font-black text-base tracking-tight">{{ $hotelName }}</span>
+            <span class="text-white font-black text-base tracking-tight">
+                {{ Auth::check() && Auth::user()->hasRole('superadmin') ? 'Super Admin HQ' : $hotelName }}
+            </span>
         </div>
         <div x-show="!sidebarOpen" class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/10 border border-indigo-400/10" style="display:none">
             <i class="fas fa-hotel text-white text-sm"></i>
@@ -24,125 +26,143 @@
     {{-- Navigation --}}
     <nav class="flex-1 overflow-y-auto no-scrollbar py-4 px-3 space-y-1">
 
-        {{-- Category: Main --}}
-        <div x-show="sidebarOpen" class="px-3 pb-1.5 pt-1">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Main</span>
-        </div>
+        @if(Auth::check() && Auth::user()->hasRole('superadmin'))
+            {{-- Category: HQ Admin --}}
+            <div x-show="sidebarOpen" class="px-3 pb-1.5 pt-1">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">HQ Admin</span>
+            </div>
 
-        <a href="{{ route('dashboard') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('dashboard') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-tachometer-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Dashboard</span>
-            @if(request()->routeIs('dashboard') && false)
-            <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full"></span>
+            <a href="{{ route('superadmin.dashboard') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('superadmin.dashboard') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-tachometer-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Dashboard</span>
+            </a>
+
+            <a href="{{ route('superadmin.hotels.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('superadmin.hotels.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-building nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Manage Hotels</span>
+            </a>
+        @else
+            {{-- Category: Main --}}
+            <div x-show="sidebarOpen" class="px-3 pb-1.5 pt-1">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Main</span>
+            </div>
+
+            <a href="{{ route('dashboard') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('dashboard') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-tachometer-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Dashboard</span>
+            </a>
+
+            @if(Auth::check() && Auth::user()->hasRole('admin'))
+            <a href="{{ route('rooms.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('rooms.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-bed nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Rooms</span>
+            </a>
             @endif
-        </a>
 
-        @if(Auth::check() && Auth::user()->hasRole('admin'))
-        <a href="{{ route('rooms.index') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('rooms.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-bed nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Rooms</span>
-        </a>
-        @endif
+            <a href="{{ route('reservations.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('reservations.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-calendar-check nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Reservations</span>
+            </a>
 
-        <a href="{{ route('reservations.index') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('reservations.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-calendar-check nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Reservations</span>
-        </a>
+            <a href="{{ route('calendar') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('calendar') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-calendar-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Booking Calendar</span>
+            </a>
 
-        <a href="{{ route('calendar') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('calendar') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-calendar-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Booking Calendar</span>
-        </a>
+            <a href="{{ route('guests.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('guests.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-users nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Guests</span>
+            </a>
 
-        <a href="{{ route('guests.index') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('guests.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-users nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Guests</span>
-        </a>
+            {{-- Category: Operations --}}
+            <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Operations</span>
+            </div>
+            <div x-show="!sidebarOpen" class="border-t border-slate-900 my-3" style="display:none"></div>
 
-        {{-- Category: Operations --}}
-        <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Operations</span>
-        </div>
-        <div x-show="!sidebarOpen" class="border-t border-slate-900 my-3" style="display:none"></div>
+            <a href="{{ route('checkin.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('checkin.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-sign-in-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Check-In</span>
+            </a>
 
-        <a href="{{ route('checkin.index') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('checkin.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-sign-in-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Check-In</span>
-        </a>
+            <a href="{{ route('checkout.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('checkout.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-sign-out-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Check-Out</span>
+            </a>
 
-        <a href="{{ route('checkout.index') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('checkout.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-sign-out-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Check-Out</span>
-        </a>
+            <a href="{{ route('invoices.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('invoices.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-file-invoice-dollar nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Invoices</span>
+            </a>
 
-        <a href="{{ route('invoices.index') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('invoices.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-file-invoice-dollar nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Invoices</span>
-        </a>
+            <a href="{{ route('housekeeping.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('housekeeping.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-broom nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Housekeeping</span>
+            </a>
 
-        <a href="{{ route('housekeeping.index') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('housekeeping.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-broom nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Housekeeping</span>
-        </a>
+            <a href="{{ route('maintenance.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('maintenance.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-tools nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Maintenance</span>
+            </a>
 
-        <a href="{{ route('maintenance.index') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('maintenance.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-tools nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Maintenance</span>
-        </a>
+            {{-- Category: Analytics --}}
+            <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Analytics</span>
+            </div>
+            <div x-show="!sidebarOpen" class="border-t border-slate-900 my-3" style="display:none"></div>
 
-        {{-- Category: Analytics --}}
-        <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Analytics</span>
-        </div>
-        <div x-show="!sidebarOpen" class="border-t border-slate-900 my-3" style="display:none"></div>
+            <a href="{{ route('reports.daily') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('reports.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-chart-bar nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Reports</span>
+            </a>
 
-        <a href="{{ route('reports.daily') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('reports.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-chart-bar nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Reports</span>
-        </a>
+            {{-- Category: Admin --}}
+            @if(Auth::check() && Auth::user()->hasRole('admin'))
+            <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Admin</span>
+            </div>
+            <div x-show="!sidebarOpen" class="border-t border-slate-900 my-3" style="display:none"></div>
 
-        {{-- Category: Admin --}}
-        @if(Auth::check() && Auth::user()->hasRole('admin'))
-        <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Admin</span>
-        </div>
-        <div x-show="!sidebarOpen" class="border-t border-slate-900 my-3" style="display:none"></div>
+            <a href="{{ route('users.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('users.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-user-shield nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Users</span>
+            </a>
 
-        <a href="{{ route('users.index') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('users.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-user-shield nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Users</span>
-        </a>
-
-        <a href="{{ route('settings') }}" wire:navigate
-           class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-           :class="sidebarOpen ? '' : 'justify-center px-0'">
-            <i class="fas fa-cog nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-            <span x-show="sidebarOpen" x-transition>Settings</span>
-        </a>
+            <a href="{{ route('settings') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-cog nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Settings</span>
+            </a>
+            @endif
         @endif
 
     </nav>
@@ -169,7 +189,9 @@
             <div class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center border border-indigo-400/10 shadow-md shadow-indigo-500/10">
                 <i class="fas fa-hotel text-white text-sm"></i>
             </div>
-            <span class="text-white font-black text-base tracking-tight">{{ $hotelName }}</span>
+            <span class="text-white font-black text-base tracking-tight">
+                {{ Auth::check() && Auth::user()->hasRole('superadmin') ? 'Super Admin HQ' : $hotelName }}
+            </span>
         </div>
         <button @click="mobileSidebarOpen = false" class="text-slate-500 hover:text-white p-1 rounded-lg transition-all cursor-pointer">
             <i class="fas fa-times"></i>
@@ -177,79 +199,91 @@
     </div>
     
     <nav class="flex-1 overflow-y-auto no-scrollbar py-4 px-3 space-y-1">
-        <a href="{{ route('dashboard') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('dashboard') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-tachometer-alt nav-icon"></i><span>Dashboard</span>
-        </a>
-        
-        @if(Auth::check() && Auth::user()->hasRole('admin'))
-        <a href="{{ route('rooms.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('rooms.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-bed nav-icon"></i><span>Rooms</span>
-        </a>
-        @endif
-        
-        <a href="{{ route('reservations.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('reservations.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-calendar-check nav-icon"></i><span>Reservations</span>
-        </a>
-        
-        <a href="{{ route('calendar') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('calendar') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-calendar-alt nav-icon"></i><span>Booking Calendar</span>
-        </a>
-        
-        <a href="{{ route('guests.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('guests.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-users nav-icon"></i><span>Guests</span>
-        </a>
-        
-        <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Operations</span></div>
-        
-        <a href="{{ route('checkin.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('checkin.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-sign-in-alt nav-icon"></i><span>Check-In</span>
-        </a>
-        
-        <a href="{{ route('checkout.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('checkout.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-sign-out-alt nav-icon"></i><span>Check-Out</span>
-        </a>
-        
-        <a href="{{ route('invoices.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('invoices.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-file-invoice-dollar nav-icon"></i><span>Invoices</span>
-        </a>
-        
-        <a href="{{ route('housekeeping.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('housekeeping.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-broom nav-icon"></i><span>Housekeeping</span>
-        </a>
-        
-        <a href="{{ route('maintenance.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('maintenance.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-tools nav-icon"></i><span>Maintenance</span>
-        </a>
-        
-        <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Analytics</span></div>
-        
-        <a href="{{ route('reports.daily') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('reports.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-chart-bar nav-icon"></i><span>Reports</span>
-        </a>
-        
-        @if(Auth::check() && Auth::user()->hasRole('admin'))
-        <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Admin</span></div>
-        
-        <a href="{{ route('users.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('users.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-user-shield nav-icon"></i><span>Users</span>
-        </a>
-        
-        <a href="{{ route('settings') }}" wire:navigate @click="mobileSidebarOpen = false"
-           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-            <i class="fas fa-cog nav-icon"></i><span>Settings</span>
-        </a>
+        @if(Auth::check() && Auth::user()->hasRole('superadmin'))
+            <a href="{{ route('superadmin.dashboard') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('superadmin.dashboard') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-tachometer-alt nav-icon"></i><span>Dashboard</span>
+            </a>
+            
+            <a href="{{ route('superadmin.hotels.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('superadmin.hotels.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-building nav-icon"></i><span>Manage Hotels</span>
+            </a>
+        @else
+            <a href="{{ route('dashboard') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('dashboard') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-tachometer-alt nav-icon"></i><span>Dashboard</span>
+            </a>
+            
+            @if(Auth::check() && Auth::user()->hasRole('admin'))
+            <a href="{{ route('rooms.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('rooms.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-bed nav-icon"></i><span>Rooms</span>
+            </a>
+            @endif
+            
+            <a href="{{ route('reservations.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('reservations.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-calendar-check nav-icon"></i><span>Reservations</span>
+            </a>
+            
+            <a href="{{ route('calendar') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('calendar') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-calendar-alt nav-icon"></i><span>Booking Calendar</span>
+            </a>
+            
+            <a href="{{ route('guests.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('guests.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-users nav-icon"></i><span>Guests</span>
+            </a>
+            
+            <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Operations</span></div>
+            
+            <a href="{{ route('checkin.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('checkin.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-sign-in-alt nav-icon"></i><span>Check-In</span>
+            </a>
+            
+            <a href="{{ route('checkout.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('checkout.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-sign-out-alt nav-icon"></i><span>Check-Out</span>
+            </a>
+            
+            <a href="{{ route('invoices.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('invoices.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-file-invoice-dollar nav-icon"></i><span>Invoices</span>
+            </a>
+            
+            <a href="{{ route('housekeeping.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('housekeeping.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-broom nav-icon"></i><span>Housekeeping</span>
+            </a>
+            
+            <a href="{{ route('maintenance.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('maintenance.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-tools nav-icon"></i><span>Maintenance</span>
+            </a>
+            
+            <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Analytics</span></div>
+            
+            <a href="{{ route('reports.daily') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('reports.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-chart-bar nav-icon"></i><span>Reports</span>
+            </a>
+            
+            @if(Auth::check() && Auth::user()->hasRole('admin'))
+            <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Admin</span></div>
+            
+            <a href="{{ route('users.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('users.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-user-shield nav-icon"></i><span>Users</span>
+            </a>
+            
+            <a href="{{ route('settings') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-cog nav-icon"></i><span>Settings</span>
+            </a>
+            @endif
         @endif
     </nav>
 </aside>
