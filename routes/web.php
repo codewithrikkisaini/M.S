@@ -8,6 +8,9 @@ Route::get('/', fn() => redirect()->route('login'));
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/test', function () {
+    return 'Live Update Working ✅';
+});
 
 // ─── Setup Route ───────────────────────────────────────────────────────────
 Route::get('/setup-project', function () {
@@ -97,20 +100,20 @@ Route::get('/setup-project', function () {
 
         // 6. Seed Default Settings for Hotel
         $defaults = [
-            ['key' => 'hotel_name',      'value' => 'Grand Plaza Hotel'],
-            ['key' => 'hotel_address',   'value' => '123 Luxury Avenue'],
-            ['key' => 'hotel_phone',     'value' => '+1234567890'],
-            ['key' => 'hotel_email',     'value' => 'grandplaza@merahkie.com'],
-            ['key' => 'hotel_website',   'value' => 'www.grandplazahotel.com'],
-            ['key' => 'hotel_timezone',  'value' => 'UTC'],
-            ['key' => 'currency',        'value' => 'USD'],
-            ['key' => 'date_format',     'value' => 'd M Y'],
-            ['key' => 'checkin_time',    'value' => '14:00'],
-            ['key' => 'checkout_time',   'value' => '12:00'],
+            ['key' => 'hotel_name', 'value' => 'Grand Plaza Hotel'],
+            ['key' => 'hotel_address', 'value' => '123 Luxury Avenue'],
+            ['key' => 'hotel_phone', 'value' => '+1234567890'],
+            ['key' => 'hotel_email', 'value' => 'grandplaza@merahkie.com'],
+            ['key' => 'hotel_website', 'value' => 'www.grandplazahotel.com'],
+            ['key' => 'hotel_timezone', 'value' => 'UTC'],
+            ['key' => 'currency', 'value' => 'USD'],
+            ['key' => 'date_format', 'value' => 'd M Y'],
+            ['key' => 'checkin_time', 'value' => '14:00'],
+            ['key' => 'checkout_time', 'value' => '12:00'],
             ['key' => 'email_notifications', 'value' => '1'],
-            ['key' => 'sms_notifications',   'value' => '0'],
-            ['key' => 'invoice_prefix',  'value' => 'INV-'],
-            ['key' => 'invoice_footer',  'value' => 'Thank you for staying with us!'],
+            ['key' => 'sms_notifications', 'value' => '0'],
+            ['key' => 'invoice_prefix', 'value' => 'INV-'],
+            ['key' => 'invoice_footer', 'value' => 'Thank you for staying with us!'],
         ];
 
         foreach ($defaults as $row) {
@@ -251,7 +254,9 @@ Route::middleware('auth')->group(function () {
         Route::livewire('/users', 'users.user-list')->name('users.index');
         Route::livewire('/settings', 'settings')->name('settings');
         Route::livewire('/billing', 'billing.billing')->name('billing.index');
+
     });
+
 
     // Reservations
     Route::livewire('/reservations', 'reservations.reservation-list')->name('reservations.index');
@@ -285,4 +290,7 @@ Route::middleware('auth')->group(function () {
     // Daily Cash Sheet PDF actions
     Route::get('/reports/daily-cash-sheet/download', [\App\Http\Controllers\DailyCashSheetController::class, 'download'])->name('reports.daily-cash-sheet.download');
     Route::get('/reports/daily-cash-sheet/download-range', [\App\Http\Controllers\DailyCashSheetController::class, 'downloadRange'])->name('reports.daily-cash-sheet.download-range');
+
+
+
 });
