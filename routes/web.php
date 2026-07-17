@@ -121,6 +121,93 @@ Route::get('/setup-project', function () {
         }
         $output[] = "Default settings for Grand Plaza Hotel seeded.";
 
+        // 7. Seed SaaS Subscription Plans
+        $plans = [
+            [
+                'name' => 'Trial Plan',
+                'slug' => 'trial',
+                'price' => 0.00,
+                'billing_cycle' => 'trial',
+                'trial_days' => 14,
+                'max_rooms' => 5,
+                'max_users' => 2,
+                'description' => '14-day free trial to explore our platform features.',
+                'status' => 'active',
+            ],
+            [
+                'name' => 'Monthly Pro',
+                'slug' => 'monthly',
+                'price' => 29.00,
+                'billing_cycle' => 'monthly',
+                'trial_days' => 0,
+                'max_rooms' => 25,
+                'max_users' => 10,
+                'description' => 'Perfect for small and medium-sized hotels.',
+                'status' => 'active',
+            ],
+            [
+                'name' => 'Yearly Premium',
+                'slug' => 'yearly',
+                'price' => 249.00,
+                'billing_cycle' => 'yearly',
+                'trial_days' => 0,
+                'max_rooms' => 100,
+                'max_users' => 30,
+                'description' => 'Great value for growing hotel networks.',
+                'status' => 'active',
+            ],
+            [
+                'name' => 'Lifetime Enterprise',
+                'slug' => 'lifetime',
+                'price' => 999.00,
+                'billing_cycle' => 'lifetime',
+                'trial_days' => 0,
+                'max_rooms' => null,
+                'max_users' => null,
+                'description' => 'Unlimited access for lifetime with premium support.',
+                'status' => 'active',
+            ],
+        ];
+
+        $seededPlans = [];
+        foreach ($plans as $p) {
+            $seededPlans[$p['slug']] = \App\Models\SubscriptionPlan::updateOrCreate(
+                ['slug' => $p['slug']],
+                $p
+            );
+        }
+        $output[] = "SaaS subscription plans seeded.";
+
+        // 8. Seed Subscription for Default Hotel
+        $trialPlan = $seededPlans['trial'];
+        $now = now();
+        $subscription = \App\Models\Subscription::updateOrCreate(
+            ['hotel_id' => $hotel->id],
+            [
+                'subscription_plan_id' => $trialPlan->id,
+                'status' => 'trialing',
+                'starts_at' => $now,
+                'ends_at' => $now->copy()->addDays($trialPlan->trial_days),
+                'trial_ends_at' => $now->copy()->addDays($trialPlan->trial_days),
+            ]
+        );
+        $output[] = "Default subscription for Grand Plaza Hotel seeded.";
+
+        // 9. Seed some subscription invoices for Grand Plaza Hotel
+        \App\Models\SubscriptionInvoice::updateOrCreate(
+            ['invoice_number' => 'SUB-2026-0001', 'hotel_id' => $hotel->id],
+            [
+                'subscription_plan_id' => $trialPlan->id,
+                'amount' => 0.00,
+                'status' => 'paid',
+                'billing_date' => $now->copy()->subDays(2)->format('Y-m-d'),
+                'due_date' => $now->copy()->subDays(2)->format('Y-m-d'),
+                'paid_at' => $now->copy()->subDays(2),
+                'payment_method' => 'Free',
+            ]
+        );
+        $output[] = "Default subscription invoices seeded.";
+
         return response()->json([
             'success' => true,
             'log' => $output
@@ -147,6 +234,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('superadmin')->group(function () {
         Route::livewire('/superadmin/dashboard', 'superadmin.dashboard.dashboard')->name('superadmin.dashboard');
         Route::livewire('/superadmin/hotels', 'superadmin.hotels.hotels')->name('superadmin.hotels.index');
+        Route::livewire('/superadmin/saas-plans', 'superadmin.saas-plans.saas-plans')->name('superadmin.saas-plans.index');
+        Route::livewire('/superadmin/saas-billing', 'superadmin.saas-billing.saas-billing')->name('superadmin.saas-billing.index');
+        Route::livewire('/superadmin/saas-invoices', 'superadmin.saas-invoices.saas-invoices')->name('superadmin.saas-invoices.index');
     });
 
     // Admin-only Routes
@@ -160,6 +250,7 @@ Route::middleware('auth')->group(function () {
         // Users & Settings
         Route::livewire('/users', 'users.user-list')->name('users.index');
         Route::livewire('/settings', 'settings')->name('settings');
+        Route::livewire('/billing', 'billing.billing')->name('billing.index');
     });
 
     // Reservations
