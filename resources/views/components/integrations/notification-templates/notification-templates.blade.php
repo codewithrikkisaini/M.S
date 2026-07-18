@@ -91,7 +91,7 @@
                     <span class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Available placeholders:</span>
                     <div class="flex flex-wrap gap-1.5">
                         @foreach(explode(',', $variables) as $var)
-                        <button type="button" onclick="navigator.clipboard.writeText('\{{ ' + '{{ $var }}' + ' \}}'); alert('Copied placeholder: \{{\{{ {{ $var }} \}}\}}')" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded cursor-pointer transition-colors">
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ '{{' . $var . '}}' }}'); alert('Copied placeholder: {{ '{{' . $var . '}}' }}')" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded cursor-pointer transition-colors">
                             {{ '{{' . $var . '}}' }}
                         </button>
                         @endforeach
