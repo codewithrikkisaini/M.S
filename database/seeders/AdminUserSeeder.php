@@ -11,23 +11,38 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        $superadminRole = Role::where('slug', 'superadmin')->first();
         $adminRole = Role::where('slug', 'admin')->first();
         $receptionistRole = Role::where('slug', 'receptionist')->first();
 
-        User::create([
-            'name' => 'System Admin',
-            'email' => 'admin@merahkie.com',
-            'password' => Hash::make('123456'),
-            'role_id' => $adminRole->id,
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'superadmin@merahkie.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('123456'),
+                'role_id' => $superadminRole->id ?? null,
+                'status' => 'active',
+            ]
+        );
 
-        User::create([
-            'name' => 'Reception Staff',
-            'email' => 'receptionist@merahkie.com',
-            'password' => Hash::make('123456'),
-            'role_id' => $receptionistRole->id,
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@merahkie.com'],
+            [
+                'name' => 'Hotel Admin',
+                'password' => Hash::make('123456'),
+                'role_id' => $adminRole->id ?? null,
+                'status' => 'active',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'receptionist@merahkie.com'],
+            [
+                'name' => 'Reception Staff',
+                'password' => Hash::make('123456'),
+                'role_id' => $receptionistRole->id ?? null,
+                'status' => 'active',
+            ]
+        );
     }
 }
