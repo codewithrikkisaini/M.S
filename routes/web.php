@@ -5,7 +5,7 @@ use App\Http\Controllers\AuthController;
 
 
 // ─── Public ────────────────────────────────────────────────────────────────
-Route::get('/', fn() => redirect()->route('login'));
+Route::get('/', fn() => view('welcome'));
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -225,22 +225,25 @@ Route::get('/setup-project', function () {
     }
 });
 
-// ─── Public Registration ───────────────────────────────────────────────────
-Route::livewire('/register-hotel', 'public.register.register')->name('register-hotel');
+// ─── Public Registration & Booking ─────────────────────────────────────────
+Route::livewire('/register-hotel', 'public.register')->name('register-hotel');
+Route::livewire('/book/{hotel_id?}', 'public.booking-engine')->name('booking-engine');
 
 // ─── Auth-protected (all MFC via Route::livewire) ──────────────────────────
 Route::middleware('auth')->group(function () {
 
     // Dashboard
     Route::livewire('/dashboard', 'dashboard')->name('dashboard');
+    Route::livewire('/onboarding', 'public.onboarding')->name('onboarding');
 
     // Super Admin Routes
     Route::middleware('superadmin')->group(function () {
-        Route::livewire('/superadmin/dashboard', 'superadmin.dashboard.dashboard')->name('superadmin.dashboard');
-        Route::livewire('/superadmin/hotels', 'superadmin.hotels.hotels')->name('superadmin.hotels.index');
-        Route::livewire('/superadmin/saas-plans', 'superadmin.saas-plans.saas-plans')->name('superadmin.saas-plans.index');
-        Route::livewire('/superadmin/saas-billing', 'superadmin.saas-billing.saas-billing')->name('superadmin.saas-billing.index');
-        Route::livewire('/superadmin/saas-invoices', 'superadmin.saas-invoices.saas-invoices')->name('superadmin.saas-invoices.index');
+        Route::livewire('/superadmin/dashboard', 'superadmin.dashboard')->name('superadmin.dashboard');
+        Route::livewire('/superadmin/hotels', 'superadmin.hotels')->name('superadmin.hotels.index');
+        Route::livewire('/superadmin/saas-plans', 'superadmin.saas-plans')->name('superadmin.saas-plans.index');
+        Route::livewire('/superadmin/saas-billing', 'superadmin.saas-billing')->name('superadmin.saas-billing.index');
+        Route::livewire('/superadmin/saas-invoices', 'superadmin.saas-invoices')->name('superadmin.saas-invoices.index');
+        Route::livewire('/superadmin/global-settings', 'superadmin.global-settings')->name('superadmin.global-settings');
     });
 
     // Admin-only Routes
@@ -254,8 +257,16 @@ Route::middleware('auth')->group(function () {
         // Users & Settings
         Route::livewire('/users', 'users.user-list')->name('users.index');
         Route::livewire('/settings', 'settings')->name('settings');
-        Route::livewire('/billing', 'billing.billing')->name('billing.index');
+        Route::livewire('/billing', 'billing')->name('billing.index');
+
+        // Integrations & Enterprise Features
+        Route::livewire('/integrations/channels', 'integrations.channel-manager')->name('integrations.channels');
+        Route::livewire('/integrations/stripe', 'integrations.stripe-settings')->name('integrations.stripe');
+        Route::livewire('/integrations/templates', 'integrations.notification-templates')->name('integrations.templates');
+        Route::livewire('/integrations/api', 'integrations.api-management')->name('integrations.api');
+        Route::livewire('/enterprise/activity-logs', 'enterprise.activity-logs')->name('enterprise.logs');
     });
+
 
     // Reservations
     Route::livewire('/reservations', 'reservations.reservation-list')->name('reservations.index');
@@ -289,4 +300,7 @@ Route::middleware('auth')->group(function () {
     // Daily Cash Sheet PDF actions
     Route::get('/reports/daily-cash-sheet/download', [\App\Http\Controllers\DailyCashSheetController::class, 'download'])->name('reports.daily-cash-sheet.download');
     Route::get('/reports/daily-cash-sheet/download-range', [\App\Http\Controllers\DailyCashSheetController::class, 'downloadRange'])->name('reports.daily-cash-sheet.download-range');
+
+
+
 });

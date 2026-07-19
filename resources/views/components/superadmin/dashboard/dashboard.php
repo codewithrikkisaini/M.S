@@ -4,6 +4,10 @@ use Livewire\Component;
 use App\Models\Hotel;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Room;
+use App\Models\Reservation;
+use App\Models\Payment;
+use App\Models\SubscriptionInvoice;
 
 new class extends Component
 {
@@ -15,7 +19,8 @@ new class extends Component
         // Find the owner/admin user of this hotel and activate them
         $adminRole = Role::where('slug', 'admin')->first();
         if ($adminRole) {
-            User::where('hotel_id', $hotel->id)
+            User::withoutGlobalScope('tenant')
+                ->where('hotel_id', $hotel->id)
                 ->where('role_id', $adminRole->id)
                 ->update(['status' => 'active']);
         }
@@ -33,9 +38,10 @@ new class extends Component
         
         $adminRole = Role::where('slug', 'admin')->first();
         if ($adminRole) {
-            User::where('hotel_id', $hotel->id)
+            User::withoutGlobalScope('tenant')
+                ->where('hotel_id', $hotel->id)
                 ->where('role_id', $adminRole->id)
-                ->update(['status' => 'suspended']);
+                ->update(['status' => 'inactive']);
         }
 
         $this->dispatch('toast', [
@@ -44,21 +50,66 @@ new class extends Component
         ]);
     }
 
+    public function suspendHotel($id): void
+    {
+        $hotel = Hotel::findOrFail($id);
+        $hotel->update(['status' => 'suspended']);
+
+        User::withoutGlobalScope('tenant')
+            ->where('hotel_id', $hotel->id)
+            ->update(['status' => 'inactive']);
+
+        $this->dispatch('toast', [
+            'type' => 'warning',
+            'message' => "Hotel '{$hotel->name}' suspended."
+        ]);
+    }
+
     public function render(): mixed
     {
-        $totalHotels    = Hotel::count();
-        $approvedHotels = Hotel::where('status', 'approved')->count();
-        $pendingHotels  = Hotel::where('status', 'pending')->count();
-        $rejectedHotels = Hotel::where('status', 'rejected')->count();
+        // 1. Hotels Status Counters
+        $totalHotels     = Hotel::count();
+        $approvedHotels  = Hotel::where('status', 'approved')->count();
+        $pendingHotels   = Hotel::where('status', 'pending')->count();
+        $suspendedHotels = Hotel::where('status', 'suspended')->count();
+        $rejectedHotels  = Hotel::where('status', 'rejected')->count();
 
-        $recentHotels = Hotel::latest()->limit(8)->get();
+        // 2. Revenue Metrics (from SaaS Subscription Invoices)
+        $totalRevenue        = SubscriptionInvoice::where('status', 'paid')->sum('amount');
+        $monthlyRevenue      = SubscriptionInvoice::where('status', 'paid')
+            ->where('billing_date', '>=', now()->startOfMonth()->format('Y-m-d'))
+            ->sum('amount');
+        $subscriptionRevenue = $totalRevenue; // Same in Phase 1 billing context
+
+        // 3. Hotel Room Statistics (Global aggregates)
+        $totalRooms        = Room::count();
+        $occupiedRooms     = Room::where('status', 'Occupied')->count();
+        $vacantRooms       = Room::where('status', 'Available')->count();
+        $totalReservations = Reservation::count();
+
+        // 4. Activity Lists
+        $recentHotels   = Hotel::latest()->limit(5)->get();
+        $recentBookings = Reservation::with('hotel')->latest()->limit(5)->get();
+        
+        // Fetch recent payments (both SaaS billing or hotel direct)
+        $recentPayments = Payment::with('hotel')->latest()->limit(5)->get();
 
         return $this->view([
-            'totalHotels'    => $totalHotels,
-            'approvedHotels' => $approvedHotels,
-            'pendingHotels'  => $pendingHotels,
-            'rejectedHotels' => $rejectedHotels,
-            'recentHotels'   => $recentHotels,
+            'totalHotels'         => $totalHotels,
+            'approvedHotels'      => $approvedHotels,
+            'pendingHotels'       => $pendingHotels,
+            'suspendedHotels'     => $suspendedHotels,
+            'rejectedHotels'      => $rejectedHotels,
+            'totalRevenue'        => $totalRevenue,
+            'monthlyRevenue'      => $monthlyRevenue,
+            'subscriptionRevenue' => $subscriptionRevenue,
+            'totalRooms'          => $totalRooms,
+            'occupiedRooms'       => $occupiedRooms,
+            'vacantRooms'         => $vacantRooms,
+            'totalReservations'   => $totalReservations,
+            'recentHotels'        => $recentHotels,
+            'recentBookings'      => $recentBookings,
+            'recentPayments'      => $recentPayments,
         ]);
     }
 };
