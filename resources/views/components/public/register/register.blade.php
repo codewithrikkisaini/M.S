@@ -54,25 +54,28 @@
     </div>
 
     {{-- ===== RIGHT FORM PANEL ===== --}}
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white">
-        <div class="max-w-md w-full">
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-slate-950 relative overflow-hidden">
+        {{-- Glow Accent --}}
+        <div class="absolute top-1/3 right-1/4 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-md w-full relative z-10">
             @if($successMessage)
                 {{-- Success State --}}
                 <div class="text-center space-y-5 animate-fadeIn">
-                    <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100 flex items-center justify-center mx-auto shadow-sm">
+                    <div class="w-20 h-20 bg-emerald-950/80 text-emerald-400 rounded-full border border-emerald-900/50 flex items-center justify-center mx-auto shadow-lg">
                         <i class="fas fa-check-circle text-4xl"></i>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-black text-slate-900 tracking-tight">Application Submitted!</h2>
-                        <p class="text-sm text-slate-500 mt-2 leading-relaxed">
+                        <h2 class="text-2xl font-black text-white tracking-tight">Application Submitted!</h2>
+                        <p class="text-sm text-slate-400 mt-2 leading-relaxed">
                             Thank you for registering <strong>{{ $name }}</strong>. Your application is now pending approval by the Super Administrator.
                         </p>
-                        <p class="text-xs text-slate-455 mt-1">
+                        <p class="text-xs text-slate-500 mt-1">
                             An email notification will be sent to <strong>{{ $admin_email }}</strong> once your PMS portal is ready.
                         </p>
                     </div>
                     <div class="pt-4">
-                        <a href="{{ route('login') }}" class="btn-primary w-full block text-center rounded-xl py-3 text-sm font-semibold shadow-md bg-indigo-600 hover:bg-indigo-755 text-white">
+                        <a href="{{ route('login') }}" class="btn-primary w-full block text-center rounded-xl py-3.5 text-sm font-semibold shadow-lg bg-indigo-650 hover:bg-indigo-700 text-white">
                             Back to Sign In
                         </a>
                     </div>
@@ -80,78 +83,78 @@
             @else
                 {{-- Registration Form --}}
                 <div class="mb-8">
-                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">Register Your Property</h2>
-                    <p class="text-sm text-slate-550 mt-1">Enter your hotel and admin credentials to apply for a tenant portal.</p>
+                    <h2 class="text-2xl font-black text-white tracking-tight">Register Your Property</h2>
+                    <p class="text-sm text-slate-400 mt-1">Enter your hotel and admin credentials to apply for a tenant portal.</p>
                 </div>
 
                 <form wire:submit.prevent="registerHotel" class="space-y-5">
                     {{-- Section: Hotel Info --}}
                     <div class="space-y-3.5">
-                        <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">1. Property Details</h3>
+                        <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-800/60 pb-1">1. Property Details</h3>
                         
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">Hotel Name *</label>
-                            <input type="text" wire:model="name" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g. Grand Plaza Hotel">
+                            <label class="block text-xs font-semibold text-slate-400 mb-1.5">Hotel Name *</label>
+                            <input type="text" wire:model="name" class="w-full bg-slate-900/60 text-white border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 placeholder-slate-600" placeholder="e.g. Grand Plaza Hotel">
                             @error('name') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-500 mb-1">Hotel Email *</label>
-                                <input type="email" wire:model="email" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g. hotel@mail.com">
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Hotel Email *</label>
+                                <input type="email" wire:model="email" class="w-full bg-slate-900/60 text-white border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 placeholder-slate-600" placeholder="e.g. hotel@mail.com">
                                 @error('email') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-500 mb-1">Hotel Phone</label>
-                                <input type="text" wire:model="phone" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g. +123456789">
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Hotel Phone</label>
+                                <input type="text" wire:model="phone" class="w-full bg-slate-900/60 text-white border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 placeholder-slate-600" placeholder="e.g. +123456789">
                                 @error('phone') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">Address</label>
-                            <input type="text" wire:model="address" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g. 123 Resort Blvd, Hawaii">
+                            <label class="block text-xs font-semibold text-slate-400 mb-1.5">Address</label>
+                            <input type="text" wire:model="address" class="w-full bg-slate-900/60 text-white border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 placeholder-slate-600" placeholder="e.g. 123 Resort Blvd, Hawaii">
                             @error('address') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
                     {{-- Section: Admin account info --}}
                     <div class="space-y-3.5 pt-2">
-                        <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1">2. Administrator Account</h3>
+                        <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-800/60 pb-1">2. Administrator Account</h3>
                         
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">Admin Full Name *</label>
-                            <input type="text" wire:model="admin_name" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g. Jane Smith">
+                            <label class="block text-xs font-semibold text-slate-400 mb-1.5">Admin Full Name *</label>
+                            <input type="text" wire:model="admin_name" class="w-full bg-slate-900/60 text-white border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 placeholder-slate-600" placeholder="e.g. Jane Smith">
                             @error('admin_name') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">Admin Login Email *</label>
-                            <input type="email" wire:model="admin_email" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g. janesmith@mail.com">
+                            <label class="block text-xs font-semibold text-slate-400 mb-1.5">Admin Login Email *</label>
+                            <input type="email" wire:model="admin_email" class="w-full bg-slate-900/60 text-white border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 placeholder-slate-600" placeholder="e.g. janesmith@mail.com">
                             @error('admin_email') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-500 mb-1">Password *</label>
-                                <input type="password" wire:model="admin_password" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" placeholder="Min 6 chars">
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Password *</label>
+                                <input type="password" wire:model="admin_password" class="w-full bg-slate-900/60 text-white border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 placeholder-slate-600" placeholder="Min 6 chars">
                                 @error('admin_password') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-500 mb-1">Confirm Password *</label>
-                                <input type="password" wire:model="admin_password_confirmation" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" placeholder="Repeat password">
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Confirm Password *</label>
+                                <input type="password" wire:model="admin_password_confirmation" class="w-full bg-slate-900/60 text-white border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 placeholder-slate-600" placeholder="Repeat password">
                             </div>
                         </div>
                     </div>
 
                     <div class="pt-3">
-                        <button type="submit" class="w-full flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-755 text-white py-3 font-semibold text-sm shadow-md transition-all cursor-pointer">
+                        <button type="submit" class="w-full flex items-center justify-center rounded-xl bg-indigo-650 hover:bg-indigo-700 text-white py-3.5 font-bold text-sm shadow-lg shadow-indigo-500/20 transition-all cursor-pointer">
                             Submit Application
                         </button>
                     </div>
 
-                    <p class="text-center text-xs text-slate-455 mt-4">
-                        Already have an approved hotel? <a href="{{ route('login') }}" class="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">Sign In</a>
+                    <p class="text-center text-xs text-slate-500 mt-4">
+                        Already have an approved hotel? <a href="{{ route('login') }}" class="font-bold text-indigo-400 hover:text-indigo-300 hover:underline">Sign In</a>
                     </p>
                 </form>
             @endif
