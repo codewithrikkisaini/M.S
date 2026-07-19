@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Traits\BelongsToTenant;
 
-#[Fillable(['name', 'email', 'password', 'role_id', 'status', 'last_login_at', 'hotel_id'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'status', 'last_login_at', 'hotel_id', 'username', 'phone', 'employee_id', 'profile_photo_path'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {

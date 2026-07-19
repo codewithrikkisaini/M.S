@@ -16,4 +16,14 @@ class RoomType extends Model
     {
         return $this->hasMany(Room::class);
     }
+
+    public function getBasePriceAttribute()
+    {
+        return $this->rooms()->avg('price') ?: 150.00;
+    }
+
+    public function getBaseOccupancyAttribute()
+    {
+        return 2;
+    }
 }

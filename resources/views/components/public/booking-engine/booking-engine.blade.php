@@ -1,3 +1,7 @@
+@php
+    $selectedHotel = $this->selectedHotel;
+    $currencySymbol = ($selectedHotel && in_array(strtoupper($selectedHotel->currency), ['INR', 'RS'])) ? '₹' : ($selectedHotel->currency ?? '$');
+@endphp
 <div class="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto">
         {{-- Branding & Header --}}
@@ -50,6 +54,119 @@
             </div>
         </div>
 
+        {{-- Selected Hotel Details and Image Gallery --}}
+        @php
+            $selectedHotelImages = [];
+            if ($selectedHotel && !empty($selectedHotel->images) && count($selectedHotel->images) > 0) {
+                foreach ($selectedHotel->images as $img) {
+                    $selectedHotelImages[] = asset('storage/' . $img['image_path']);
+                }
+            } else {
+                $selectedHotelImages = [
+                    'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+                    'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80',
+                    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80',
+                    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80'
+                ];
+            }
+            $ratingStars = intval($selectedHotel->category ?? 4);
+        @endphp
+
+        @if($selectedHotel)
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8 items-stretch">
+            
+            {{-- Multi-image Slider (Column Span 3) --}}
+            <div class="md:col-span-3 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden p-4 flex flex-col justify-between" x-data="{ activeIndex: 0, images: @js($selectedHotelImages) }">
+                <div class="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 flex-1">
+                    <template x-for="(img, index) in images" :key="index">
+                        <img x-show="activeIndex === index" :src="img" class="w-full h-full object-cover transition-all duration-300">
+                    </template>
+                    
+                    {{-- Nav Controls --}}
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 flex justify-between items-center text-white text-xs">
+                        <span class="font-bold uppercase tracking-wider text-[10px]" x-text="'Photo ' + (activeIndex + 1) + ' of ' + images.length"></span>
+                        <div class="flex gap-2">
+                            <button @click="activeIndex = (activeIndex - 1 + images.length) % images.length" class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center cursor-pointer transition-all"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                            <button @click="activeIndex = (activeIndex + 1) % images.length" class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center cursor-pointer transition-all"><i class="fas fa-chevron-right text-[10px]"></i></button>
+                        </div>
+                    </div>
+                </div>
+                
+                {{-- Thumbnails --}}
+                <div class="flex gap-2 overflow-x-auto pt-3 pb-1 scrollbar-thin">
+                    <template x-for="(img, index) in images" :key="index">
+                        <button @click="activeIndex = index" class="w-16 h-12 rounded-lg overflow-hidden border-2 transition-all cursor-pointer flex-shrink-0" :class="activeIndex === index ? 'border-indigo-600 scale-95 shadow-sm' : 'border-transparent opacity-70 hover:opacity-100'">
+                            <img :src="img" class="w-full h-full object-cover">
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            {{-- Hotel Info & Specifications (Column Span 2) --}}
+            <div class="md:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
+                            {{ $selectedHotel->property_type ?: 'Boutique Hotel' }}
+                        </span>
+                        <div class="flex items-center gap-0.5 text-amber-500 text-xs">
+                            @for($i = 0; $i < $ratingStars; $i++)
+                                <i class="fas fa-star"></i>
+                            @endfor
+                        </div>
+                    </div>
+
+                    <h2 class="text-xl font-black text-slate-900 tracking-tight leading-snug">
+                        {{ $selectedHotel->name }}
+                    </h2>
+
+                    <div class="flex items-start gap-1.5 text-xs text-slate-500">
+                        <i class="fas fa-map-marker-alt text-indigo-600 mt-0.5 animate-pulse"></i>
+                        <span>
+                            {{ $selectedHotel->address }}, {{ $selectedHotel->city }}, {{ $selectedHotel->state }}, {{ $selectedHotel->country }} - {{ $selectedHotel->postal_code }}
+                        </span>
+                    </div>
+
+                    <p class="text-xs text-slate-450 leading-relaxed border-t border-slate-50 pt-3">
+                        Experience premium comfort, world-class hospitality, and upscale amenities in a modern luxury environment tailored for your absolute relaxation.
+                    </p>
+                </div>
+
+                {{-- Contact & Policy details --}}
+                <div class="border-t border-slate-100 pt-3 space-y-2 text-[11px] text-slate-600">
+                    <div class="flex justify-between">
+                        <span class="font-medium text-slate-400">Email:</span>
+                        <span class="font-bold text-slate-800">{{ $selectedHotel->email }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium text-slate-400">Phone:</span>
+                        <span class="font-bold text-slate-800">{{ $selectedHotel->phone ?: '+91 9876543210' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium text-slate-400">Website:</span>
+                        <span class="font-bold text-indigo-600">{{ $selectedHotel->website ?: 'www.harmonyhotel.com' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium text-slate-400">GSTIN No:</span>
+                        <span class="font-bold text-slate-700 uppercase">{{ $selectedHotel->tax_id ?: '07ABCDE1234F1Z5' }}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-50 text-[10px] text-center">
+                        <div class="bg-slate-50 rounded-lg p-1.5 border border-slate-100/50">
+                            <span class="text-slate-400 block font-medium uppercase">Check-In</span>
+                            <span class="font-bold text-slate-800 mt-0.5 block">02:00 PM</span>
+                        </div>
+                        <div class="bg-slate-50 rounded-lg p-1.5 border border-slate-100/50">
+                            <span class="text-slate-400 block font-medium uppercase">Check-Out</span>
+                            <span class="font-bold text-slate-800 mt-0.5 block">11:00 AM</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        @endif
+
         {{-- Room Types List --}}
         <div class="space-y-4">
             @forelse($this->roomTypes as $type)
@@ -65,7 +182,7 @@
                         <div class="flex justify-between items-start">
                             <h3 class="text-lg font-bold text-slate-800">{{ $type->name }}</h3>
                             <div class="text-right">
-                                <span class="text-2xl font-black text-indigo-650">${{ number_format($type->base_price, 2) }}</span>
+                                <span class="text-2xl font-black text-indigo-650">{{ $currencySymbol }}{{ number_format($type->base_price, 2) }}</span>
                                 <span class="text-xs text-slate-400 block">per night</span>
                             </div>
                         </div>
@@ -191,7 +308,7 @@
                         
                         <div class="flex justify-between items-center pt-2">
                             <span class="text-sm font-bold text-slate-800">Total Price:</span>
-                            <span class="text-xl font-black text-indigo-600">${{ number_format($total_price, 2) }}</span>
+                            <span class="text-xl font-black text-indigo-600">{{ $currencySymbol }}{{ number_format($total_price, 2) }}</span>
                         </div>
                     </div>
 
@@ -233,7 +350,7 @@
                 </div>
                 <div class="flex justify-between text-xs">
                     <span class="text-slate-455">Amount Paid:</span>
-                    <span class="font-black text-indigo-600">${{ number_format($total_price, 2) }}</span>
+                    <span class="font-black text-indigo-600">{{ $currencySymbol }}{{ number_format($total_price, 2) }}</span>
                 </div>
                 <div class="flex justify-between text-xs">
                     <span class="text-slate-455">Status:</span>
