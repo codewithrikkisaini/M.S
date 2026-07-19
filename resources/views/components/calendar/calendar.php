@@ -8,24 +8,23 @@ use App\Models\Payment;
 use App\Services\ReservationService;
 use Carbon\Carbon;
 
-new class extends Component
-{
+new class extends Component {
     public string $startDate = '';
     public string $activeView = 'timeline'; // 'timeline' or 'month'
-    
+
     // Modal properties
     public bool $showModal = false;
     public int $modalRoomId = 0;
     public string $modalRoomNumber = '';
     public string $modalCheckInDate = '';
     public string $modalCheckOutDate = '';
-    
+
     public bool $modalIsNewGuest = false;
     public string $modalGuestId = '';
     public string $modalNewGuestName = '';
     public string $modalNewGuestEmail = '';
     public string $modalNewGuestPhone = '';
-    
+
     public int $modalAdults = 1;
     public int $modalChildren = 0;
     public string $modalSpecialNotes = '';
@@ -60,7 +59,8 @@ new class extends Component
     {
         if ($roomId > 0) {
             $room = Room::find($roomId);
-            if (!$room) return;
+            if (!$room)
+                return;
             $this->modalRoomId = $room->id;
             $this->modalRoomNumber = $room->room_number;
         } else {
@@ -70,7 +70,7 @@ new class extends Component
 
         $this->modalCheckInDate = $date;
         $this->modalCheckOutDate = Carbon::parse($date)->addDay()->format('Y-m-d');
-        
+
         // Reset guest inputs
         $this->modalIsNewGuest = false;
         $this->modalGuestId = '';
@@ -94,12 +94,12 @@ new class extends Component
     public function saveBooking(ReservationService $service): void
     {
         $rules = [
-            'modalRoomId'        => 'required|exists:rooms,id',
-            'modalCheckInDate'   => 'required|date',
-            'modalCheckOutDate'  => 'required|date|after:modalCheckInDate',
-            'modalAdults'        => 'required|integer|min:1',
-            'modalChildren'      => 'required|integer|min:0',
-            'modalPaymentType'   => 'required|in:Cash,Card,UPI',
+            'modalRoomId' => 'required|exists:rooms,id',
+            'modalCheckInDate' => 'required|date',
+            'modalCheckOutDate' => 'required|date|after:modalCheckInDate',
+            'modalAdults' => 'required|integer|min:1',
+            'modalChildren' => 'required|integer|min:0',
+            'modalPaymentType' => 'required|in:Cash,Card,UPI',
             'modalPaymentAmount' => 'nullable|numeric|min:0',
         ];
 
@@ -132,35 +132,35 @@ new class extends Component
             }
             $guest = Guest::create([
                 'guest_id' => $guest_id_str,
-                'name'     => $this->modalNewGuestName,
-                'email'    => $this->modalNewGuestEmail ?: null,
-                'phone'    => $this->modalNewGuestPhone ?: null,
+                'name' => $this->modalNewGuestName,
+                'email' => $this->modalNewGuestEmail ?: null,
+                'phone' => $this->modalNewGuestPhone ?: null,
             ]);
-            $guestId = (string)$guest->id;
+            $guestId = (string) $guest->id;
         }
 
         // Save reservation
         $reservation = $service->saveReservation(null, [
-            'guest_id'       => $guestId,
-            'room_ids'       => [$this->modalRoomId],
-            'check_in_date'  => $this->modalCheckInDate,
+            'guest_id' => $guestId,
+            'room_ids' => [$this->modalRoomId],
+            'check_in_date' => $this->modalCheckInDate,
             'check_out_date' => $this->modalCheckOutDate,
-            'adults'         => $this->modalAdults,
-            'children'       => $this->modalChildren,
-            'discount_type'  => 'Fixed',
+            'adults' => $this->modalAdults,
+            'children' => $this->modalChildren,
+            'discount_type' => 'Fixed',
             'discount_value' => 0,
-            'tax_rate'       => 18,
-            'special_notes'  => $this->modalSpecialNotes,
-            'status'         => 'Confirmed',
+            'tax_rate' => 18,
+            'special_notes' => $this->modalSpecialNotes,
+            'status' => 'Confirmed',
         ], false);
 
         // Add payment if provided
         if ($this->modalPaymentAmount !== '' && (float) $this->modalPaymentAmount > 0) {
             Payment::create([
                 'reservation_id' => $reservation->id,
-                'amount'         => $this->modalPaymentAmount,
-                'payment_type'   => $this->modalPaymentType,
-                'paid_at'        => now(),
+                'amount' => $this->modalPaymentAmount,
+                'payment_type' => $this->modalPaymentType,
+                'paid_at' => now(),
             ]);
         }
 
@@ -177,7 +177,7 @@ new class extends Component
             $days[] = [
                 'date_str' => $date->format('Y-m-d'),
                 'day_name' => $date->format('D'),
-                'day_num'  => $date->format('d'),
+                'day_num' => $date->format('d'),
                 'is_today' => $date->isToday(),
             ];
         }
@@ -193,7 +193,7 @@ new class extends Component
             ->where(function ($query) use ($start_str, $end_str) {
                 $query->where(function ($q) use ($start_str, $end_str) {
                     $q->where('check_in_date', '<=', $end_str)
-                      ->where('check_out_date', '>=', $start_str);
+                        ->where('check_out_date', '>=', $start_str);
                 });
             })
             ->get();
@@ -204,15 +204,15 @@ new class extends Component
             foreach ($res->rooms as $room) {
                 $resStart = Carbon::parse($res->check_in_date);
                 $resEnd = Carbon::parse($res->check_out_date);
-                
+
                 $temp = $resStart->copy();
                 while ($temp->lt($resEnd)) {
                     $dateStr = $temp->format('Y-m-d');
                     $roomBookings[$room->id][$dateStr] = [
                         'reservation_id' => $res->id,
-                        'guest_name'     => optional($res->guest)->name ?? 'Guest',
-                        'status'         => $res->status,
-                        'is_check_in'    => $dateStr === $res->check_in_date,
+                        'guest_name' => optional($res->guest)->name ?? 'Guest',
+                        'status' => $res->status,
+                        'is_check_in' => $dateStr === $res->check_in_date,
                     ];
                     $temp->addDay();
                 }
@@ -226,13 +226,13 @@ new class extends Component
         foreach ($reservations as $res) {
             foreach ($res->rooms as $room) {
                 $events[] = [
-                    'id'    => $res->id,
+                    'id' => $res->id,
                     'title' => 'Room ' . $room->room_number . ' - ' . (optional($res->guest)->name ?? 'Guest'),
                     'start' => $res->check_in_date,
-                    'end'   => Carbon::parse($res->check_out_date)->addDay()->format('Y-m-d'), // FullCalendar needs end date exclusive + 1
+                    'end' => Carbon::parse($res->check_out_date)->addDay()->format('Y-m-d'), // FullCalendar needs end date exclusive + 1
                     'extendedProps' => [
-                        'guest'  => optional($res->guest)->name ?? 'N/A',
-                        'room'   => $room->room_number,
+                        'guest' => optional($res->guest)->name ?? 'N/A',
+                        'room' => $room->room_number,
                         'status' => $res->status,
                     ],
                 ];
@@ -240,11 +240,11 @@ new class extends Component
         }
 
         return $this->view([
-            'days'         => $days,
-            'rooms'        => $rooms,
+            'days' => $days,
+            'rooms' => $rooms,
             'roomBookings' => $roomBookings,
-            'guests'       => $guests,
-            'events'       => $events,
+            'guests' => $guests,
+            'events' => $events,
         ]);
     }
 }
