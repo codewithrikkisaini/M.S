@@ -5,7 +5,10 @@ use App\Http\Controllers\AuthController;
 
 
 // ─── Public ────────────────────────────────────────────────────────────────
-Route::get('/', fn() => view('welcome'));
+Route::get('/', function () {
+    $hotels = \App\Models\Hotel::with(['images', 'rooms'])->get();
+    return view('welcome', compact('hotels'));
+});
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -257,6 +260,7 @@ Route::middleware('auth')->group(function () {
         // Users & Settings
         Route::livewire('/users', 'users.user-list')->name('users.index');
         Route::livewire('/settings', 'settings')->name('settings');
+        Route::livewire('/profile', 'profile')->name('profile');
         Route::livewire('/billing', 'billing')->name('billing.index');
 
         // Integrations & Enterprise Features

@@ -37,7 +37,7 @@ new class extends Component
 
     public function mount($hotel_id = null): void
     {
-        $this->hotels = Hotel::where('status', 'approved')->get();
+        $this->hotels = Hotel::all();
         if ($hotel_id) {
             $this->hotel_id = $hotel_id;
         } elseif ($this->hotels->count() > 0) {
@@ -45,6 +45,12 @@ new class extends Component
         }
         $this->checkin_date = date('Y-m-d');
         $this->checkout_date = date('Y-m-d', strtotime('+1 day'));
+    }
+
+    public function getSelectedHotelProperty()
+    {
+        if (!$this->hotel_id) return null;
+        return Hotel::with('images')->find($this->hotel_id);
     }
 
     public function getRoomTypesProperty()
@@ -76,20 +82,31 @@ new class extends Component
         ]);
 
         DB::transaction(function () {
-            // 1. Create or update the Guest
-            $guest = Guest::updateOrCreate(
-                ['email' => $this->guest_email, 'hotel_id' => $this->hotel_id],
-                [
+            // 1. Create or update the Guest globally
+            $guest = Guest::where('email', $this->guest_email)->first();
+
+            if (!$guest) {
+                $guest = Guest::create([
+                    'guest_id' => 'G-' . str_pad(rand(1000, 99999), 5, '0', STR_PAD_LEFT),
+                    'hotel_id' => $this->hotel_id,
+                    'email' => $this->guest_email,
                     'name' => $this->guest_name,
                     'phone' => $this->guest_phone,
                     'nationality' => $this->guest_nationality,
-                ]
-            );
+                ]);
+            } else {
+                $guest->update([
+                    'hotel_id' => $this->hotel_id,
+                    'name' => $this->guest_name,
+                    'phone' => $this->guest_phone,
+                    'nationality' => $this->guest_nationality,
+                ]);
+            }
 
             // 2. Allocate an available room of this type
             $room = Room::where('room_type_id', $this->selectedRoomTypeId)
                 ->where('hotel_id', $this->hotel_id)
-                ->where('status', 'available')
+                ->where('status', 'Available')
                 ->first();
 
             // Fallback: If no vacant room is found, pick any room under this type for demo
@@ -103,38 +120,32 @@ new class extends Component
             $reservation = Reservation::create([
                 'hotel_id' => $this->hotel_id,
                 'guest_id' => $guest->id,
-                'room_id' => $room ? $room->id : null,
-                'check_in' => $this->checkin_date,
-                'check_out' => $this->checkout_date,
-                'status' => 'confirmed',
-                'total_price' => $this->total_price,
+                'check_in_date' => $this->checkin_date,
+                'check_out_date' => $this->checkout_date,
+                'adults' => $this->guests_count ?: 1,
+                'children' => 0,
+                'discount_type' => 'Fixed',
+                'discount_value' => 0,
+                'tax_rate' => 18,
+                'status' => 'Confirmed',
             ]);
 
-            // 4. Create invoice
-            $invoice = Invoice::create([
-                'hotel_id' => $this->hotel_id,
-                'reservation_id' => $reservation->id,
-                'invoice_number' => 'INV-DIRECT-' . date('Ymd') . '-' . rand(1000, 9999),
-                'amount' => $this->total_price,
-                'status' => 'paid',
-            ]);
-
-            // 5. Create Payment record (mocking Stripe credit card gateway)
-            Payment::create([
-                'hotel_id' => $this->hotel_id,
-                'invoice_id' => $invoice->id,
-                'amount' => $this->total_price,
-                'payment_method' => 'Stripe Checkout',
-                'transaction_id' => 'ch_stripe_' . str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789'),
-                'payment_date' => now(),
-            ]);
-
-            // Update room status
+            // Link room and update room status
             if ($room) {
-                $room->update(['status' => 'occupied']);
+                $reservation->rooms()->attach($room->id, ['price' => $room->price]);
+                $room->update(['status' => 'Occupied']);
             }
 
-            // 6. Log direct booking activity in ActivityLog
+            // 4. Create Payment record (mocking Stripe credit card gateway)
+            Payment::create([
+                'hotel_id' => $this->hotel_id,
+                'reservation_id' => $reservation->id,
+                'amount' => $this->total_price,
+                'payment_type' => 'Card',
+                'paid_at' => now(),
+            ]);
+
+            // 5. Log direct booking activity in ActivityLog
             ActivityLog::create([
                 'hotel_id' => $this->hotel_id,
                 'action' => 'Direct Booking',

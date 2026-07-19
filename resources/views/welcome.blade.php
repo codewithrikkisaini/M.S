@@ -91,6 +91,97 @@
         </div>
     </section>
 
+    <!-- Registered Hotels Section -->
+    <section class="py-20 border-t border-slate-800/60 bg-slate-950/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-950/80 text-indigo-400 border border-indigo-900/50 mb-3">
+                    <i class="fas fa-hotel text-[10px]"></i> Explore Properties
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Our Premium Registered Hotels</h2>
+                <p class="text-slate-400 text-sm mt-3 max-w-2xl mx-auto">Discover top-rated destinations, view live room inventory, and make instant secure reservations directly through our platform.</p>
+            </div>
+
+            @if($hotels->isEmpty())
+                <div class="border border-dashed border-slate-800 rounded-3xl p-12 text-center max-w-lg mx-auto bg-slate-900/20">
+                    <div class="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center border border-slate-800 text-slate-500 mx-auto mb-4">
+                        <i class="fas fa-hotel text-lg"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-300">No hotels registered yet</h3>
+                    <p class="text-xs text-slate-500 mt-2">Become our first partner and list your property on HotelFlow today.</p>
+                    <a href="{{ route('register-hotel') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl mt-6 transition-all shadow-lg shadow-indigo-500/20">
+                        Register Your Hotel <i class="fas fa-plus"></i>
+                    </a>
+                </div>
+            @else
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    @foreach($hotels as $hotel)
+                        @php
+                            $primaryImg = $hotel->images->where('is_primary', true)->first() ?: $hotel->images->first();
+                            $imgUrl = $primaryImg 
+                                ? asset('storage/' . $primaryImg->image_path) 
+                                : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
+                            
+                            $minPrice = $hotel->rooms->min('price');
+                            $priceFormatted = $minPrice ? '₹' . number_format($minPrice) : '₹2,500';
+                            $ratingStars = intval($hotel->category ?? 4);
+                        @endphp
+                        <div class="bg-slate-900/60 border border-slate-800/80 rounded-3xl overflow-hidden hover:border-slate-700/85 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-300 flex flex-col group">
+                            {{-- Image Container --}}
+                            <div class="aspect-video w-full overflow-hidden relative bg-slate-950">
+                                <img src="{{ $imgUrl }}" alt="{{ $hotel->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+                                
+                                {{-- Rating overlay --}}
+                                <div class="absolute top-4 right-4 bg-slate-950/80 backdrop-blur-md border border-slate-800/80 px-2.5 py-1 rounded-xl flex items-center gap-1 text-[10px] font-black text-amber-400 shadow-lg">
+                                    <i class="fas fa-star text-[9px]"></i>
+                                    {{ number_format($ratingStars, 1) }}
+                                </div>
+
+                                {{-- Property Type overlay --}}
+                                <div class="absolute bottom-4 left-4 bg-indigo-600 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow">
+                                    {{ $hotel->property_type ?: 'Boutique Hotel' }}
+                                </div>
+                            </div>
+
+                            {{-- Card Info --}}
+                            <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+                                <div class="space-y-2">
+                                    <h3 class="text-base font-bold text-white group-hover:text-indigo-400 transition-colors duration-200">
+                                        {{ $hotel->name }}
+                                    </h3>
+                                    
+                                    <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                                        <i class="fas fa-map-marker-alt text-indigo-400 text-[10px]"></i>
+                                        <span>{{ $hotel->city ?: 'New Delhi' }}, {{ $hotel->state ?: 'Delhi' }}</span>
+                                    </div>
+
+                                    <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 pt-1">
+                                        Experience modern premium luxury, upscale dining, and state-of-the-art hospitality at the stunning {{ $hotel->name }}.
+                                    </p>
+                                </div>
+
+                                <div class="pt-4 border-t border-slate-800/50 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Starting From</span>
+                                        <div class="flex items-baseline gap-1">
+                                            <span class="text-lg font-black text-white">{{ $priceFormatted }}</span>
+                                            <span class="text-[10px] text-slate-400">/ night</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <a href="{{ route('booking-engine', ['hotel_id' => $hotel->id]) }}" class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all gap-1">
+                                        View Details <i class="fas fa-chevron-right text-[9px] ml-0.5"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </section>
+
     <!-- Features Section -->
     <section class="py-16 border-t border-slate-800/60 bg-slate-900/30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
