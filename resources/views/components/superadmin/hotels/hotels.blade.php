@@ -72,6 +72,11 @@
                             </span>
                         </td>
                         <td class="p-4 pr-6 text-right whitespace-nowrap">
+                            <button wire:click="openViewModal({{ $h->id }})" 
+                                    class="text-sky-600 hover:text-sky-800 font-bold mr-3 cursor-pointer">
+                                <i class="far fa-eye mr-0.5"></i> View
+                            </button>
+
                             @if($h->status === 'pending')
                                 <button onclick="confirm('Approve this registration request?') || event.stopImmediatePropagation()"
                                         wire:click="approveHotel({{ $h->id }})" 
@@ -448,4 +453,353 @@
         </div>
     </div>
     @endif
+
+    {{-- View Hotel Details Modal --}}
+    @if($showViewModal && $viewHotel)
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-5xl w-full border border-slate-100 animate-fadeIn duration-200 overflow-hidden">
+            {{-- Modal Header --}}
+            <div class="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-900 text-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-black text-lg shadow-lg">
+                        <i class="fas fa-hotel"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2.5">
+                            <h3 class="text-2xl font-black text-white tracking-tight">{{ $viewHotel->name }}</h3>
+                            <span class="text-xs font-extrabold px-3 py-0.5 rounded-full uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                Tenant ID #{{ $viewHotel->id }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5">Complete registration application & multi-tenant onboarding record</p>
+                    </div>
+                </div>
+                <button wire:click="closeViewModal" class="text-slate-400 hover:text-white p-2 rounded-lg transition-colors cursor-pointer">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="p-6 space-y-6 max-h-[78vh] overflow-y-auto bg-slate-50/60">
+                {{-- Registration Summary Bar --}}
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Registration Status</span>
+                        @php
+                            $vStatusColor = match($viewHotel->status) {
+                                'approved'  => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                'pending'   => 'bg-amber-50 text-amber-700 border-amber-200',
+                                'rejected'  => 'bg-rose-50 text-rose-700 border-rose-200',
+                                'suspended' => 'bg-slate-100 text-slate-600 border-slate-200',
+                                default     => 'bg-slate-50 text-slate-700 border-slate-200'
+                            };
+                        @endphp
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black border {{ $vStatusColor }}">
+                            <span class="w-1.5 h-1.5 rounded-full bg-current mr-1.5"></span>
+                            {{ ucfirst($viewHotel->status) }}
+                        </span>
+                    </div>
+
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Registered Date</span>
+                        <div class="text-xs font-black text-slate-800">
+                            {{ $viewHotel->created_at ? $viewHotel->created_at->format('d M Y') : 'N/A' }}
+                        </div>
+                        <div class="text-[9px] text-slate-400">{{ $viewHotel->created_at ? $viewHotel->created_at->format('h:i A') : '' }}</div>
+                    </div>
+
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Provisioned Rooms</span>
+                        <div class="text-sm font-black text-slate-800 flex items-center gap-1.5">
+                            <i class="fas fa-door-open text-indigo-600"></i>
+                            {{ $viewHotel->rooms_count ?: $viewHotel->rooms->count() }} Rooms
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Staff Accounts</span>
+                        <div class="text-sm font-black text-slate-800 flex items-center gap-1.5">
+                            <i class="fas fa-users text-indigo-600"></i>
+                            {{ $viewHotel->users ? $viewHotel->users->count() : 0 }} Users
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm col-span-2 sm:col-span-1">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Subscription Plan</span>
+                        <div class="text-xs font-black text-indigo-600">
+                            {{ $viewHotel->subscription && $viewHotel->subscription->plan ? $viewHotel->subscription->plan->name : 'Trial Plan' }}
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Full 6-Step Registration Breakdown --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Step 1: Business Profile -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <h4 class="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-briefcase"></i> 1. Business Information
+                            </h4>
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Step 1</span>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Hotel Trade Name</span>
+                                <span class="font-extrabold text-slate-800">{{ $viewHotel->name }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Legal / Business Name</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->business_name ?: 'N/A' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Proprietor / Owner Name</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->owner_name ?: 'N/A' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Tax Identification / GSTIN</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->tax_id ?: 'N/A' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Company Reg. Number</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->company_reg_number ?: 'N/A' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-400 font-medium">Business License No.</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->business_license_number ?: 'N/A' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Contact Details -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <h4 class="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-address-book"></i> 2. Contact & Communication
+                            </h4>
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Step 2</span>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Registered Hotel Email</span>
+                                <span class="font-extrabold text-indigo-600">{{ $viewHotel->email }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Primary Phone</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->phone ?: 'N/A' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">WhatsApp Business</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->whatsapp ?: 'N/A' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-400 font-medium">Official Website</span>
+                                @if($viewHotel->website)
+                                    <a href="{{ $viewHotel->website }}" target="_blank" class="font-bold text-indigo-600 hover:underline truncate max-w-[200px]">
+                                        {{ $viewHotel->website }} <i class="fas fa-external-link-alt text-[9px] ml-0.5"></i>
+                                    </a>
+                                @else
+                                    <span class="font-bold text-slate-400">N/A</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Location Details -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <h4 class="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-map-marker-alt"></i> 3. Location & System Locale
+                            </h4>
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Step 3</span>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Full Street Address</span>
+                                <span class="font-bold text-slate-800 text-right max-w-[220px]">{{ $viewHotel->address ?: 'N/A' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">City / State</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->city ?? 'N/A' }}, {{ $viewHotel->state ?? 'N/A' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Country / ZIP</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->country ?: 'N/A' }} {{ $viewHotel->postal_code ? "({$viewHotel->postal_code})" : '' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Timezone</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->timezone }}</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-400 font-medium">Base Currency</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->currency }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Property Details -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <h4 class="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-sliders"></i> 4. Property & Migration Info
+                            </h4>
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Step 4</span>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Property Type</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->property_type ?: 'Boutique Hotel' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Category / Star Rating</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->category ?: 'Standard' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Previous PMS System</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->current_pms ?: 'None' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Current Channel Manager</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->current_channel_manager ?: 'None' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-400 font-medium">Existing Marketing Site</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->current_website ?: 'None' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Administrator & Users Section -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                        <h4 class="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-user-shield"></i> 5. Administrator & Registered Users
+                        </h4>
+                        <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Step 5</span>
+                    </div>
+
+                    @if($viewHotel->users && $viewHotel->users->count())
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-400 text-[10px] font-extrabold uppercase tracking-wider">
+                                    <th class="p-2.5 pl-3">User ID</th>
+                                    <th class="p-2.5">User Name</th>
+                                    <th class="p-2.5">Email Username</th>
+                                    <th class="p-2.5">Assigned Role</th>
+                                    <th class="p-2.5 pr-3 text-right">Account Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach($viewHotel->users as $u)
+                                <tr>
+                                    <td class="p-2.5 pl-3 font-bold text-slate-500">#{{ $u->id }}</td>
+                                    <td class="p-2.5 font-extrabold text-slate-800">{{ $u->name }}</td>
+                                    <td class="p-2.5 font-bold text-indigo-600">{{ $u->email }}</td>
+                                    <td class="p-2.5">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                            {{ $u->role ? $u->role->name : 'Staff' }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2.5 pr-3 text-right">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold {{ $u->status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
+                                            {{ ucfirst($u->status) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @else
+                        <div class="text-xs text-slate-400 py-3 text-center">No registered user accounts found for this hotel.</div>
+                    @endif
+                </div>
+
+                <!-- Step 6: SaaS Subscription & Inventory -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <h4 class="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-receipt"></i> 6. SaaS Subscription Details
+                            </h4>
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Step 6</span>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Plan Name</span>
+                                <span class="font-extrabold text-indigo-600">
+                                    {{ $viewHotel->subscription && $viewHotel->subscription->plan ? $viewHotel->subscription->plan->name : 'Trial Plan' }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Subscription Status</span>
+                                <span class="font-bold text-slate-700 uppercase">
+                                    {{ $viewHotel->subscription ? $viewHotel->subscription->status : 'trialing' }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Starts At</span>
+                                <span class="font-bold text-slate-700">
+                                    {{ $viewHotel->subscription && $viewHotel->subscription->starts_at ? $viewHotel->subscription->starts_at->format('d M Y') : 'N/A' }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-400 font-medium">Expires / Renews</span>
+                                <span class="font-bold text-slate-700">
+                                    {{ $viewHotel->subscription && $viewHotel->subscription->ends_at ? $viewHotel->subscription->ends_at->format('d M Y') : 'N/A' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <h4 class="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-door-closed"></i> Initial Inventory Summary
+                            </h4>
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Configured</span>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Target Rooms Count</span>
+                                <span class="font-extrabold text-slate-800">{{ $viewHotel->rooms_count ?: 10 }} Rooms</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Active Database Rooms</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->rooms ? $viewHotel->rooms->count() : 0 }} Units</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-50">
+                                <span class="text-slate-400 font-medium">Default Starting Floor</span>
+                                <span class="font-bold text-slate-700">Floor 1</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-400 font-medium">Default Starting Price</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->currency ?: 'USD' }} $100.00 / night</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="flex items-center justify-between p-5 border-t border-slate-100 bg-white">
+                <div class="flex items-center gap-3">
+                    @if($viewHotel->status === 'approved')
+                        <button wire:click="loginAsHotelAdmin({{ $viewHotel->id }})" 
+                                class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                            <i class="fas fa-sign-in-alt"></i> Impersonate Hotel Admin
+                        </button>
+                    @endif
+                </div>
+
+                <button wire:click="closeViewModal" class="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                    Close Total View
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
+
+

@@ -73,6 +73,53 @@
                 <i class="fas fa-sliders-h nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Global Settings</span>
             </a>
+
+            {{-- Category: Integrations --}}
+            <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Integrations</span>
+            </div>
+            <div x-show="!sidebarOpen" class="border-t border-slate-900 my-3" style="display:none"></div>
+
+            <a href="{{ route('integrations.channels') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.channels') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-sync nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>OTA Channels</span>
+            </a>
+
+            <a href="{{ route('integrations.stripe') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.stripe') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fab fa-stripe nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Stripe Settings</span>
+            </a>
+
+            <a href="{{ route('integrations.templates') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.templates') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="far fa-bell nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Alert Templates</span>
+            </a>
+
+            <a href="{{ route('integrations.api') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.api') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-key nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Developer API</span>
+            </a>
+
+            {{-- Category: Enterprise --}}
+            <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Enterprise</span>
+            </div>
+            <div x-show="!sidebarOpen" class="border-t border-slate-900 my-3" style="display:none"></div>
+
+            <a href="{{ route('enterprise.logs') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('enterprise.logs') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-shield-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Audit Logs</span>
+            </a>
         @else
             {{-- Category: Main --}}
             <div x-show="sidebarOpen" class="px-3 pb-1.5 pt-1">
@@ -134,13 +181,6 @@
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-sign-out-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Check-Out</span>
-            </a>
-
-            <a href="{{ route('invoices.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('invoices.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-               :class="sidebarOpen ? '' : 'justify-center px-0'">
-                <i class="fas fa-file-invoice-dollar nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-                <span x-show="sidebarOpen" x-transition>Invoices</span>
             </a>
 
             <a href="{{ route('housekeeping.index') }}" wire:navigate
@@ -318,6 +358,35 @@
                class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('superadmin.global-settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
                 <i class="fas fa-sliders-h nav-icon"></i><span>Global Settings</span>
             </a>
+
+            <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Integrations</span></div>
+
+            <a href="{{ route('integrations.channels') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.channels') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-sync nav-icon"></i><span>OTA Channels</span>
+            </a>
+
+            <a href="{{ route('integrations.stripe') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.stripe') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fab fa-stripe nav-icon"></i><span>Stripe Settings</span>
+            </a>
+
+            <a href="{{ route('integrations.templates') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.templates') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="far fa-bell nav-icon"></i><span>Alert Templates</span>
+            </a>
+
+            <a href="{{ route('integrations.api') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.api') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-key nav-icon"></i><span>Developer API</span>
+            </a>
+
+            <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Enterprise</span></div>
+
+            <a href="{{ route('enterprise.logs') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('enterprise.logs') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-shield-alt nav-icon"></i><span>Audit Logs</span>
+            </a>
         @else
             <a href="{{ route('dashboard') }}" wire:navigate @click="mobileSidebarOpen = false"
                class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('dashboard') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
@@ -356,11 +425,6 @@
             <a href="{{ route('checkout.index') }}" wire:navigate @click="mobileSidebarOpen = false"
                class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('checkout.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
                 <i class="fas fa-sign-out-alt nav-icon"></i><span>Check-Out</span>
-            </a>
-            
-            <a href="{{ route('invoices.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('invoices.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-                <i class="fas fa-file-invoice-dollar nav-icon"></i><span>Invoices</span>
             </a>
             
             <a href="{{ route('housekeeping.index') }}" wire:navigate @click="mobileSidebarOpen = false"
