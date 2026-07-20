@@ -57,6 +57,11 @@ class Hotel extends Model
         return $this->hasMany(Subscription::class);
     }
 
+    public function subscription()
+    {
+        return $this->hasOne(Subscription::class)->latestOfMany();
+    }
+
     public function activeSubscription()
     {
         return $this->hasOne(Subscription::class)->whereIn('status', ['active', 'trialing'])->latestOfMany();

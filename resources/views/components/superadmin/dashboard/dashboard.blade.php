@@ -5,9 +5,21 @@
             <h1 class="text-2xl font-black text-slate-900 tracking-tight">Super Admin Dashboard</h1>
             <p class="text-sm text-slate-500 mt-0.5">{{ now()->format('l, d F Y') }} &mdash; Multi-tenant SaaS Management Panel</p>
         </div>
-        <div class="flex gap-2.5">
-            <a href="{{ route('superadmin.hotels.index') }}" class="btn-primary rounded-lg shadow-sm px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm flex items-center gap-1.5 cursor-pointer transition-colors duration-200">
+        <div class="flex gap-2 flex-wrap items-center">
+            <a href="{{ route('superadmin.hotels.index') }}" class="btn-primary rounded-lg shadow-sm px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-colors duration-200">
                 <i class="fas fa-hotel text-xs"></i> Manage Hotels
+            </a>
+            <a href="{{ route('integrations.channels') }}" class="rounded-lg shadow-sm px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-colors duration-200">
+                <i class="fas fa-sync text-xs text-indigo-600"></i> OTA Channels
+            </a>
+            <a href="{{ route('integrations.stripe') }}" class="rounded-lg shadow-sm px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-colors duration-200">
+                <i class="fab fa-stripe text-xs text-indigo-600"></i> Stripe
+            </a>
+            <a href="{{ route('integrations.templates') }}" class="rounded-lg shadow-sm px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-colors duration-200">
+                <i class="far fa-bell text-xs text-indigo-600"></i> Alert Templates
+            </a>
+            <a href="{{ route('integrations.api') }}" class="rounded-lg shadow-sm px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-colors duration-200">
+                <i class="fas fa-key text-xs text-indigo-600"></i> Developer API
             </a>
         </div>
     </div>

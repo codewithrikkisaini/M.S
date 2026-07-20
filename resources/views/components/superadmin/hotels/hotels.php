@@ -16,6 +16,8 @@ new class extends Component
 {
     public $hotelsList;
     public $showCreateModal = false;
+    public $showViewModal = false;
+    public $viewHotel = null;
     
     // Wizard step tracking
     public int $currentStep = 1;
@@ -79,6 +81,18 @@ new class extends Component
     public function closeCreateModal(): void
     {
         $this->showCreateModal = false;
+    }
+
+    public function openViewModal($id): void
+    {
+        $this->viewHotel = Hotel::with(['subscription.plan', 'rooms', 'users'])->find($id);
+        $this->showViewModal = true;
+    }
+
+    public function closeViewModal(): void
+    {
+        $this->showViewModal = false;
+        $this->viewHotel = null;
     }
 
     public function resetForm(): void
