@@ -16,6 +16,31 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/git-check', function () {
     return 'Git Upload Working - ' . now();
 });
+
+Route::get('/clear-records', function () {
+    try {
+        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
+        \App\Models\Reservation::query()->delete();
+        \Illuminate\Support\Facades\DB::table('reservation_rooms')->delete();
+        \App\Models\Guest::query()->delete();
+        \App\Models\Invoice::query()->delete();
+        \App\Models\Payment::query()->delete();
+        \App\Models\Checkin::query()->delete();
+        \App\Models\Checkout::query()->delete();
+        \App\Models\Housekeeping::query()->delete();
+        \App\Models\MaintenanceTicket::query()->delete();
+        \App\Models\HotelImage::query()->delete();
+        \App\Models\ActivityLog::query()->delete();
+        \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'All test reservations, guests, invoices, payments, activity logs, and gallery records have been completely cleared!'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+    }
+});
 // ─── Setup Route ───────────────────────────────────────────────────────────
 Route::get('/setup-project', function () {
     try {
