@@ -14,7 +14,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
-<body class="h-full bg-slate-50 font-sans antialiased">
+<body class="h-full bg-[#070714] text-slate-100 font-sans antialiased" style="background-color: #070714 !important; color: #f8fafc !important;">
 
     {{ $slot }}
 

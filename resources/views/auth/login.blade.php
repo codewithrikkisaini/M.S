@@ -42,7 +42,7 @@
 <div class="min-h-screen flex">
 
     {{-- ===== LEFT HERO PANEL ===== --}}
-    <div class="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-indigo-900 via-indigo-800 to-slate-900 overflow-hidden">
+    <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden" style="background: linear-gradient(135deg, #090d16 0%, #0f172a 50%, #1e1b4b 100%) !important; color: #ffffff !important;">
 
         {{-- Background decorative elements --}}
         <div class="absolute inset-0 opacity-10">

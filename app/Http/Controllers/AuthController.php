@@ -9,6 +9,13 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->hasRole('superadmin')) {
+                return redirect()->route('superadmin.dashboard');
+            }
+            return redirect()->route('dashboard');
+        }
         return view('auth.login');
     }
 
@@ -33,7 +40,7 @@ class AuthController extends Controller
             if ($user->hasRole('superadmin')) {
                 return redirect()->route('superadmin.dashboard');
             }
-            return redirect()->intended('dashboard');
+            return redirect()->route('dashboard');
         }
 
         return back()->withErrors([

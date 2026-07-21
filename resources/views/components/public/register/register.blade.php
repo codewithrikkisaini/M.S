@@ -1,59 +1,59 @@
 <div class="min-h-screen flex bg-slate-50">
     {{-- ===== LEFT HERO PANEL ===== --}}
-    <div class="hidden lg:flex lg:w-5/12 relative bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 overflow-hidden min-h-screen">
+    <div class="hidden lg:flex lg:w-5/12 relative overflow-hidden min-h-screen" style="background: linear-gradient(135deg, #090d16 0%, #0f172a 50%, #1e1b4b 100%) !important; color: #ffffff !important;">
         {{-- Background decorative elements --}}
-        <div class="absolute inset-0 opacity-10">
-            <div class="absolute top-20 left-20 w-80 h-80 bg-indigo-500 rounded-full blur-3xl"></div>
-            <div class="absolute bottom-32 right-16 w-64 h-64 bg-indigo-300 rounded-full blur-3xl"></div>
+        <div class="absolute inset-0 opacity-20">
+            <div class="absolute top-20 left-20 w-80 h-80 bg-indigo-600 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-32 right-16 w-64 h-64 bg-indigo-500 rounded-full blur-3xl"></div>
         </div>
 
         {{-- Grid pattern --}}
-        <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0); background-size: 32px 32px;"></div>
+        <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0); background-size: 32px 32px;"></div>
 
         <div class="relative z-10 flex flex-col justify-between p-12 w-full h-full">
             {{-- Logo --}}
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 bg-white/10 rounded-2xl flex items-center justify-center border border-white/15 shadow-xl backdrop-blur-md">
+                <div class="w-11 h-11 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20 shadow-xl backdrop-blur-md">
                     <i class="fas fa-hotel text-indigo-400 text-lg"></i>
                 </div>
                 <div>
                     <span class="text-white font-black text-xl tracking-tight block">Merahkie Group</span>
-                    <span class="text-[10px] uppercase font-bold tracking-widest text-indigo-300/80">SaaS PMS Enterprise</span>
+                    <span class="text-[10px] uppercase font-bold tracking-widest text-indigo-300">SaaS PMS Enterprise</span>
                 </div>
             </div>
 
             {{-- Text/Features --}}
             <div class="max-w-md my-auto space-y-6 py-8">
-                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-bold uppercase tracking-wider">
+                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 text-xs font-bold uppercase tracking-wider shadow-sm">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Complete Tenant Portal Onboarding
                 </span>
                 <h1 class="text-4xl font-black text-white tracking-tight leading-tight">
                     Apply for Your Enterprise Hotel Portal.
                 </h1>
-                <p class="text-indigo-200/80 text-sm leading-relaxed">
+                <p class="text-slate-300 text-sm leading-relaxed font-medium">
                     Provide your complete business profile, property specifications, and primary admin details to register your tenant account.
                 </p>
                 
-                <div class="space-y-4 pt-4 border-t border-white/10">
+                <div class="space-y-4 pt-4 border-t border-white/15">
                     <div class="flex items-start gap-3.5">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-400/20"><i class="fas fa-check text-xs"></i></div>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-400/30"><i class="fas fa-check text-xs"></i></div>
                         <div>
                             <h4 class="text-white text-xs font-bold uppercase tracking-wider">Full Data Isolation</h4>
-                            <p class="text-indigo-200/60 text-xs mt-0.5">Automated multi-tenant database scoping for complete data privacy.</p>
+                            <p class="text-slate-300 text-xs mt-0.5">Automated multi-tenant database scoping for complete data privacy.</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3.5">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-400/20"><i class="fas fa-check text-xs"></i></div>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-400/30"><i class="fas fa-check text-xs"></i></div>
                         <div>
                             <h4 class="text-white text-xs font-bold uppercase tracking-wider">Instant Provisioning</h4>
-                            <p class="text-indigo-200/60 text-xs mt-0.5">Rooms, floor layouts, and billing defaults configured upon approval.</p>
+                            <p class="text-slate-300 text-xs mt-0.5">Rooms, floor layouts, and billing defaults configured upon approval.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             {{-- Footer info --}}
-            <p class="text-indigo-300/40 text-xs">
+            <p class="text-indigo-200/50 text-xs">
                 &copy; {{ date('Y') }} Merahkie Silk Road Group &mdash; All Rights Reserved.
             </p>
         </div>
