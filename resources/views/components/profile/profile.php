@@ -8,11 +8,13 @@ use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\CheckIn;
 use App\Models\CheckOut;
+use App\Models\Reservation;
 use App\Models\Invoice;
 use App\Models\ActivityLog;
 use App\Models\HotelImage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 new class extends Component
@@ -79,6 +81,13 @@ new class extends Component
     public int $stats_occupancy = 0;
     public string $stats_revenue_today = '₹0';
     public string $stats_revenue_month = '₹0';
+    public int $stats_revenue_progress = 0;
+    public int $stats_monthly_revenue_progress = 0;
+    public int $stats_available_percent = 0;
+    public string $last_data_refresh = '';
+    public int $active_device_count = 1;
+    public array $active_devices = [];
+    public bool $show_logout_devices = false;
 
     // Password Update
     public string $current_password = '';
@@ -170,36 +179,72 @@ new class extends Component
                 // Calculate performance metrics
                 $this->stats_checkins_today = CheckIn::where('hotel_id', $hotel->id)->whereDate('created_at', today())->count();
                 $this->stats_checkouts_today = CheckOut::where('hotel_id', $hotel->id)->whereDate('created_at', today())->count();
-                $this->stats_guests_staying = CheckIn::where('hotel_id', $hotel->id)->whereNull('checked_out_at')->count(); // Assuming active checkins
-                if ($this->stats_guests_staying == 0) {
-                    $this->stats_guests_staying = 40; // Mock default if empty
-                }
-                if ($this->stats_checkins_today == 0) {
-                    $this->stats_checkins_today = 8;
-                }
-                if ($this->stats_checkouts_today == 0) {
-                    $this->stats_checkouts_today = 5;
-                }
+                $this->stats_guests_staying = Reservation::where('hotel_id', $hotel->id)->where('status', 'Checked-In')->count();
 
                 if ($this->rooms_total > 0) {
                     $this->stats_occupancy = round(($this->rooms_occupied / $this->rooms_total) * 100);
+                    $this->stats_available_percent = round(($this->rooms_available / $this->rooms_total) * 100);
                 } else {
-                    $this->stats_occupancy = 82; // Mock default if empty
+                    $this->stats_occupancy = 0;
+                    $this->stats_available_percent = 0;
                 }
+ 
+                // Query revenues using the linked checkout totals
+                $todayRev = Invoice::join('checkouts', 'invoices.checkout_id', '=', 'checkouts.id')
+                    ->where('invoices.hotel_id', $hotel->id)
+                    ->whereDate('invoices.created_at', today())
+                    ->sum('checkouts.total_amount');
+                $monthRev = Invoice::join('checkouts', 'invoices.checkout_id', '=', 'checkouts.id')
+                    ->where('invoices.hotel_id', $hotel->id)
+                    ->whereMonth('invoices.created_at', now()->month)
+                    ->whereYear('invoices.created_at', now()->year)
+                    ->sum('checkouts.total_amount');
 
-                // Query revenues
-                $todayRev = Invoice::where('hotel_id', $hotel->id)->whereDate('created_at', today())->sum('total');
-                $monthRev = Invoice::where('hotel_id', $hotel->id)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('total');
+                $this->stats_revenue_today = '₹' . number_format($todayRev);
+                $this->stats_revenue_month = '₹' . number_format($monthRev);
 
-                $this->stats_revenue_today = $todayRev > 0 ? '₹' . number_format($todayRev) : '₹72,500';
-                $this->stats_revenue_month = $monthRev > 0 ? '₹' . number_format($monthRev) : '₹18,40,000';
-
+                $dailyTarget = max(100000, $todayRev * 2, 75000);
+                $monthlyTarget = max(1800000, $monthRev * 2, 1200000);
+                $this->stats_revenue_progress = $dailyTarget > 0 ? min(100, (int) round(($todayRev / $dailyTarget) * 100)) : 0;
+                $this->stats_monthly_revenue_progress = $monthlyTarget > 0 ? min(100, (int) round(($monthRev / $monthlyTarget) * 100)) : 0;
+                $this->last_data_refresh = now()->format('d M Y h:i A');
+ 
                 // Query gallery images
                 $this->gallery_images = HotelImage::where('hotel_id', $hotel->id)
                     ->orderBy('is_primary', 'desc')
                     ->orderBy('id', 'asc')
                     ->get()
-                    ->toArray();
+                    ->map(function ($image) {
+                        return [
+                            'id' => $image->id,
+                            'hotel_id' => $image->hotel_id,
+                            'image_path' => $image->image_path,
+                            'is_primary' => (bool) $image->is_primary,
+                            'image_url' => Storage::disk('public')->url($image->image_path),
+                        ];
+                    })->toArray();
+
+                // Active login sessions / devices
+                $sessionLifetime = config('session.lifetime', 120);
+                $sessionTable = config('session.table', 'sessions');
+                $activeSessions = DB::table($sessionTable)
+                    ->where('user_id', $user->id)
+                    ->where('last_activity', '>=', now()->subMinutes($sessionLifetime)->timestamp)
+                    ->orderByDesc('last_activity')
+                    ->get();
+
+                $this->active_device_count = max(1, $activeSessions->count());
+                $this->active_devices = $activeSessions->map(function ($session) {
+                    $lastSeen = \Carbon\Carbon::createFromTimestamp($session->last_activity);
+
+                    return [
+                        'id' => $session->id,
+                        'ip_address' => $session->ip_address ?: 'Unknown',
+                        'user_agent' => $session->user_agent ?: 'Unknown browser',
+                        'last_activity' => $lastSeen->format('d M Y h:i A'),
+                        'last_seen' => $lastSeen->diffForHumans(),
+                    ];
+                })->toArray();
             }
         }
 
@@ -433,14 +478,27 @@ new class extends Component
             'current_password' => 'required|string',
         ]);
 
-        if (!Hash::check($this->current_password, Auth::user()->password)) {
+        $user = Auth::user();
+
+        if (!Hash::check($this->current_password, $user->password)) {
             $this->addError('current_password', 'The given password does not match the current password.');
             return;
         }
 
+        // Invalidate all other active sessions for this user.
+        $sessionTable = config('session.table', 'sessions');
+        DB::table($sessionTable)
+            ->where('user_id', $user->id)
+            ->where('id', '!=', session()->getId())
+            ->delete();
+
         Auth::logoutOtherDevices($this->current_password);
+
         ActivityLog::log('Logged Out Devices', 'Terminated active user sessions on other devices.');
         $this->dispatch('toast', message: 'Successfully logged out of all other devices.', type: 'success');
+        $this->reset('current_password');
+        $this->show_logout_devices = false;
+        $this->loadData();
     }
 
     public function render(): mixed
@@ -448,3 +506,5 @@ new class extends Component
         return $this->view([]);
     }
 };
+
+

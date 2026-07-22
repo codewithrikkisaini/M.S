@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div wire:poll.visible.60s="loadData" class="space-y-6">
     {{-- Header --}}
     <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
         <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 shadow-sm">
@@ -482,7 +482,7 @@
 
                             {{-- Left Column: Main Big Photo --}}
                             <div class="md:col-span-2 relative group rounded-2xl overflow-hidden border border-slate-100 shadow-sm aspect-[4/3] md:aspect-auto md:h-[350px]">
-                                <img src="{{ asset('storage/' . $primary['image_path']) }}" class="w-full h-full object-cover">
+                                <img src="{{ $primary['image_url'] }}" class="w-full h-full object-cover">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
                                     <div class="flex justify-between items-center">
                                         <span class="text-white text-xs font-bold"><i class="fas fa-star text-yellow-400 mr-1"></i> Primary Cover</span>
@@ -499,9 +499,9 @@
                             {{-- Right Column: 2 Stacked Photos --}}
                             <div class="md:col-span-1 flex flex-col gap-3 h-[350px]">
                                 @for($i = 0; $i < 2; $i++)
-                                    <div class="flex-1 relative group rounded-2xl overflow-hidden border border-slate-100 shadow-sm min-h-[160px]">
+                                    <div wire:key="hotel-gallery-right-{{ $i }}" class="flex-1 relative group rounded-2xl overflow-hidden border border-slate-100 shadow-sm min-h-[160px]">
                                         @if(isset($rightImages[$i]))
-                                            <img src="{{ asset('storage/' . $rightImages[$i]['image_path']) }}" class="w-full h-full object-cover">
+                                            <img src="{{ $rightImages[$i]['image_url'] }}" class="w-full h-full object-cover">
                                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
                                                 <div class="flex justify-between items-center">
                                                     <button wire:click="setPrimaryImage({{ $rightImages[$i]['id'] }})" class="text-white text-[10px] font-bold hover:underline flex items-center gap-1 cursor-pointer">
@@ -532,8 +532,8 @@
                                         $isLastSlot = $index === 4 && count($bottomImages) > 5;
                                         $remainingCount = count($bottomImages) - 4;
                                     @endphp
-                                    <div class="aspect-square relative group rounded-xl overflow-hidden border border-slate-100 shadow-sm">
-                                        <img src="{{ asset('storage/' . $img['image_path']) }}" class="w-full h-full object-cover">
+                                    <div wire:key="hotel-gallery-thumb-{{ $img['id'] }}" class="aspect-square relative group rounded-xl overflow-hidden border border-slate-100 shadow-sm">
+                                        <img src="{{ $img['image_url'] }}" class="w-full h-full object-cover">
                                         
                                         @if($isLastSlot)
                                             <div class="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-black text-xs md:text-sm">
@@ -565,9 +565,17 @@
 
             {{-- Hotel Statistics Card --}}
             <div class="pms-card shadow-sm border border-slate-100/80 p-6 space-y-4">
-                <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-                    <div class="w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100"><i class="fas fa-chart-line text-xs"></i></div>
-                    <h3 class="text-sm font-bold text-slate-800">📊 Hotel Statistics</h3>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100"><i class="fas fa-chart-line text-xs"></i></div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800">📊 Hotel Statistics</h3>
+                            <p class="text-[10px] text-slate-400">Last refreshed: {{ $last_data_refresh ?: now()->format('d M Y h:i A') }}</p>
+                        </div>
+                    </div>
+                    <button wire:click="loadData" class="btn-secondary text-xs font-bold rounded-lg py-2 px-3 shadow-sm hover:bg-slate-100 transition-colors">
+                        <i class="fas fa-sync-alt mr-1"></i> Refresh Data
+                    </button>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
                     <div class="p-3 bg-slate-50 rounded-lg border border-slate-100/50 flex flex-col justify-center">
@@ -595,6 +603,35 @@
                         <span class="text-lg font-black text-purple-600 mt-1">{{ $stats_revenue_month }}</span>
                     </div>
                 </div>
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-semibold text-slate-600">Occupancy Ratio</span>
+                            <span class="font-bold text-slate-800">{{ $stats_occupancy }}%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div class="h-full bg-indigo-600" style="width: {{ $stats_occupancy }}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-semibold text-slate-600">Revenue Performance</span>
+                            <span class="font-bold text-slate-800">{{ $stats_revenue_progress }}%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div class="h-full bg-emerald-500" style="width: {{ $stats_revenue_progress }}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-semibold text-slate-600">Monthly Revenue Goal</span>
+                            <span class="font-bold text-slate-800">{{ $stats_monthly_revenue_progress }}%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div class="h-full bg-violet-500" style="width: {{ $stats_monthly_revenue_progress }}%"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Security Card --}}
@@ -619,48 +656,52 @@
                     </div>
                     <div class="flex flex-col py-1 border-b border-slate-50/50">
                         <span class="text-slate-400 font-medium">Active Devices</span>
-                        <span class="font-bold text-slate-700 mt-0.5">2</span>
+                        <span class="font-bold text-slate-700 mt-0.5">{{ $active_device_count }}</span>
                     </div>
                     <div class="flex flex-col py-1 border-b border-slate-50/50 col-span-2">
                         <span class="text-slate-400 font-medium">Last Login IP</span>
                         <span class="font-bold text-slate-700 mt-0.5">{{ request()->ip() }}</span>
                     </div>
                 </div>
-
-                {{-- Password Expandable Form --}}
-                <div x-data="{ open: {{ $errors->has('current_password') ? 'true' : 'false' }} }" class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <button @click="open = !open" type="button" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 cursor-pointer">
-                            <i class="fas fa-key text-[10px]"></i> Change Password
-                        </button>
-                        <button wire:click="logoutAllDevices" class="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-bold transition-colors cursor-pointer">
-                            Logout All Devices
-                        </button>
-                    </div>
-
-                    <div x-show="open" x-transition class="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
-                        <h4 class="text-xs font-bold text-slate-700 uppercase">Change Account Password</h4>
-                        <div class="grid grid-cols-1 gap-3">
+ 
+                {{-- Device list and logout control --}}
+                <div class="space-y-4">
+                    <div class="flex flex-col gap-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div>
-                                <label class="pms-label text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Current Password</label>
-                                <input type="password" wire:model="current_password" class="pms-input text-xs" placeholder="••••••••">
-                                @error('current_password') <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                                <p class="text-xs font-bold text-slate-700 uppercase tracking-wider">Logged in devices</p>
+                                <p class="text-[10px] text-slate-400">Current session is preserved. Use the button below to sign out from any other active sessions.</p>
                             </div>
-                            <div>
-                                <label class="pms-label text-[10px] font-semibold text-slate-500 uppercase tracking-wider">New Password</label>
-                                <input type="password" wire:model="new_password" class="pms-input text-xs" placeholder="••••••••">
-                                @error('new_password') <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
-                            </div>
-                            <div>
-                                <label class="pms-label text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Confirm New Password</label>
-                                <input type="password" wire:model="new_password_confirmation" class="pms-input text-xs" placeholder="••••••••">
-                            </div>
+                            <button type="button" wire:click="$toggle('show_logout_devices')" class="btn-secondary text-xs font-bold rounded-lg py-2 px-3 shadow-sm hover:bg-slate-100 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-1"></i> Logout All Devices
+                            </button>
                         </div>
-                        <div class="flex justify-end gap-2 pt-2">
-                            <button @click="open = false" type="button" class="px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold hover:bg-slate-100 cursor-pointer">Cancel</button>
-                            <button wire:click="updatePassword" class="btn-primary text-[10px] font-bold rounded-lg py-1.5 px-3 cursor-pointer shadow-sm">Update Password</button>
+                        <div class="grid grid-cols-1 gap-2 text-xs">
+                            @foreach($active_devices as $device)
+                            <div class="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                                <div class="flex justify-between items-center gap-2 mb-2">
+                                    <span class="font-semibold text-slate-700">{{ $device['ip_address'] }}</span>
+                                    <span class="text-[10px] text-slate-400">{{ $device['last_seen'] }}</span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 truncate">{{ $device['user_agent'] }}</p>
+                            </div>
+                            @endforeach
                         </div>
                     </div>
+
+                    @if($show_logout_devices)
+                    <div class="rounded-xl border border-slate-100 bg-white p-4 text-xs space-y-3">
+                        <div>
+                            <label class="pms-label text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Current Password</label>
+                            <input type="password" wire:model="current_password" class="pms-input text-xs" placeholder="Enter your current password">
+                            @error('current_password') <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <button type="button" wire:click="$set('show_logout_devices', false)" class="px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold hover:bg-slate-100 cursor-pointer">Cancel</button>
+                            <button type="button" wire:click="logoutAllDevices" class="btn-primary text-[10px] font-bold rounded-lg py-1.5 px-3 cursor-pointer shadow-sm">Confirm Logout</button>
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
             </div>
