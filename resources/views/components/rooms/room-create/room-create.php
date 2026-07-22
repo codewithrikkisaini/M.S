@@ -27,6 +27,14 @@ new class extends Component
         }
     }
 
+    public function updatedRoomTypeId(string $value): void
+    {
+        $roomType = RoomType::find($value);
+        if ($roomType) {
+            $this->price = (string) $roomType->daily_rate;
+        }
+    }
+ 
     public function save(): void
     {
         $this->validate([
@@ -51,6 +59,6 @@ new class extends Component
 
     public function render(): mixed
     {
-        return $this->view(['roomTypes' => RoomType::all()]);
+        return $this->view(['roomTypes' => RoomType::where('status', 'Active')->orderBy('name')->get()]);
     }
 };

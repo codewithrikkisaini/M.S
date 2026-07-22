@@ -218,7 +218,7 @@
                         <td class="font-bold text-slate-800 text-xs">{{ $row['name'] ?? '—' }}</td>
                         <td class="text-slate-600 text-xs font-semibold">{{ $row['rent'] !== null ? '$' . number_format($row['rent'], 2) : '—' }}</td>
                         <td class="text-slate-600 text-xs font-medium">{{ $row['tax'] !== null ? '$' . number_format($row['tax'], 2) : '—' }}</td>
-                        <td class="text-slate-400 text-xs">—</td>
+                        <td class="text-slate-600 text-xs font-medium">{{ $row['misc'] !== null ? '$' . number_format($row['misc'], 2) : '—' }}</td>
                         <td class="text-slate-500 text-xs font-medium">{{ $row['arrival_date'] ? \Carbon\Carbon::parse($row['arrival_date'])->format('d M Y') : '—' }}</td>
                         <td class="text-slate-500 text-xs font-medium">{{ $row['departure_date'] ? \Carbon\Carbon::parse($row['departure_date'])->format('d M Y') : '—' }}</td>
                         <td class="text-xs font-bold {{ ($row['balance_due'] ?? 0) > 0 ? 'text-red-600' : 'text-slate-600' }}">{{ $row['balance_due'] !== null ? '$' . number_format($row['balance_due'], 2) : '—' }}</td>

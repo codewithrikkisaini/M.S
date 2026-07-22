@@ -10,7 +10,7 @@ class CheckOut extends Model
     use BelongsToTenant;
 
     protected $table = 'checkouts';
-    protected $fillable = ['reservation_id', 'checkout_datetime', 'nights', 'subtotal', 'discount', 'tax', 'tax_rate', 'total_amount', 'hotel_id'];
+    protected $fillable = ['reservation_id', 'checkout_datetime', 'nights', 'subtotal', 'discount', 'tax', 'tax_rate', 'misc_charge', 'total_amount', 'hotel_id'];
     
     protected $casts = [
         'checkout_datetime' => 'datetime',

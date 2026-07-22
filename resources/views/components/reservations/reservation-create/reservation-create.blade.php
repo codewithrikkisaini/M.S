@@ -291,6 +291,21 @@
                         <input type="number" step="0.01" min="0" max="100" wire:model.live.debounce.400ms="tax_rate" class="pms-input text-xs" placeholder="18">
                         @error('tax_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                    <div>
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Rate Plan</label>
+                        <select wire:model.live="pricing_mode" class="pms-select text-xs">
+                            <option value="auto">Auto (Best rate: daily/weekly/monthly)</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                        @error('pricing_mode') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Misc. Charges ($)</label>
+                        <input type="number" step="0.01" min="0" wire:model.live.debounce.400ms="misc_charge" class="pms-input text-xs" placeholder="0.00">
+                        @error('misc_charge') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
 
                     @if($charges)
                     <div class="bg-slate-50 rounded-xl p-4 text-xs space-y-2.5 border border-slate-150 shadow-inner">
@@ -305,9 +320,17 @@
                             <span>-${{ number_format($charges['discount'], 2) }}</span>
                         </div>
                         @endif
+                        <div class="flex justify-between text-slate-500 font-medium">
+                            <span>Rate Plan</span>
+                            <span class="uppercase">{{ $pricing_mode === 'auto' ? 'Auto' : ucfirst($pricing_mode) }}</span>
+                        </div>
                         <div class="flex justify-between text-slate-600 font-medium">
                             <span>Tax ({{ $charges['tax_rate'] }}%)</span>
                             <span>${{ number_format($charges['tax'], 2) }}</span>
+                        </div>
+                        <div class="flex justify-between text-slate-600 font-medium">
+                            <span>Misc. Charges</span>
+                            <span>${{ number_format($charges['misc'] ?? 0, 2) }}</span>
                         </div>
                         <div class="flex justify-between text-slate-900 font-black border-t border-slate-200/80 pt-2 text-sm">
                             <span>Total Amount</span>

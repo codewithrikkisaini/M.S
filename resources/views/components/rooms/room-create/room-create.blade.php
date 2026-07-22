@@ -45,6 +45,7 @@
                                 <option value="{{ $type->id }}">{{ $type->name }}</option>
                             @endforeach
                         </select>
+                        <p class="text-[10px] text-slate-400 mt-1">The nightly room price will auto-populate from the selected room type.</p>
                         @error('room_type_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>

@@ -481,6 +481,12 @@
 
             {{-- Modal Body --}}
             <div class="p-6 space-y-6 max-h-[78vh] overflow-y-auto bg-slate-50/60">
+                @php
+                    $viewHotelImage = $viewHotel->primary_image_url ?: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80';
+                @endphp
+                <div class="rounded-3xl overflow-hidden border border-slate-200 shadow-sm">
+                    <img src="{{ $viewHotelImage }}" alt="{{ $viewHotel->name }}" class="w-full h-60 object-cover">
+                </div>
                 {{-- Registration Summary Bar --}}
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">

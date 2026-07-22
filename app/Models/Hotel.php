@@ -47,6 +47,25 @@ class Hotel extends Model
         return $this->hasMany(HotelImage::class);
     }
 
+    public function primaryImage()
+    {
+        return $this->hasOne(HotelImage::class)->where('is_primary', true)->latestOfMany();
+    }
+
+    public function getPrimaryImageAttribute()
+    {
+        return $this->images->firstWhere('is_primary', true) ?: $this->images->first();
+    }
+
+    public function getPrimaryImageUrlAttribute()
+    {
+        if (!$this->primary_image) {
+            return null;
+        }
+
+        return asset('storage/' . $this->primary_image->image_path);
+    }
+
     public function rooms()
     {
         return $this->hasMany(Room::class);

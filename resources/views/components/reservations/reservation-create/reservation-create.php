@@ -17,6 +17,8 @@ new class extends Component
     public string $tax_rate = '18';
 
     public string $payment_type = 'Cash', $payment_amount = '';
+    public string $misc_charge = '0';
+    public string $pricing_mode = 'auto';
 
     // New guest fields
     public bool $is_new_guest = false;
@@ -36,6 +38,16 @@ new class extends Component
 
     public function updatedCheckOutDate(): void { $this->room_ids = []; }
 
+    public function updatedRoomIds(): void
+    {
+        if (!empty($this->room_ids)) {
+            $room = Room::with('roomType')->whereIn('id', $this->room_ids)->first();
+            if ($room && $room->roomType) {
+                $this->tax_rate = (string) ($room->roomType->tax_percentage ?? 15);
+            }
+        }
+    }
+
     public function save(ReservationService $service): void
     {
         $rules = [
@@ -48,8 +60,10 @@ new class extends Component
             'discount_type'   => 'required|in:Fixed,Percentage',
             'discount_value'  => 'nullable|numeric|min:0',
             'tax_rate'        => 'required|numeric|min:0|max:100',
+            'pricing_mode'    => 'required|in:auto,daily,weekly,monthly',
             'payment_type'    => 'required|in:Cash,Card,UPI',
             'payment_amount'  => 'nullable|numeric|min:0',
+            'misc_charge'     => 'nullable|numeric|min:0',
         ];
 
         if ($this->is_new_guest) {
@@ -98,7 +112,9 @@ new class extends Component
             'discount_type'  => $this->discount_type,
             'discount_value' => $this->discount_value !== '' ? $this->discount_value : 0,
             'tax_rate'       => $this->tax_rate !== '' ? $this->tax_rate : 18,
+            'pricing_mode'   => $this->pricing_mode,
             'special_notes'  => $this->special_notes,
+            'misc_charge'    => $this->misc_charge !== '' ? $this->misc_charge : 0,
             'status'         => 'Confirmed',
         ], false);
 
@@ -137,9 +153,11 @@ new class extends Component
                 'discount_type'  => $this->discount_type,
                 'discount_value' => $this->discount_value !== '' ? $this->discount_value : 0,
                 'tax_rate'       => $this->tax_rate !== '' ? $this->tax_rate : 18,
+                'pricing_mode'   => $this->pricing_mode,
             ]);
-            $preview->setRelation('rooms', Room::whereIn('id', $this->room_ids)->get());
-            $charges = $preview->calculateCharges();
+            $preview->setRelation('rooms', Room::with('roomType')->whereIn('id', $this->room_ids)->get());
+            $preview->misc_charge = $this->misc_charge !== '' ? $this->misc_charge : 0;
+            $charges = $preview->calculateCharges(null, $this->pricing_mode);
             $balanceDue = round($charges['total'] - (float) ($this->payment_amount !== '' ? $this->payment_amount : 0), 2);
         }
 

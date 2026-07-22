@@ -29,7 +29,7 @@ class ReservationService
             $reservation = $this->reservationRepository->createOrUpdate($id, $data);
 
             $pivotData = [];
-            foreach (Room::whereIn('id', $roomIds)->get() as $room) {
+            foreach (Room::with('roomType')->whereIn('id', $roomIds)->get() as $room) {
                 $pivotData[$room->id] = ['price' => $room->price];
 
                 if (!$isEditMode && $room->status === 'Available') {
@@ -109,7 +109,7 @@ class ReservationService
             $nights = max(1, (int) ceil($checkInDate->diffInDays($checkOutDate)));
 
             // Calculate charges (rooms + discount + tax)
-            $charges = $res->calculateCharges($nights);
+            $charges = $res->calculateCharges($nights, $res->pricing_mode ?? 'auto');
 
             $totalPaid = $res->total_paid;
             if ($totalPaid < $charges['total']) {
@@ -141,6 +141,7 @@ class ReservationService
                 'discount' => $charges['discount'],
                 'tax' => $charges['tax'],
                 'tax_rate' => $charges['tax_rate'],
+                'misc_charge' => $charges['misc'] ?? 0,
                 'total_amount' => $charges['total']
             ]);
 

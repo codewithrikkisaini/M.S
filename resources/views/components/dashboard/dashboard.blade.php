@@ -145,7 +145,7 @@
                                             <button @click.stop="open = !open" type="button" 
                                                     class="w-full p-4 rounded-xl flex flex-col items-center justify-center transition-all duration-200 cursor-pointer shadow-sm text-center relative {{ $classes }} hover:-translate-y-0.5">
                                                 <span class="font-extrabold text-base tracking-tight">{{ $room->room_number }}</span>
-                                                <span class="text-[9px] font-bold opacity-75 mt-0.5 uppercase tracking-wide">{{ $room->roomType->name }}</span>
+                                                <span class="text-[9px] font-bold opacity-75 mt-0.5 uppercase tracking-wide">{{ optional($room->roomType)->name ?? 'No Type' }}</span>
                                                 
                                                 {{-- Live Indicator dots --}}
                                                 <div class="flex items-center gap-1 mt-1.5">
@@ -169,7 +169,7 @@
                                                  
                                                  <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
                                                      <span class="font-bold text-slate-800 text-sm">Room {{ $room->room_number }}</span>
-                                                     <span class="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-wider">{{ $room->roomType->name }}</span>
+                                                     <span class="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-wider">{{ optional($room->roomType)->name ?? 'No Type' }}</span>
                                                  </div>
                                                  
                                                  <div class="space-y-1.5 text-xs text-slate-600">

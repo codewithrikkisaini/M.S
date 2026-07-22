@@ -213,11 +213,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     @foreach($hotels as $hotel)
                         @php
-                            $primaryImg = $hotel->images->where('is_primary', true)->first() ?: $hotel->images->first();
-                            $imgUrl = $primaryImg 
-                                ? asset('storage/' . $primaryImg->image_path) 
-                                : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
-                            
+                            $imgUrl = $hotel->primary_image_url ?: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
                             $minPrice = $hotel->rooms->min('price');
                             $priceFormatted = $minPrice ? '₹' . number_format($minPrice) : '₹2,500';
                             $ratingStars = intval($hotel->category ?? 5);

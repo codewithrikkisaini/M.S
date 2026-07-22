@@ -50,7 +50,9 @@ new class extends Component
     public function getSelectedHotelProperty()
     {
         if (!$this->hotel_id) return null;
-        return Hotel::with('images')->find($this->hotel_id);
+        return Hotel::with(['images' => function ($query) {
+            $query->orderByDesc('is_primary')->orderBy('id');
+        }])->find($this->hotel_id);
     }
 
     public function getRoomTypesProperty()

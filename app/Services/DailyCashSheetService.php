@@ -13,7 +13,7 @@ class DailyCashSheetService
     {
         $day = Carbon::parse($date)->startOfDay();
 
-        $reservations = Reservation::with(['guest', 'rooms', 'payments'])
+        $reservations = Reservation::with(['guest', 'rooms.roomType', 'payments'])
             ->where('status', '!=', 'Cancelled')
             ->whereDate('check_in_date', '<=', $day)
             ->whereDate('check_out_date', '>=', $day)
@@ -25,7 +25,7 @@ class DailyCashSheetService
             foreach ($reservation->rooms as $room) {
                 $occupancyByRoom[$room->id] = [
                     'reservation' => $reservation,
-                    'rate'        => (float) ($room->pivot->price ?? $room->price ?? 0),
+                    'rate'        => (float) ($room->roomType ? $room->roomType->daily_rate : ($room->pivot->price ?? $room->price ?? 0)),
                 ];
             }
         }
@@ -55,7 +55,7 @@ class DailyCashSheetService
                 'name'           => $reservation->guest->name ?? 'N/A',
                 'rent'           => $rate,
                 'tax'            => round($rate * ((float) $reservation->tax_rate / 100), 2),
-                'misc'           => null,
+                'misc'           => round((float) $reservation->misc_charge, 2),
                 'arrival_date'   => $reservation->check_in_date,
                 'departure_date' => $reservation->check_out_date,
                 'balance_due'    => $reservation->balance_due,

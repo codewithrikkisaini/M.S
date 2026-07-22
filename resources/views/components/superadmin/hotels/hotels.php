@@ -85,7 +85,7 @@ new class extends Component
 
     public function openViewModal($id): void
     {
-        $this->viewHotel = Hotel::with(['subscription.plan', 'rooms', 'users'])->find($id);
+        $this->viewHotel = Hotel::with(['subscription.plan', 'rooms', 'users', 'images'])->find($id);
         $this->showViewModal = true;
     }
 

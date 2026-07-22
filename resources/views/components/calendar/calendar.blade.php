@@ -125,7 +125,7 @@
                                 <tr class="hover:bg-slate-50/20 transition-colors">
                                     <td class="sticky-column left-0 z-10 bg-white font-semibold text-slate-700 text-xs px-4 py-3 border-r border-slate-200 flex flex-col justify-center h-16 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                                         <span class="font-extrabold text-slate-800 text-sm">Room {{ $room->room_number }}</span>
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{{ $room->roomType->name }}</span>
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{{ optional($room->roomType)->name ?? 'No Type' }}</span>
                                     </td>
                                     @foreach($days as $idx => $day)
                                         @php
@@ -336,7 +336,7 @@
                                     <select wire:model="modalRoomId" class="pms-select text-xs mt-1">
                                         <option value="">Select Room...</option>
                                         @foreach($rooms as $r)
-                                            <option value="{{ $r->id }}">Room {{ $r->room_number }} ({{ $r->roomType->name }})</option>
+                                            <option value="{{ $r->id }}">Room {{ $r->room_number }} ({{ optional($r->roomType)->name ?? 'No Type' }})</option>
                                         @endforeach
                                     </select>
                                 @endif
