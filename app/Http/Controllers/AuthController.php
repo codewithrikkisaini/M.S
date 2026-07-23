@@ -28,14 +28,35 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
+
+            if ($user->hotel_id) {
+                $hotel = \App\Models\Hotel::find($user->hotel_id);
+                if ($hotel && $hotel->status === 'pending') {
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+                    return back()->withErrors([
+                        'email' => '⏳ Your hotel registration ("' . $hotel->name . '") is currently pending approval by Super Admin. Access will open once approved!',
+                    ])->onlyInput('email');
+                } elseif ($hotel && $hotel->status === 'rejected') {
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+                    return back()->withErrors([
+                        'email' => '❌ Your hotel registration ("' . $hotel->name . '") was rejected. Please contact support.',
+                    ])->onlyInput('email');
+                }
+            }
+
             if ($user->status !== 'active') {
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
                 return back()->withErrors([
-                    'email' => 'Your account or hotel is pending approval or suspended.',
+                    'email' => 'Your account is currently inactive or pending approval.',
                 ])->onlyInput('email');
             }
+
             $request->session()->regenerate();
             if ($user->hasRole('superadmin')) {
                 return redirect()->route('superadmin.dashboard');
