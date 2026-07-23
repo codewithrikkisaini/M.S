@@ -38,6 +38,16 @@ new class extends Component
         }
     }
 
+    public function updatedRoomTypeId($value): void
+    {
+        if (!empty($value)) {
+            $type = RoomType::find($value);
+            if ($type) {
+                $this->price = (string) ($type->daily_rate ?: $type->base_price);
+            }
+        }
+    }
+
     public function save(): void
     {
         $this->validate([

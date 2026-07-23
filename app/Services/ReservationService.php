@@ -28,9 +28,24 @@ class ReservationService
 
             $reservation = $this->reservationRepository->createOrUpdate($id, $data);
 
+            $nights = 1;
+            if (!empty($data['check_in_date']) && !empty($data['check_out_date'])) {
+                $nights = max(1, (int) ceil(\Carbon\Carbon::parse($data['check_in_date'])->diffInDays(\Carbon\Carbon::parse($data['check_out_date']))));
+            }
+
             $pivotData = [];
-            foreach (Room::whereIn('id', $roomIds)->get() as $room) {
-                $pivotData[$room->id] = ['price' => $room->price];
+            foreach (Room::with('roomType')->whereIn('id', $roomIds)->get() as $room) {
+                $rate = (float) ($room->price ?? 0);
+                if ($room->roomType) {
+                    if ($nights >= 30 && (float)$room->roomType->monthly_rate > 0) {
+                        $rate = round((float)$room->roomType->monthly_rate / 30, 2);
+                    } elseif ($nights >= 7 && (float)$room->roomType->weekly_rate > 0) {
+                        $rate = round((float)$room->roomType->weekly_rate / 7, 2);
+                    } elseif ((float)$room->roomType->daily_rate > 0) {
+                        $rate = (float) $room->roomType->daily_rate;
+                    }
+                }
+                $pivotData[$room->id] = ['price' => $rate];
 
                 if (!$isEditMode && $room->status === 'Available') {
                     $room->update(['status' => 'Reserved']);

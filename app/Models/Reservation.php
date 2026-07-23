@@ -53,15 +53,37 @@ class Reservation extends Model
     {
         $nights = $nights ?? $this->nights;
 
-        $roomsPerNight = (float) $this->rooms->sum(fn ($r) => (float) ($r->pivot?->price ?? $r->price ?? 0));
-        $subtotal = $nights * $roomsPerNight;
+        $roomsPerNight = (float) $this->rooms->sum(function ($r) use ($nights) {
+            $pivotPrice = (float) ($r->pivot?->price ?? 0);
+            if ($pivotPrice > 0) {
+                return $pivotPrice;
+            }
+
+            if ($r->roomType) {
+                if ($nights >= 30 && $r->roomType->monthly_rate > 0) {
+                    return round((float) $r->roomType->monthly_rate / 30, 2);
+                }
+                if ($nights >= 7 && $r->roomType->weekly_rate > 0) {
+                    return round((float) $r->roomType->weekly_rate / 7, 2);
+                }
+                if ($r->roomType->daily_rate > 0) {
+                    return (float) $r->roomType->daily_rate;
+                }
+            }
+
+            return (float) ($r->price ?? 0);
+        });
+
+        $subtotal = round($nights * $roomsPerNight, 2);
 
         $discount = $this->discount_type === 'Percentage'
             ? round($subtotal * ((float) $this->discount_value / 100), 2)
             : min((float) $this->discount_value, $subtotal);
 
         $discountedSubtotal = $subtotal - $discount;
-        $tax_rate = (float) ($this->tax_rate ?? 18);
+
+        // Auto fallback to room type tax percent if tax_rate is missing
+        $tax_rate = (float) ($this->tax_rate ?? ($this->rooms->first()?->roomType?->tax_percent ?? 15));
         $tax = round($discountedSubtotal * ($tax_rate / 100), 2);
         $total = round($discountedSubtotal + $tax, 2);
 

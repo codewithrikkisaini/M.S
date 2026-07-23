@@ -10,7 +10,15 @@ class RoomType extends Model
 {
     use HasFactory, BelongsToTenant;
 
-    protected $fillable = ['name', 'hotel_id'];
+    protected $fillable = [
+        'name',
+        'hotel_id',
+        'daily_rate',
+        'weekly_rate',
+        'monthly_rate',
+        'tax_percent',
+        'status',
+    ];
 
     public function rooms()
     {
@@ -19,7 +27,7 @@ class RoomType extends Model
 
     public function getBasePriceAttribute()
     {
-        return $this->rooms()->avg('price') ?: 150.00;
+        return (float) ($this->daily_rate ?: 59.95);
     }
 
     public function getBaseOccupancyAttribute()

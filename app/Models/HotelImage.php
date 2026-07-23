@@ -13,6 +13,8 @@ class HotelImage extends Model
         'hotel_id',
         'image_path',
         'is_primary',
+        'title',
+        'description',
     ];
 
     public function hotel()

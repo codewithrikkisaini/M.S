@@ -92,6 +92,11 @@ new class extends Component
     public $gallery_photos = [];
     public array $gallery_images = [];
 
+    // Image Description Editing
+    public ?int $editing_image_id = null;
+    public string $editing_image_title = '';
+    public string $editing_image_description = '';
+
     public function boot(): void
     {
         if (!Auth::check()) {
@@ -307,6 +312,43 @@ new class extends Component
             $this->dispatch('toast', message: 'Image deleted successfully.', type: 'success');
         }
         $this->loadData();
+    }
+
+    public function editImage(int $imageId): void
+    {
+        $image = HotelImage::find($imageId);
+        if ($image) {
+            $this->editing_image_id = $image->id;
+            $this->editing_image_title = $image->title ?? '';
+            $this->editing_image_description = $image->description ?? '';
+        }
+    }
+
+    public function saveImageDetails(): void
+    {
+        if (!$this->editing_image_id) return;
+
+        $user = Auth::user();
+        $image = HotelImage::where('id', $this->editing_image_id)->where('hotel_id', $user->hotel_id)->first();
+        if ($image) {
+            $image->update([
+                'title' => $this->editing_image_title,
+                'description' => $this->editing_image_description,
+            ]);
+
+            ActivityLog::log('Updated Image Details', 'Updated caption/description for gallery image.');
+            $this->dispatch('toast', message: 'Image description updated successfully.', type: 'success');
+        }
+
+        $this->cancelEditImage();
+        $this->loadData();
+    }
+
+    public function cancelEditImage(): void
+    {
+        $this->editing_image_id = null;
+        $this->editing_image_title = '';
+        $this->editing_image_description = '';
     }
 
     public function savePersonal(): void

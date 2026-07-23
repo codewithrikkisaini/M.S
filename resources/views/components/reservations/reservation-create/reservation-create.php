@@ -36,6 +36,16 @@ new class extends Component
 
     public function updatedCheckOutDate(): void { $this->room_ids = []; }
 
+    public function updatedRoomIds(): void
+    {
+        if (!empty($this->room_ids)) {
+            $selectedRoom = Room::with('roomType')->whereIn('id', $this->room_ids)->first();
+            if ($selectedRoom && $selectedRoom->roomType && $selectedRoom->roomType->tax_percent !== null) {
+                $this->tax_rate = (string) $selectedRoom->roomType->tax_percent;
+            }
+        }
+    }
+
     public function save(ReservationService $service): void
     {
         $rules = [

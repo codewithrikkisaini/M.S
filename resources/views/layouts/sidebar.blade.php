@@ -245,39 +245,7 @@
                 <span x-show="sidebarOpen" x-transition>Billing & Plans</span>
             </a>
 
-            {{-- Category: Integrations --}}
-            <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Integrations</span>
-            </div>
-            <div x-show="!sidebarOpen" class="border-t border-slate-900 my-3" style="display:none"></div>
 
-            <a href="{{ route('integrations.channels') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.channels') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-               :class="sidebarOpen ? '' : 'justify-center px-0'">
-                <i class="fas fa-sync nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-                <span x-show="sidebarOpen" x-transition>OTA Channels</span>
-            </a>
-
-            <a href="{{ route('integrations.stripe') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.stripe') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-               :class="sidebarOpen ? '' : 'justify-center px-0'">
-                <i class="fab fa-stripe nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-                <span x-show="sidebarOpen" x-transition>Stripe Settings</span>
-            </a>
-
-            <a href="{{ route('integrations.templates') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.templates') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-               :class="sidebarOpen ? '' : 'justify-center px-0'">
-                <i class="far fa-bell nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-                <span x-show="sidebarOpen" x-transition>Alert Templates</span>
-            </a>
-
-            <a href="{{ route('integrations.api') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.api') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-               :class="sidebarOpen ? '' : 'justify-center px-0'">
-                <i class="fas fa-key nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-                <span x-show="sidebarOpen" x-transition>Developer API</span>
-            </a>
 
             {{-- Category: Enterprise --}}
             <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
@@ -467,27 +435,7 @@
                 <i class="fas fa-wallet nav-icon"></i><span>Billing & Plans</span>
             </a>
 
-            <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Integrations</span></div>
 
-            <a href="{{ route('integrations.channels') }}" wire:navigate @click="mobileSidebarOpen = false"
-               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.channels') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-                <i class="fas fa-sync nav-icon"></i><span>OTA Channels</span>
-            </a>
-
-            <a href="{{ route('integrations.stripe') }}" wire:navigate @click="mobileSidebarOpen = false"
-               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.stripe') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-                <i class="fab fa-stripe nav-icon"></i><span>Stripe Settings</span>
-            </a>
-
-            <a href="{{ route('integrations.templates') }}" wire:navigate @click="mobileSidebarOpen = false"
-               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.templates') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-                <i class="far fa-bell nav-icon"></i><span>Alert Templates</span>
-            </a>
-
-            <a href="{{ route('integrations.api') }}" wire:navigate @click="mobileSidebarOpen = false"
-               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('integrations.api') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-                <i class="fas fa-key nav-icon"></i><span>Developer API</span>
-            </a>
 
             <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Enterprise</span></div>
 

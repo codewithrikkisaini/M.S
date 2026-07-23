@@ -39,10 +39,10 @@
                                 <i class="fas fa-cog text-[9px]"></i> Manage Types
                             </a>
                         </div>
-                        <select wire:model="room_type_id" class="pms-select text-xs">
-                            <option value="">Select type...</option>
+                        <select wire:model.live="room_type_id" class="pms-select text-xs font-semibold">
+                            <option value="">Select Room Type...</option>
                             @foreach($roomTypes as $type)
-                                <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                <option value="{{ $type->id }}">{{ $type->name }} (Daily: {{ number_format($type->daily_rate ?: 59.95, 2) }} | Weekly: {{ number_format($type->weekly_rate ?: 249.90, 2) }} | Tax: {{ $type->tax_percent ?: 15 }}%)</option>
                             @endforeach
                         </select>
                         @error('room_type_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror

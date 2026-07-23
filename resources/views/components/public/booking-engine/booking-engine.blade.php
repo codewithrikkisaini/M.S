@@ -58,7 +58,8 @@
         @php
             $selectedHotelImages = [];
             if ($selectedHotel && !empty($selectedHotel->images) && count($selectedHotel->images) > 0) {
-                foreach ($selectedHotel->images as $img) {
+                $sortedImages = collect($selectedHotel->images)->sortByDesc('is_primary');
+                foreach ($sortedImages as $img) {
                     $selectedHotelImages[] = asset('storage/' . $img['image_path']);
                 }
             } else {

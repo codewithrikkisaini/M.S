@@ -468,93 +468,75 @@
                         </div>
                     </div>
                 @else
-                    {{-- Grid Layout mimicking user mockup --}}
+                    {{-- Dynamic Gallery showing ONLY uploaded/selected images --}}
                     <div class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            
-                            {{-- Main Large Photo (Facade / Primary) --}}
-                            @php
-                                $primary = collect($gallery_images)->firstWhere('is_primary', true) ?: $gallery_images[0];
-                                $otherImages = collect($gallery_images)->reject(fn($img) => $img['id'] === $primary['id'])->values()->all();
-                                $rightImages = array_slice($otherImages, 0, 2);
-                                $bottomImages = array_slice($otherImages, 2);
-                            @endphp
-
-                            {{-- Left Column: Main Big Photo --}}
-                            <div class="md:col-span-2 relative group rounded-2xl overflow-hidden border border-slate-100 shadow-sm aspect-[4/3] md:aspect-auto md:h-[350px]">
-                                <img src="{{ asset('storage/' . $primary['image_path']) }}" class="w-full h-full object-cover">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-white text-xs font-bold"><i class="fas fa-star text-yellow-400 mr-1"></i> Primary Cover</span>
-                                        <button wire:click="deleteImage({{ $primary['id'] }})" wire:confirm="Are you sure you want to delete this photo?" class="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors cursor-pointer shadow">
-                                            <i class="fas fa-trash-alt text-xs"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="absolute top-3 left-3 bg-indigo-600 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow">
-                                    Primary
-                                </div>
-                            </div>
-
-                            {{-- Right Column: 2 Stacked Photos --}}
-                            <div class="md:col-span-1 flex flex-col gap-3 h-[350px]">
-                                @for($i = 0; $i < 2; $i++)
-                                    <div class="flex-1 relative group rounded-2xl overflow-hidden border border-slate-100 shadow-sm min-h-[160px]">
-                                        @if(isset($rightImages[$i]))
-                                            <img src="{{ asset('storage/' . $rightImages[$i]['image_path']) }}" class="w-full h-full object-cover">
-                                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                                                <div class="flex justify-between items-center">
-                                                    <button wire:click="setPrimaryImage({{ $rightImages[$i]['id'] }})" class="text-white text-[10px] font-bold hover:underline flex items-center gap-1 cursor-pointer">
-                                                        <i class="far fa-star"></i> Set Cover
-                                                    </button>
-                                                    <button wire:click="deleteImage({{ $rightImages[$i]['id'] }})" wire:confirm="Are you sure you want to delete this photo?" class="w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors cursor-pointer shadow">
-                                                        <i class="fas fa-trash-alt text-[10px]"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        @else
-                                            <div class="w-full h-full bg-slate-50 border border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
-                                                <i class="fas fa-image text-xl mb-1"></i>
-                                                <span class="text-[9px] font-semibold uppercase tracking-wider">Empty Slot</span>
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endfor
-                            </div>
-
-                        </div>
-
-                        {{-- Bottom Row: Thumbnails --}}
-                        @if(count($bottomImages) > 0)
-                            <div class="grid grid-cols-5 gap-3">
-                                @foreach(array_slice($bottomImages, 0, 5) as $index => $img)
-                                    @php
-                                        $isLastSlot = $index === 4 && count($bottomImages) > 5;
-                                        $remainingCount = count($bottomImages) - 4;
-                                    @endphp
-                                    <div class="aspect-square relative group rounded-xl overflow-hidden border border-slate-100 shadow-sm">
-                                        <img src="{{ asset('storage/' . $img['image_path']) }}" class="w-full h-full object-cover">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            @foreach($gallery_images as $img)
+                                <div class="relative group rounded-2xl overflow-hidden border {{ $img['is_primary'] ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-100' }} shadow-sm bg-white flex flex-col">
+                                    {{-- Image Container --}}
+                                    <div class="relative aspect-[4/3] bg-slate-900 overflow-hidden">
+                                        <img src="{{ asset('storage/' . $img['image_path']) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                         
-                                        @if($isLastSlot)
-                                            <div class="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-black text-xs md:text-sm">
-                                                +{{ $remainingCount }} Photos
+                                        {{-- Primary Cover Badge --}}
+                                        @if($img['is_primary'])
+                                            <div class="absolute top-2.5 left-2.5 bg-indigo-600 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-md flex items-center gap-1">
+                                                <i class="fas fa-star text-yellow-300"></i> Main Front Cover
+                                            </div>
+                                        @endif
+
+                                        {{-- Actions Overlay --}}
+                                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+                                            <div class="flex justify-end gap-1.5">
+                                                <button wire:click="editImage({{ $img['id'] }})" title="Edit Title & Description" class="w-7 h-7 rounded-lg bg-white/90 text-slate-700 hover:bg-white flex items-center justify-center transition-colors cursor-pointer shadow">
+                                                    <i class="fas fa-pencil-alt text-xs"></i>
+                                                </button>
+                                                <button wire:click="deleteImage({{ $img['id'] }})" wire:confirm="Are you sure you want to delete this photo?" title="Delete Photo" class="w-7 h-7 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer shadow">
+                                                    <i class="fas fa-trash-alt text-xs"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="flex items-center justify-between">
+                                                @if(!$img['is_primary'])
+                                                    <button wire:click="setPrimaryImage({{ $img['id'] }})" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow cursor-pointer flex items-center gap-1 transition-colors">
+                                                        <i class="far fa-star"></i> Set as Main Cover
+                                                    </button>
+                                                @else
+                                                    <span class="text-xs font-bold text-white flex items-center gap-1"><i class="fas fa-check-circle text-green-400"></i> Active Front Image</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Caption & Description Details --}}
+                                    <div class="p-3 bg-slate-50/70 border-t border-slate-100 flex-1 flex flex-col justify-between">
+                                        @if($editing_image_id === $img['id'])
+                                            <div class="space-y-2">
+                                                <input type="text" wire:model="editing_image_title" class="pms-input text-xs font-bold" placeholder="Title (e.g. Front Facade / Deluxe Room)">
+                                                <textarea wire:model="editing_image_description" rows="2" class="pms-input text-xs" placeholder="Add image description..."></textarea>
+                                                <div class="flex gap-2 justify-end pt-1">
+                                                    <button wire:click="cancelEditImage" class="px-2 py-1 text-[10px] font-bold border border-slate-200 text-slate-600 rounded hover:bg-slate-100">Cancel</button>
+                                                    <button wire:click="saveImageDetails" class="px-2.5 py-1 text-[10px] font-bold bg-indigo-600 text-white rounded hover:bg-indigo-700 shadow-sm">Save</button>
+                                                </div>
                                             </div>
                                         @else
-                                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
-                                                <div class="flex justify-between items-center">
-                                                    <button wire:click="setPrimaryImage({{ $img['id'] }})" class="text-white text-[8px] font-bold hover:underline cursor-pointer">
-                                                        Star
-                                                    </button>
-                                                    <button wire:click="deleteImage({{ $img['id'] }})" wire:confirm="Are you sure?" class="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors cursor-pointer shadow">
-                                                        <i class="fas fa-trash-alt text-[8px]"></i>
+                                            <div>
+                                                <div class="flex items-center justify-between">
+                                                    <h4 class="text-xs font-bold text-slate-800 truncate">
+                                                        {{ $img['title'] ?: 'Hotel Image' }}
+                                                    </h4>
+                                                    <button wire:click="editImage({{ $img['id'] }})" class="text-[10px] text-indigo-600 font-bold hover:underline cursor-pointer">
+                                                        <i class="fas fa-edit mr-0.5"></i> Edit Description
                                                     </button>
                                                 </div>
+                                                <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                                                    {{ $img['description'] ?: 'No description added yet. Click edit to add description.' }}
+                                                </p>
                                             </div>
                                         @endif
                                     </div>
-                                @endforeach
-                            </div>
-                        @endif
+                                </div>
+                            @endforeach
+                        </div>
 
                         <div wire:loading wire:target="gallery_photos" class="text-xs text-indigo-600 font-medium pt-1">
                             <i class="fas fa-spinner fa-spin mr-1"></i> Uploading photos...
