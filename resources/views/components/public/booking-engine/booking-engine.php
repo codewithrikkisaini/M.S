@@ -66,8 +66,8 @@ new class extends Component
         
         $checkin = new DateTime($this->checkin_date);
         $checkout = new DateTime($this->checkout_date);
-        $this->total_days = $checkout->diff($checkin)->days ?: 1;
-        $this->total_price = $this->selectedRoomType->base_price * $this->total_days;
+        $rate = (float) ($this->selectedRoomType->daily_rate ?: ($this->selectedRoomType->base_price ?: 59.95));
+        $this->total_price = $rate * $this->total_days;
         
         $this->step = 2;
     }

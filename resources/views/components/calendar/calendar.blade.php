@@ -123,9 +123,14 @@
                         <tbody class="bg-white divide-y divide-slate-150">
                             @foreach($rooms as $room)
                                 <tr class="hover:bg-slate-50/20 transition-colors">
-                                    <td class="sticky-column left-0 z-10 bg-white font-semibold text-slate-700 text-xs px-4 py-3 border-r border-slate-200 flex flex-col justify-center h-16 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
-                                        <span class="font-extrabold text-slate-800 text-sm">Room {{ $room->room_number }}</span>
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{{ $room->roomType->name }}</span>
+                                    <td class="sticky-column left-0 z-10 bg-white font-semibold text-slate-700 text-xs px-3 py-2 border-r border-slate-200 flex flex-col justify-center h-16 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] overflow-hidden max-w-[176px]">
+                                        @php
+                                            $rNum = (string) ($room->room_number ?? '');
+                                            $displayRoomNum = \Illuminate\Support\Str::startsWith(strtolower($rNum), 'room') ? $rNum : 'Room ' . $rNum;
+                                            $typeName = $room->roomType->name ?? 'Standard';
+                                        @endphp
+                                        <span class="font-extrabold text-slate-800 text-xs truncate leading-tight" title="{{ $displayRoomNum }}">{{ $displayRoomNum }}</span>
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate leading-tight mt-0.5" title="{{ $typeName }}">{{ $typeName }}</span>
                                     </td>
                                     @foreach($days as $idx => $day)
                                         @php
