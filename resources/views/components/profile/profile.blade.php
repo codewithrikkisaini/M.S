@@ -23,7 +23,7 @@
                         @if($photo)
                             <img src="{{ $photo->temporaryUrl() }}" class="w-full h-full object-cover">
                         @elseif($profile_photo_path)
-                            <img src="{{ asset('storage/' . $profile_photo_path) }}" class="w-full h-full object-cover">
+                            <img src="{{ \Illuminate\Support\Str::startsWith($profile_photo_path, ['http://', 'https://']) ? $profile_photo_path : asset('storage/' . $profile_photo_path) }}" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white text-3xl font-black uppercase">
                                 {{ substr($user_name, 0, 1) }}
@@ -60,12 +60,15 @@
                     </div>
                 </div>
 
-                <div class="w-full pt-2">
+                <div class="w-full pt-2 flex flex-col gap-2">
                     <label class="btn-primary text-xs font-bold rounded-lg py-2.5 cursor-pointer shadow-sm text-center block w-full hover:bg-indigo-700 transition-colors">
                         <i class="fas fa-upload mr-1.5"></i> Upload Photo
                         <input type="file" wire:model="photo" class="hidden" accept="image/*">
                     </label>
-                    @error('photo') <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                    <button type="button" wire:click="setRandomProfilePhoto" class="btn-secondary text-xs font-bold rounded-lg py-2 text-center block w-full hover:bg-slate-100 transition-colors">
+                        <i class="fas fa-dice mr-1.5 text-indigo-600"></i> Random Avatar
+                    </button>
+                    @error('photo') <p class="text-red-500 text-[10px] mt-1 text-center">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -439,9 +442,12 @@
                             <p class="text-[10px] text-slate-400 font-medium">Upload property photos (facade, lobby, rooms, etc.)</p>
                         </div>
                     </div>
-                    <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" wire:click="addRandomGalleryPhoto" class="btn-secondary text-xs font-bold rounded-lg py-1.5 px-3 shadow-sm flex items-center gap-1.5 hover:bg-slate-100 transition-colors cursor-pointer">
+                            <i class="fas fa-dice text-indigo-600"></i> Add Random Photo
+                        </button>
                         <label class="btn-primary text-xs font-bold rounded-lg py-1.5 px-3 cursor-pointer shadow-sm flex items-center gap-1.5 hover:bg-indigo-700 transition-colors">
-                            <i class="fas fa-plus"></i> Add Photos
+                            <i class="fas fa-plus"></i> Upload Photos
                             <input type="file" wire:model="gallery_photos" class="hidden" multiple accept="image/*">
                         </label>
                     </div>
@@ -457,7 +463,10 @@
                             <p class="text-xs font-bold text-slate-700">No hotel photos uploaded yet</p>
                             <p class="text-[10px] text-slate-400 max-w-[280px] mt-1 mx-auto">Upload high-quality images of your rooms, bathroom, facade, lobby, and amenities to show to guests.</p>
                         </div>
-                        <div>
+                        <div class="flex flex-wrap justify-center gap-2">
+                            <button type="button" wire:click="addRandomGalleryPhoto" class="btn-secondary text-xs font-bold rounded-lg py-2 px-4 shadow-sm inline-block hover:bg-slate-100 transition-colors cursor-pointer">
+                                <i class="fas fa-dice text-indigo-600 mr-1.5"></i> Add Random Photo
+                            </button>
                             <label class="btn-primary text-xs font-bold rounded-lg py-2 px-4 cursor-pointer shadow-sm inline-block hover:bg-indigo-700 transition-colors">
                                 <i class="fas fa-upload mr-1.5"></i> Select Photos
                                 <input type="file" wire:model="gallery_photos" class="hidden" multiple accept="image/*">
@@ -524,9 +533,9 @@
 
                         </div>
 
-                        {{-- Bottom Row: Thumbnails --}}
+                        {{-- Bottom Row: Responsive Thumbnails --}}
                         @if(count($bottomImages) > 0)
-                            <div class="grid grid-cols-5 gap-3">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                                 @foreach(array_slice($bottomImages, 0, 5) as $index => $img)
                                     @php
                                         $isLastSlot = $index === 4 && count($bottomImages) > 5;

@@ -1,6 +1,6 @@
 <?php
 
-// Seed Gallery script
+// Seed Random Data Script for Hotel Gallery & User Profile
 require __DIR__ . '/vendor/autoload.php';
 $app = require_once __DIR__ . '/bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
@@ -8,11 +8,25 @@ $kernel->bootstrap();
 
 use App\Models\Hotel;
 use App\Models\HotelImage;
+use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 try {
-    $hotel = Hotel::first();
-    if (!$hotel) {
-        echo "No hotel found to seed gallery images.";
+    echo "Starting seeding random hotel images and profile photos...\n";
+
+    $destDir = storage_path('app/public/hotel-gallery');
+    $profileDir = storage_path('app/public/profile-photos');
+
+    if (!file_exists($destDir)) {
+        mkdir($destDir, 0755, true);
+    }
+    if (!file_exists($profileDir)) {
+        mkdir($profileDir, 0755, true);
+    }
+
+    $hotels = Hotel::all();
+    if ($hotels->isEmpty()) {
+        echo "No hotels found.\n";
         exit(1);
     }
 
@@ -59,18 +73,34 @@ try {
         ],
     ];
 
-    HotelImage::where('hotel_id', $hotel->id)->delete();
+    foreach ($hotels as $hotel) {
+        HotelImage::where('hotel_id', $hotel->id)->delete();
 
-    foreach ($sampleImages as $img) {
-        HotelImage::create([
-            'hotel_id' => $hotel->id,
-            'image_path' => $img['url'],
-            'is_primary' => $img['is_primary']
-        ]);
-        echo "Registered: " . $img['filename'] . "\n";
+        foreach ($sampleImages as $img) {
+            HotelImage::create([
+                'hotel_id' => $hotel->id,
+                'image_path' => $img['url'],
+                'is_primary' => $img['is_primary'],
+            ]);
+            echo "Registered gallery image for hotel ID {$hotel->id}: {$img['filename']}\n";
+        }
     }
 
-    echo "Gallery seeded successfully.\n";
+    // Also update users profile photo if empty
+    $users = User::all();
+    $avatars = [
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80',
+    ];
+
+    foreach ($users as $index => $u) {
+        $avatarUrl = $avatars[$index % count($avatars)];
+        $u->update(['profile_photo_path' => $avatarUrl]);
+        echo "Updated profile photo for user {$u->name} ({$u->email})\n";
+    }
+
+    echo "Seeding completed successfully!\n";
 
 } catch (\Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";

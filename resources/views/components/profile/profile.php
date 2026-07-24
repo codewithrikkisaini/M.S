@@ -215,12 +215,15 @@ new class extends Component
                     ->orderBy('id', 'asc')
                     ->get()
                     ->map(function ($image) {
+                        $url = \Illuminate\Support\Str::startsWith($image->image_path, ['http://', 'https://'])
+                            ? $image->image_path
+                            : Storage::disk('public')->url($image->image_path);
                         return [
                             'id' => $image->id,
                             'hotel_id' => $image->hotel_id,
                             'image_path' => $image->image_path,
                             'is_primary' => (bool) $image->is_primary,
-                            'image_url' => Storage::disk('public')->url($image->image_path),
+                            'image_url' => $url,
                         ];
                     })->toArray();
 
@@ -285,9 +288,63 @@ new class extends Component
         ]);
         
         $this->profile_photo_path = $path;
+        $this->reset('photo');
         
         ActivityLog::log('Uploaded Profile Photo', 'Uploaded new profile avatar picture.');
         $this->dispatch('toast', message: 'Profile photo uploaded successfully.', type: 'success');
+        $this->loadData();
+    }
+
+    public function addRandomGalleryPhoto(): void
+    {
+        $user = Auth::user();
+        if (!$user->hotel_id) return;
+
+        $randomPhotos = [
+            'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80',
+            'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80',
+        ];
+
+        $url = $randomPhotos[array_rand($randomPhotos)];
+        $hasPrimary = HotelImage::where('hotel_id', $user->hotel_id)->where('is_primary', true)->exists();
+
+        HotelImage::create([
+            'hotel_id' => $user->hotel_id,
+            'image_path' => $url,
+            'is_primary' => !$hasPrimary,
+        ]);
+
+        ActivityLog::log('Added Random Gallery Photo', 'Added a random high-resolution image to hotel gallery.');
+        $this->dispatch('toast', message: 'Random photo added to hotel gallery!', type: 'success');
+        $this->loadData();
+    }
+
+    public function setRandomProfilePhoto(): void
+    {
+        $user = Auth::user();
+        $randomAvatars = [
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80',
+            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80',
+        ];
+
+        $url = $randomAvatars[array_rand($randomAvatars)];
+        $user->update(['profile_photo_path' => $url]);
+        $this->profile_photo_path = $url;
+        $this->reset('photo');
+
+        ActivityLog::log('Set Random Profile Photo', 'Updated user profile avatar picture with a random image.');
+        $this->dispatch('toast', message: 'Random profile avatar updated!', type: 'success');
         $this->loadData();
     }
 

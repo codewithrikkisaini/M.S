@@ -56,8 +56,8 @@
 
         <div class="relative z-10 flex flex-col justify-between p-12 w-full">
             {{-- Logo --}}
-            <div class="flex items-center gap-3">
-                <img src="{{ asset('images/logo.png') }}" alt="{{ $hotelName }}" class="h-16 w-auto object-contain bg-white p-1.5 rounded-2xl shadow-sm">
+            <div class="flex items-center">
+                <img src="{{ asset('images/logo.png') }}" alt="{{ $hotelName }}" class="h-12 w-12 object-contain bg-white p-1.5 rounded-2xl shadow-sm">
             </div>
 
             {{-- Center Content --}}
