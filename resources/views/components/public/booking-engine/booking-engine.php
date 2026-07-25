@@ -10,6 +10,9 @@ use App\Models\Invoice;
 use App\Models\ActivityLog;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookingRequested;
 
 new class extends Component
 {
@@ -34,6 +37,8 @@ new class extends Component
     public $total_price = 0;
     
     public $booking_number;
+    public $pnr;
+    public $payment_method = 'Card';
 
     public function mount($hotel_id = null): void
     {
@@ -127,7 +132,8 @@ new class extends Component
                 'discount_type' => 'Fixed',
                 'discount_value' => 0,
                 'tax_rate' => 18,
-                'status' => 'Confirmed',
+                'status' => 'Pending',
+                'pnr' => strtoupper(Str::random(6)),
             ]);
 
             // Link room and update room status
@@ -136,12 +142,12 @@ new class extends Component
                 $room->update(['status' => 'Occupied']);
             }
 
-            // 4. Create Payment record (mocking Stripe credit card gateway)
+            // 4. Create Payment record
             Payment::create([
                 'hotel_id' => $this->hotel_id,
                 'reservation_id' => $reservation->id,
                 'amount' => $this->total_price,
-                'payment_type' => 'Card',
+                'payment_type' => $this->payment_method,
                 'paid_at' => now(),
             ]);
 
@@ -154,6 +160,14 @@ new class extends Component
             ]);
 
             $this->booking_number = 'RES-' . $reservation->id . '-' . date('Y');
+            $this->pnr = $reservation->pnr;
+
+            // 6. Send Booking Requested Email
+            try {
+                Mail::to($guest->email)->send(new BookingRequested($reservation));
+            } catch (\Exception $e) {
+                // Log or ignore mail failure
+            }
         });
 
         $this->step = 3;

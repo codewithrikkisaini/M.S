@@ -98,9 +98,10 @@
                                 $s = $res->status; 
                                 $badgeClass = match($s) {
                                     'Confirmed' => 'bg-indigo-50 text-indigo-700 border-indigo-100',
+                                    'Pending' => 'bg-amber-50 text-amber-700 border-amber-100',
                                     'Checked-In' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
                                     'Checked-Out' => 'bg-slate-100 text-slate-700 border-slate-200',
-                                    'Cancelled' => 'bg-rose-50 text-rose-700 border-rose-100',
+                                    'Cancelled', 'Rejected' => 'bg-rose-50 text-rose-700 border-rose-100',
                                     default => 'bg-blue-50 text-blue-700 border-blue-100',
                                 };
                             @endphp
@@ -110,7 +111,16 @@
                         </td>
                         <td class="text-right">
                             <div class="flex items-center justify-end gap-1.5">
-                                @if($res->status == 'Confirmed' || $res->status == 'Reserved')
+                                @if($res->status == 'Pending')
+                                <button wire:click="accept({{ $res->id }})" wire:confirm="Accept this booking?"
+                                        class="btn-success btn-sm rounded-lg py-1 px-2.5 text-[11px] font-bold shadow-sm cursor-pointer">
+                                    <i class="fas fa-check text-[10px]"></i> Accept
+                                </button>
+                                <button wire:click="reject({{ $res->id }})" wire:confirm="Reject this booking?"
+                                        class="btn-icon text-red-500 hover:bg-red-50 border border-slate-100 hover:border-red-100 shadow-sm cursor-pointer" title="Reject">
+                                    <i class="fas fa-times text-[10px]"></i>
+                                </button>
+                                @elseif($res->status == 'Confirmed' || $res->status == 'Reserved')
                                 <button wire:click="checkIn({{ $res->id }})" wire:confirm="Check-In this guest?"
                                         class="btn-success btn-sm rounded-lg py-1 px-2.5 text-[11px] font-bold shadow-sm cursor-pointer">
                                     <i class="fas fa-sign-in-alt text-[10px]"></i> Check-In

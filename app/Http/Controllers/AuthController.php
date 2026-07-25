@@ -36,7 +36,7 @@ class AuthController extends Controller
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();
                     return back()->withErrors([
-                        'email' => '⏳ Your hotel registration ("' . $hotel->name . '") is currently pending approval by Super Admin. Access will open once approved!',
+                        'email' => 'Your hotel is waiting for Super Admin approval. Please wait until your hotel is approved.',
                     ])->onlyInput('email');
                 } elseif ($hotel && $hotel->status === 'rejected') {
                     Auth::logout();

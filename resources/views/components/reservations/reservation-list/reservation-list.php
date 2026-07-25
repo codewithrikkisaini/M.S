@@ -20,6 +20,26 @@ new class extends Component
         $this->dispatch('toast', message: 'Reservation deleted.', type: 'success');
     }
 
+    public function accept(int $id, ReservationService $service): void
+    {
+        try {
+            $service->acceptReservation($id);
+            $this->dispatch('toast', message: 'Reservation accepted and confirmed.', type: 'success');
+        } catch (\Exception $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+    }
+
+    public function reject(int $id, ReservationService $service): void
+    {
+        try {
+            $service->rejectReservation($id);
+            $this->dispatch('toast', message: 'Reservation rejected.', type: 'success');
+        } catch (\Exception $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+    }
+
     public function checkIn(int $id, ReservationService $service): void
     {
         try {
