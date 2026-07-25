@@ -92,13 +92,13 @@ new class extends Component
             'admin_password' => 'required|string|min:6|confirmed',
         ]);
 
-        // 1. Create Hotel with status = 'pending' and complete dataset
+        // 1. Create Hotel with status = 'active' and complete dataset
         $hotel = Hotel::create([
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
             'address' => $this->address,
-            'status' => 'pending',
+            'status' => 'active',
             'business_name' => $this->business_name,
             'owner_name' => $this->owner_name,
             'tax_id' => $this->tax_id,
@@ -123,13 +123,13 @@ new class extends Component
         // 2. Find admin role
         $adminRole = Role::where('slug', 'admin')->first();
 
-        // 3. Create Admin User with status = 'inactive' (until superadmin approves)
+        // 3. Create Admin User with status = 'active'
         $adminUser = User::create([
             'name' => $this->admin_name,
             'email' => $this->admin_email,
             'password' => Hash::make($this->admin_password),
             'role_id' => $adminRole->id,
-            'status' => 'inactive',
+            'status' => 'active',
             'hotel_id' => $hotel->id,
         ]);
 
@@ -194,12 +194,9 @@ new class extends Component
             ]);
         }
 
-        $this->successMessage = true;
-        
-        $this->dispatch('toast', [
-            'type' => 'success',
-            'message' => "Complete registration application submitted successfully!"
-        ]);
+        auth()->login($adminUser);
+
+        return redirect()->route('dashboard');
     }
 
     public function render(): mixed
