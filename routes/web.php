@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PublicHotelController;
 
 
 // ─── Public ────────────────────────────────────────────────────────────────
@@ -9,6 +10,7 @@ Route::get('/', function () {
     $hotels = \App\Models\Hotel::with(['images', 'rooms'])->get();
     return view('welcome', compact('hotels'));
 });
+Route::get('/hotel/{id}', [PublicHotelController::class, 'show'])->name('hotel.show');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -256,6 +258,7 @@ Route::get('/setup-project', function () {
 // ─── Public Registration & Booking ─────────────────────────────────────────
 Route::livewire('/register-hotel', 'public.register')->name('register-hotel');
 Route::livewire('/book/{hotel_id?}', 'public.booking-engine')->name('booking-engine');
+Route::livewire('/track', 'public.track-booking')->name('track-booking');
 
 // ─── Auth-protected (all MFC via Route::livewire) ──────────────────────────
 Route::middleware('auth')->group(function () {

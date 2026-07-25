@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Hash;
 
 new class extends Component
 {
+    public $currentStep = 1;
+    public $totalSteps = 5;
+
     // 1. Business Information
     public $name; // Hotel Trade Name
     public $business_name;
@@ -52,41 +55,58 @@ new class extends Component
 
     public $successMessage = false;
 
+    public function nextStep()
+    {
+        if ($this->currentStep == 1) {
+            $this->validate([
+                'name' => 'required|string|max:255',
+                'business_name' => 'nullable|string|max:255',
+                'owner_name' => 'nullable|string|max:255',
+                'tax_id' => 'nullable|string|max:100',
+                'company_reg_number' => 'nullable|string|max:100',
+            ]);
+        } elseif ($this->currentStep == 2) {
+            $this->validate([
+                'email' => 'required|email|unique:hotels,email',
+                'phone' => 'nullable|string|max:20',
+                'whatsapp' => 'nullable|string|max:20',
+                'website' => 'nullable|string|max:255',
+            ]);
+        } elseif ($this->currentStep == 3) {
+            $this->validate([
+                'country' => 'required|string|max:100',
+                'state' => 'nullable|string|max:100',
+                'city' => 'nullable|string|max:100',
+                'address' => 'required|string|max:500',
+                'postal_code' => 'nullable|string|max:20',
+                'timezone' => 'required|string',
+                'currency' => 'required|string|max:10',
+            ]);
+        } elseif ($this->currentStep == 4) {
+            $this->validate([
+                'rooms_count' => 'required|integer|min:1|max:500',
+                'category' => 'nullable|string',
+                'property_type' => 'nullable|string',
+                'current_pms' => 'nullable|string',
+            ]);
+        }
+
+        if ($this->currentStep < $this->totalSteps) {
+            $this->currentStep++;
+        }
+    }
+
+    public function prevStep()
+    {
+        if ($this->currentStep > 1) {
+            $this->currentStep--;
+        }
+    }
+
     public function registerHotel(): void
     {
+        // Final validation for Step 5
         $this->validate([
-            // Step 1
-            'name' => 'required|string|max:255',
-            'business_name' => 'nullable|string|max:255',
-            'owner_name' => 'nullable|string|max:255',
-            'tax_id' => 'nullable|string|max:100',
-            'company_reg_number' => 'nullable|string|max:100',
-            'business_license_number' => 'nullable|string|max:100',
-
-            // Step 2
-            'email' => 'required|email|unique:hotels,email',
-            'phone' => 'nullable|string|max:20',
-            'whatsapp' => 'nullable|string|max:20',
-            'website' => 'nullable|string|max:255',
-
-            // Step 3
-            'country' => 'required|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'city' => 'nullable|string|max:100',
-            'address' => 'required|string|max:500',
-            'postal_code' => 'nullable|string|max:20',
-            'timezone' => 'required|string',
-            'currency' => 'required|string|max:10',
-
-            // Step 4
-            'rooms_count' => 'required|integer|min:1|max:500',
-            'category' => 'nullable|string',
-            'property_type' => 'nullable|string',
-            'current_pms' => 'nullable|string',
-            'current_channel_manager' => 'nullable|string',
-            'current_website' => 'nullable|string',
-
-            // Step 5
             'admin_name' => 'required|string|max:255',
             'admin_email' => 'required|email|unique:users,email',
             'admin_password' => 'required|string|min:6|confirmed',

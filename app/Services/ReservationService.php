@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Repositories\ReservationRepositoryInterface;
 use App\Models\Room;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookingAccepted;
 
 class ReservationService
 {
@@ -73,6 +75,45 @@ class ReservationService
     public function getCalendarEvents($start, $end)
     {
         return $this->reservationRepository->getEventsByDateRange($start, $end);
+    }
+
+    public function acceptReservation($id)
+    {
+        return DB::transaction(function () use ($id) {
+            $res = $this->reservationRepository->findById($id);
+            if ($res->status !== 'Pending') {
+                throw new \Exception('Only pending reservations can be accepted.');
+            }
+            $res->update(['status' => 'Confirmed']);
+            
+            try {
+                if ($res->guest && $res->guest->email) {
+                    Mail::to($res->guest->email)->send(new BookingAccepted($res));
+                }
+            } catch (\Exception $e) {
+                // Log or ignore mail failure
+            }
+
+            return $res;
+        });
+    }
+
+    public function rejectReservation($id)
+    {
+        return DB::transaction(function () use ($id) {
+            $res = $this->reservationRepository->findById($id);
+            if ($res->status !== 'Pending') {
+                throw new \Exception('Only pending reservations can be rejected.');
+            }
+            
+            // Release rooms
+            foreach ($res->rooms as $room) {
+                $room->update(['status' => 'Available']);
+            }
+            
+            $res->update(['status' => 'Rejected']);
+            return $res;
+        });
     }
 
     public function processCheckIn($reservationId, $userId, $remarks = null)
