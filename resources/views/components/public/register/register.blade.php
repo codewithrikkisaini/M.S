@@ -69,20 +69,22 @@
                         <i class="fas fa-check-circle text-5xl"></i>
                     </div>
                     <div>
-                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Full Application Submitted!</h2>
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">✅ Hotel Property Registered Successfully!</h2>
                         <p class="text-sm text-slate-600 mt-2 leading-relaxed max-w-md mx-auto">
-                            Thank you for registering <strong>{{ $name }}</strong> with complete business details. Your application is now queued for Super Admin review.
-                        </p>
-                        <p class="text-xs text-slate-400 mt-2">
-                            An activation email will be sent to <strong>{{ $admin_email }}</strong> once approved.
+                            Your hotel has been registered successfully. Please login using your Hotel Admin account.
                         </p>
                     </div>
                     <div class="pt-4 max-w-xs mx-auto">
                         <a href="{{ route('login') }}" class="w-full block text-center rounded-xl py-3.5 text-sm font-bold shadow-md bg-indigo-600 hover:bg-indigo-700 text-white transition-all">
-                            Back to Sign In
+                            Go to Login
                         </a>
                     </div>
                 </div>
+                <script>
+                    setTimeout(() => {
+                        window.location.href = "{{ route('login') }}";
+                    }, 3000);
+                </script>
             @else
                 {{-- Registration Form Header --}}
                 <div class="mb-8 border-b border-slate-100 pb-5">

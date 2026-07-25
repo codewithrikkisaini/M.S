@@ -92,13 +92,13 @@ new class extends Component
             'admin_password' => 'required|string|min:6|confirmed',
         ]);
 
-        // 1. Create Hotel with status = 'active' and complete dataset
+        // 1. Create Hotel with status = 'pending' and complete dataset
         $hotel = Hotel::create([
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
             'address' => $this->address,
-            'status' => 'active',
+            'status' => 'pending',
             'business_name' => $this->business_name,
             'owner_name' => $this->owner_name,
             'tax_id' => $this->tax_id,
@@ -194,9 +194,12 @@ new class extends Component
             ]);
         }
 
-        auth()->login($adminUser);
-
-        return redirect()->route('dashboard');
+        $this->successMessage = true;
+        
+        $this->dispatch('toast', [
+            'type' => 'success',
+            'message' => "Complete registration application submitted successfully!"
+        ]);
     }
 
     public function render(): mixed
