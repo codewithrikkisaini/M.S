@@ -240,14 +240,18 @@ new class extends Component
             if ($i > 10) {
                 $roomNum = 200 + ($i - 10);
             }
-            Room::create([
-                'room_number' => 'Room ' . $roomNum,
-                'room_type_id' => $roomType->id,
-                'price' => 100.00,
-                'status' => 'Available',
-                'floor' => $i <= 10 ? '1st Floor' : '2nd Floor',
-                'hotel_id' => $hotel->id,
-            ]);
+            Room::firstOrCreate(
+                [
+                    'hotel_id'    => $hotel->id,
+                    'room_number' => 'Room ' . $roomNum,
+                ],
+                [
+                    'room_type_id' => $roomType->id,
+                    'price'        => 100.00,
+                    'status'       => 'Available',
+                    'floor'        => $i <= 10 ? '1st Floor' : '2nd Floor',
+                ]
+            );
         }
 
         // 5. Seed default settings for the hotel
