@@ -4,6 +4,8 @@ use Livewire\Component;
 use App\Models\RoomType;
 use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 new class extends Component
 {
@@ -82,7 +84,14 @@ new class extends Component
         $hotel_id = Auth::user()->hotel_id ?? null;
 
         $this->validate([
-            'room_number'    => 'required|string|max:50|unique:rooms,room_number',
+            'room_number'    => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('rooms', 'room_number')->where(function ($query) use ($hotel_id) {
+                    return $query->where('hotel_id', $hotel_id);
+                }),
+            ],
             'floor'          => 'required|string|max:50',
             'room_type_name' => 'required|string|max:100',
             'daily_rate'     => 'required|numeric|min:0',
@@ -92,31 +101,36 @@ new class extends Component
             'status'         => 'required|in:Available,Occupied,Reserved,Maintenance',
         ]);
 
-        // 1. Create or Update Room Type Tariff
-        $roomType = RoomType::updateOrCreate(
-            ['name' => $this->room_type_name, 'hotel_id' => $hotel_id],
-            [
-                'daily_rate'   => $this->daily_rate,
-                'weekly_rate'  => $this->weekly_rate,
-                'monthly_rate' => $this->monthly_rate,
-                'tax_percent'  => $this->tax_percent,
-                'status'       => 'active',
-            ]
-        );
+        try {
+            // 1. Create or Update Room Type Tariff
+            $roomType = RoomType::updateOrCreate(
+                ['name' => $this->room_type_name, 'hotel_id' => $hotel_id],
+                [
+                    'daily_rate'   => $this->daily_rate,
+                    'weekly_rate'  => $this->weekly_rate,
+                    'monthly_rate' => $this->monthly_rate,
+                    'tax_percent'  => $this->tax_percent,
+                    'status'       => 'active',
+                ]
+            );
 
-        // 2. Create Physical Room
-        $newRoom = Room::create([
-            'room_number'  => $this->room_number,
-            'room_type_id' => $roomType->id,
-            'price'        => $this->daily_rate,
-            'floor'        => $this->floor,
-            'status'       => $this->status,
-            'hotel_id'     => $hotel_id,
-        ]);
+            // 2. Create Physical Room
+            $newRoom = Room::create([
+                'room_number'  => $this->room_number,
+                'room_type_id' => $roomType->id,
+                'price'        => $this->daily_rate,
+                'floor'        => $this->floor,
+                'status'       => $this->status,
+                'hotel_id'     => $hotel_id,
+            ]);
 
-        $createdNum = $this->room_number;
-        $this->reset(['room_number']);
-        $this->dispatch('toast', message: "Room {$createdNum} added successfully under {$roomType->name}!", type: 'success');
+            $createdNum = $this->room_number;
+            $this->reset(['room_number']);
+            $this->dispatch('toast', message: "Room {$createdNum} added successfully under {$roomType->name}!", type: 'success');
+        } catch (UniqueConstraintViolationException $e) {
+            $this->addError('room_number', 'This room number already exists for this hotel.');
+            $this->dispatch('toast', message: "Room number '{$this->room_number}' already exists.", type: 'error');
+        }
     }
 
     public function deleteRoom(int $id): void

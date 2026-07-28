@@ -4,6 +4,8 @@ use Livewire\Component;
 use App\Models\Room;
 use App\Models\RoomType;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 new class extends Component
 {
@@ -50,24 +52,37 @@ new class extends Component
 
     public function save(): void
     {
+        $hotel_id = Auth::user()->hotel_id ?? $this->room->hotel_id;
+
         $this->validate([
-            'room_number'  => 'required|unique:rooms,room_number,' . $this->room->id,
+            'room_number'  => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('rooms', 'room_number')->where(function ($query) use ($hotel_id) {
+                    return $query->where('hotel_id', $hotel_id);
+                })->ignore($this->room->id),
+            ],
             'room_type_id' => 'required|exists:room_types,id',
             'price'        => 'required|numeric|min:0',
             'status'       => 'required|in:Available,Occupied,Reserved,Maintenance',
             'floor'        => 'required|string|max:50',
         ]);
 
-        $this->room->update([
-            'room_number'  => $this->room_number,
-            'room_type_id' => $this->room_type_id,
-            'price'        => $this->price,
-            'status'       => $this->status,
-            'floor'        => $this->floor,
-        ]);
+        try {
+            $this->room->update([
+                'room_number'  => $this->room_number,
+                'room_type_id' => $this->room_type_id,
+                'price'        => $this->price,
+                'status'       => $this->status,
+                'floor'        => $this->floor,
+            ]);
 
-        session()->flash('toast', ['message' => 'Room updated successfully!', 'type' => 'success']);
-        $this->redirect(route('rooms.index'), navigate: true);
+            session()->flash('toast', ['message' => 'Room updated successfully!', 'type' => 'success']);
+            $this->redirect(route('rooms.index'), navigate: true);
+        } catch (UniqueConstraintViolationException $e) {
+            $this->addError('room_number', 'This room number already exists for this hotel.');
+        }
     }
 
     public function render(): mixed
