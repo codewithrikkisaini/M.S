@@ -7,6 +7,7 @@ use App\Models\Room;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingAccepted;
+use App\Services\NotificationService;
 
 class ReservationService
 {
@@ -54,6 +55,18 @@ class ReservationService
                 }
             }
             $reservation->rooms()->sync($pivotData);
+
+            if (!$isEditMode) {
+                $hotelId = $reservation->hotel_id ?? (auth()->user()?->hotel_id ?? ($data['hotel_id'] ?? null));
+                if ($hotelId) {
+                    NotificationService::notifyHotel(
+                        (int) $hotelId,
+                        'New Room Booking',
+                        'Aapke hotel me ek nayi room booking hui hai. Kripya booking details check karein.',
+                        '/reservations'
+                    );
+                }
+            }
 
             return $reservation;
         });

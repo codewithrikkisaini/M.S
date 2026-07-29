@@ -9,7 +9,12 @@ use App\Models\RoomType;
 use App\Models\Room;
 use App\Models\SubscriptionPlan;
 use App\Models\Subscription;
+use App\Services\NotificationService;
+use App\Mail\NewHotelRegistration;
+use App\Mail\HotelRegistrationReceived;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 new class extends Component
 {
@@ -216,6 +221,32 @@ new class extends Component
                 'ends_at' => $now->copy()->addDays($trialPlan->trial_days ?: 14),
                 'trial_ends_at' => $now->copy()->addDays($trialPlan->trial_days ?: 14),
             ]);
+        }
+
+        // 7. Notify Super Admins via DB Notification
+        NotificationService::notifySuperAdmins(
+            'New Hotel Registration',
+            "{$this->admin_name} ne ek naya hotel '{$this->name}' register kiya hai. Please review karke approve karein.",
+            '/superadmin/hotels'
+        );
+
+        // 8. Send Dynamic Email Notifications
+        try {
+            // Send email dynamically to all Super Admin users in the database
+            $superadminEmails = User::whereHas('role', function ($query) {
+                $query->where('slug', 'superadmin');
+            })->pluck('email')->filter()->unique()->toArray();
+
+            if (!empty($superadminEmails)) {
+                Mail::to($superadminEmails)->send(new NewHotelRegistration($hotel, $adminUser));
+            }
+
+            // Send acknowledgment email dynamically to the registered Hotel Admin's entered email
+            if ($adminUser->email) {
+                Mail::to($adminUser->email)->send(new HotelRegistrationReceived($hotel, $adminUser));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send registration emails: ' . $e->getMessage());
         }
 
         $this->successMessage = true;
