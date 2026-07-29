@@ -47,7 +47,7 @@
         </div>
 
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0 16px 0;">
-        <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">Merahkie SaaS Hotel System &bull; Official Approval Notification</p>
+        <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">Lodgiko SaaS Hotel System &bull; Official Approval Notification</p>
     </div>
 </body>
 </html>
