@@ -9,10 +9,11 @@ class PublicHotelController extends Controller
 {
     public function show($id)
     {
-        // Load the hotel along with its active rooms and images
-        $hotel = Hotel::with(['images', 'rooms' => function($q) {
-            $q->where('is_active', true);
-        }])->findOrFail($id);
+        // Load the hotel along with its active rooms and images if approved
+        $hotel = Hotel::where('status', 'approved')
+            ->with(['images', 'rooms' => function($q) {
+                $q->where('is_active', true);
+            }])->findOrFail($id);
 
         return view('hotel.show', compact('hotel'));
     }

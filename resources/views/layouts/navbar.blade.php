@@ -32,32 +32,7 @@
         </div>
 
         {{-- Notifications --}}
-        <div x-data="{ open: false }" class="relative">
-            <button @click="open = !open"
-                    class="relative w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-600 border border-transparent hover:border-slate-200/80 transition-all cursor-pointer">
-                <i class="fas fa-bell text-sm"></i>
-                <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-            </button>
-            <div x-show="open" @click.outside="open = false"
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
-                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                 x-transition:leave="transition ease-in duration-100"
-                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-                 class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 py-2.5 z-50"
-                 style="display:none">
-                <div class="px-4 py-2 border-b border-slate-50">
-                    <p class="text-xs font-bold text-slate-800">Notifications</p>
-                </div>
-                <div class="px-4 py-8 text-center">
-                    <div class="w-10 h-10 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-2.5">
-                        <i class="fas fa-bell-slash text-sm"></i>
-                    </div>
-                    <p class="text-xs font-semibold text-slate-400">No new notifications</p>
-                </div>
-            </div>
-        </div>
+        <livewire:notifications.header-notifications />
 
         {{-- Quick Action --}}
         <a href="{{ route('reservations.create') }}"

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingRequested;
+use App\Services\NotificationService;
 
 new class extends Component
 {
@@ -42,7 +43,7 @@ new class extends Component
 
     public function mount($hotel_id = null): void
     {
-        $this->hotels = Hotel::all();
+        $this->hotels = Hotel::where('status', 'approved')->get();
         if ($hotel_id) {
             $this->hotel_id = $hotel_id;
         } elseif ($this->hotels->count() > 0) {
@@ -158,6 +159,14 @@ new class extends Component
                 'description' => "Direct booking received via Booking Engine for Guest: {$this->guest_name} (Room: " . ($room ? $room->room_number : 'N/A') . ")",
                 'ip_address' => request()->ip(),
             ]);
+
+            // 6. Send Hotel Owner/Admin notification
+            NotificationService::notifyHotel(
+                (int) $this->hotel_id,
+                'New Room Booking',
+                "Aapke hotel me ek nayi room booking ({$this->guest_name}) hui hai. Kripya booking details check karein.",
+                '/reservations'
+            );
 
             $this->booking_number = 'RES-' . $reservation->id . '-' . date('Y');
             $this->pnr = $reservation->pnr;

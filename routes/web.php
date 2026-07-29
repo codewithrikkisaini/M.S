@@ -7,7 +7,7 @@ use App\Http\Controllers\PublicHotelController;
 
 // ─── Public ────────────────────────────────────────────────────────────────
 Route::get('/', function () {
-    $hotels = \App\Models\Hotel::with(['images', 'rooms'])->get();
+    $hotels = \App\Models\Hotel::where('status', 'approved')->with(['images', 'rooms'])->get();
     return view('welcome', compact('hotels'));
 });
 Route::get('/hotel/{id}', [PublicHotelController::class, 'show'])->name('hotel.show');
@@ -92,16 +92,16 @@ Route::get('/setup-project', function () {
         // 5. Seed Users
         // Super Admin
         $superadmin = \App\Models\User::updateOrCreate(
-            ['email' => 'superadmin@merahkie.com'],
+            ['email' => 'rikkisaini4455@gmail.com'],
             [
-                'name' => 'Super Admin',
+                'name' => 'Super Admin (Rikki)',
                 'password' => \Illuminate\Support\Facades\Hash::make('123456'),
                 'role_id' => $superadminRole->id,
                 'status' => 'active',
                 'hotel_id' => null
             ]
         );
-        $output[] = "Super Admin user seeded/verified.";
+        $output[] = "Super Admin user (rikkisaini4455@gmail.com) seeded/verified.";
 
         // Hotel Admin
         $adminUser = \App\Models\User::updateOrCreate(

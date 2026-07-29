@@ -9,8 +9,12 @@ use App\Models\RoomType;
 use App\Models\Room;
 use App\Models\SubscriptionPlan;
 use App\Models\Subscription;
+use App\Services\NotificationService;
+use App\Mail\HotelApproved;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 new class extends Component
 {
@@ -376,6 +380,29 @@ new class extends Component
             ->where('hotel_id', $hotel->id)
             ->update(['status' => 'active']);
 
+        // Send In-App Notification to Hotel Admin / Hotel Staff
+        NotificationService::notifyHotel(
+            $hotel->id,
+            'Hotel Approved',
+            'Congratulations! Aapka hotel Super Admin dwara approve kar diya gaya hai. Ab aap system use kar sakte hain.',
+            '/dashboard'
+        );
+
+        // Send Approval Email Notification to the Hotel Admin who registered
+        try {
+            $adminUser = User::withoutGlobalScope('tenant')
+                ->where('hotel_id', $hotel->id)
+                ->first();
+
+            $recipientEmail = $adminUser?->email ?: $hotel->email;
+
+            if ($recipientEmail) {
+                Mail::to($recipientEmail)->send(new HotelApproved($hotel, $adminUser));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send hotel approval email: ' . $e->getMessage());
+        }
+
         $this->loadHotels();
         
         $this->dispatch('toast', [
@@ -403,23 +430,65 @@ new class extends Component
 
     public function deleteHotel($id): void
     {
-        $hotel = Hotel::findOrFail($id);
+        $hotel = Hotel::find($id);
+        if (!$hotel) {
+            $this->dispatch('toast', ['type' => 'error', 'message' => 'Hotel not found.']);
+            return;
+        }
+
         $hotelName = $hotel->name;
 
-        // Delete all associated hotel data to prevent foreign key errors
-        User::withoutGlobalScope('tenant')->where('hotel_id', $hotel->id)->delete();
-        Setting::where('hotel_id', $hotel->id)->delete();
-        Room::where('hotel_id', $hotel->id)->delete();
-        RoomType::where('hotel_id', $hotel->id)->delete();
-        Subscription::where('hotel_id', $hotel->id)->delete();
-        $hotel->delete();
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($hotel) {
+                // Delete all related records across all tenant tables
+                User::withoutGlobalScope('tenant')->where('hotel_id', $hotel->id)->delete();
+                Setting::where('hotel_id', $hotel->id)->delete();
+                Room::where('hotel_id', $hotel->id)->delete();
+                RoomType::where('hotel_id', $hotel->id)->delete();
+                Subscription::where('hotel_id', $hotel->id)->delete();
 
-        $this->loadHotels();
-        
-        $this->dispatch('toast', [
-            'type' => 'info',
-            'message' => "Hotel '{$hotelName}' and all its associated data have been completely deleted."
-        ]);
+                if (class_exists(\App\Models\Notification::class)) {
+                    \App\Models\Notification::where('hotel_id', $hotel->id)->delete();
+                }
+                if (class_exists(\App\Models\HotelImage::class)) {
+                    \App\Models\HotelImage::where('hotel_id', $hotel->id)->delete();
+                }
+                if (class_exists(\App\Models\Guest::class)) {
+                    \App\Models\Guest::where('hotel_id', $hotel->id)->delete();
+                }
+                if (class_exists(\App\Models\Reservation::class)) {
+                    \App\Models\Reservation::where('hotel_id', $hotel->id)->delete();
+                }
+                if (class_exists(\App\Models\Invoice::class)) {
+                    \App\Models\Invoice::where('hotel_id', $hotel->id)->delete();
+                }
+                if (class_exists(\App\Models\Payment::class)) {
+                    \App\Models\Payment::where('hotel_id', $hotel->id)->delete();
+                }
+                if (class_exists(\App\Models\ActivityLog::class)) {
+                    \App\Models\ActivityLog::where('hotel_id', $hotel->id)->delete();
+                }
+
+                $hotel->delete();
+            });
+
+            $this->loadHotels();
+
+            if ($this->showViewModal && $this->viewHotel && $this->viewHotel->id == $id) {
+                $this->closeViewModal();
+            }
+
+            $this->dispatch('toast', [
+                'type' => 'info',
+                'message' => "Hotel '{$hotelName}' and all its associated data have been completely deleted."
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to delete hotel: ' . $e->getMessage());
+            $this->dispatch('toast', [
+                'type' => 'error',
+                'message' => "Could not delete hotel: " . $e->getMessage()
+            ]);
+        }
     }
 
     public function render(): mixed
