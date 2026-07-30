@@ -173,9 +173,13 @@ new class extends Component
             $this->booking_number = 'RES-' . $reservation->id . '-' . date('Y');
             $this->pnr = $reservation->pnr;
 
-            // 6. Send Booking Requested Email
+            // 6. Send Booking Request Notification ONLY to Registered Hotel Email (e.g. rikkisaini61@gmail.com)
+            // Customer will receive confirmation email ONLY after Hotel Admin ACCEPTS the reservation in dashboard
             try {
-                Mail::to($guest->email)->send(new BookingRequested($reservation));
+                $hotel = Hotel::find($this->hotel_id);
+                if ($hotel && $hotel->email) {
+                    Mail::to($hotel->email)->send(new BookingRequested($reservation));
+                }
             } catch (\Exception $e) {
                 // Log or ignore mail failure
             }
