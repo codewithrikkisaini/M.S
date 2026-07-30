@@ -24,7 +24,7 @@ return new class extends Migration
     public function up(): void
     {
         foreach ($this->tables as $tableName) {
-            if (Schema::hasTable($tableName)) {
+            if (Schema::hasTable($tableName) && !Schema::hasColumn($tableName, 'hotel_id')) {
                 Schema::table($tableName, function (Blueprint $table) {
                     $table->foreignId('hotel_id')->nullable()->after('id')->constrained('hotels')->nullOnDelete();
                 });
@@ -35,8 +35,8 @@ return new class extends Migration
     public function down(): void
     {
         foreach ($this->tables as $tableName) {
-            if (Schema::hasTable($tableName)) {
-                Schema::table($tableName, function (Blueprint $table) {
+            if (Schema::hasTable($tableName) && Schema::hasColumn($tableName, 'hotel_id')) {
+                Schema::table($tableName, function (Blueprint $table) use ($tableName) {
                     $table->dropForeign([$tableName . '_hotel_id_foreign']);
                     $table->dropColumn('hotel_id');
                 });
