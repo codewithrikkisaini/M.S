@@ -62,7 +62,9 @@ new class extends Component
     public function getRoomTypesProperty()
     {
         if (!$this->hotel_id) return collect();
-        return RoomType::where('hotel_id', $this->hotel_id)->get();
+        return RoomType::where('hotel_id', $this->hotel_id)
+            ->whereHas('rooms')
+            ->get();
     }
 
     public function selectRoomType($id): void

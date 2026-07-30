@@ -101,6 +101,23 @@ new class extends Component
             'status'         => 'required|in:Available,Occupied,Reserved,Maintenance',
         ]);
 
+        if ($hotel_id) {
+            $activeSub = \App\Models\Subscription::where('hotel_id', $hotel_id)
+                ->whereIn('status', ['active', 'trialing'])
+                ->with('plan')
+                ->latest()
+                ->first();
+
+            if ($activeSub && $activeSub->plan && $activeSub->plan->max_rooms !== null) {
+                $currentRoomsCount = Room::where('hotel_id', $hotel_id)->count();
+                if ($currentRoomsCount >= $activeSub->plan->max_rooms) {
+                    $this->addError('room_number', "Plan limit reached ({$activeSub->plan->max_rooms} rooms max). Please upgrade your subscription plan.");
+                    $this->dispatch('toast', message: "Plan limit reached ({$activeSub->plan->max_rooms} rooms max). Please upgrade your subscription plan.", type: 'error');
+                    return;
+                }
+            }
+        }
+
         try {
             // 1. Create or Update Room Type Tariff
             $roomType = RoomType::updateOrCreate(

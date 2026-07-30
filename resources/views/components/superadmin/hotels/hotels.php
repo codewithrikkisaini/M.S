@@ -161,7 +161,7 @@ new class extends Component
             ]);
         } elseif ($this->currentStep === 4) {
             $this->validate([
-                'rooms_count' => 'required|integer|min:1|max:500',
+                'rooms_count' => 'nullable|integer|min:0|max:500',
                 'category' => 'nullable|string',
                 'property_type' => 'nullable|string',
                 'current_pms' => 'nullable|string',
@@ -233,30 +233,11 @@ new class extends Component
             'hotel_id' => $hotel->id,
         ]);
 
-        // 4. Provision default Room Type and Rooms
-        $roomType = RoomType::create([
+        // 4. Provision default Room Type (rooms will be added manually by hotel admin)
+        RoomType::firstOrCreate([
             'name' => 'Standard Room',
             'hotel_id' => $hotel->id,
         ]);
-
-        for ($i = 1; $i <= $this->rooms_count; $i++) {
-            $roomNum = 100 + $i;
-            if ($i > 10) {
-                $roomNum = 200 + ($i - 10);
-            }
-            Room::firstOrCreate(
-                [
-                    'hotel_id'    => $hotel->id,
-                    'room_number' => 'Room ' . $roomNum,
-                ],
-                [
-                    'room_type_id' => $roomType->id,
-                    'price'        => 100.00,
-                    'status'       => 'Available',
-                    'floor'        => $i <= 10 ? '1st Floor' : '2nd Floor',
-                ]
-            );
-        }
 
         // 5. Seed default settings for the hotel
         $defaults = [

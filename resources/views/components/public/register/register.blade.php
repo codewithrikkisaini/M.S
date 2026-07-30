@@ -234,11 +234,6 @@
                             <h3 class="text-lg font-bold text-slate-800 mb-4">Property Specifications</h3>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-600 mb-1">Total Rooms *</label>
-                                    <input type="number" wire:model.defer="rooms_count" class="w-full border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white">
-                                    @error('rooms_count') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
-                                </div>
-                                <div>
                                     <label class="block text-xs font-semibold text-slate-500 mb-1">Category / Rating</label>
                                     <select wire:model.defer="category" class="w-full border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white">
                                         <option value="5-star">5 Star</option>
