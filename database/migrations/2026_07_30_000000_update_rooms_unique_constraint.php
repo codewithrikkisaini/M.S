@@ -8,41 +8,42 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     public function up(): void
     {
-        $driver = DB::getDriverName();
-
-        if ($driver === 'sqlite') {
-            DB::statement("DROP INDEX IF EXISTS rooms_room_number_unique;");
-            DB::statement("CREATE UNIQUE INDEX IF NOT EXISTS rooms_hotel_id_room_number_unique ON rooms (hotel_id, room_number);");
-        } else {
-            Schema::table('rooms', function (Blueprint $table) {
-                try {
+        // Drop old single-column unique index if it exists
+        try {
+            $indexes = collect(DB::select("SHOW INDEX FROM rooms WHERE Key_name = 'rooms_room_number_unique'"));
+            if ($indexes->isNotEmpty()) {
+                Schema::table('rooms', function (Blueprint $table) {
                     $table->dropUnique('rooms_room_number_unique');
-                } catch (\Throwable $e) {
-                    // Ignore if index does not exist
-                }
-                try {
+                });
+            }
+        } catch (\Throwable $e) {
+            // Ignore if index does not exist
+        }
+
+        // Add new composite unique index if it doesn't exist
+        try {
+            $indexes = collect(DB::select("SHOW INDEX FROM rooms WHERE Key_name = 'rooms_hotel_id_room_number_unique'"));
+            if ($indexes->isEmpty()) {
+                Schema::table('rooms', function (Blueprint $table) {
                     $table->unique(['hotel_id', 'room_number'], 'rooms_hotel_id_room_number_unique');
-                } catch (\Throwable $e) {
-                    // Ignore if index already exists
-                }
-            });
+                });
+            }
+        } catch (\Throwable $e) {
+            // Ignore if index already exists
         }
     }
 
     public function down(): void
     {
-        $driver = DB::getDriverName();
-
-        if ($driver === 'sqlite') {
-            DB::statement("DROP INDEX IF EXISTS rooms_hotel_id_room_number_unique;");
-        } else {
-            Schema::table('rooms', function (Blueprint $table) {
-                try {
+        try {
+            $indexes = collect(DB::select("SHOW INDEX FROM rooms WHERE Key_name = 'rooms_hotel_id_room_number_unique'"));
+            if ($indexes->isNotEmpty()) {
+                Schema::table('rooms', function (Blueprint $table) {
                     $table->dropUnique('rooms_hotel_id_room_number_unique');
-                } catch (\Throwable $e) {
-                    // Ignore
-                }
-            });
+                });
+            }
+        } catch (\Throwable $e) {
+            // Ignore
         }
     }
 };
