@@ -26,6 +26,8 @@ new class extends Component
 
     public $selectedRoomTypeId;
     public $selectedRoomType;
+    public $selectedRoomId;
+    public $selectedRoom;
     
     // Guest fields
     public $guest_name;
@@ -36,6 +38,8 @@ new class extends Component
     // Price details
     public $total_days = 1;
     public $total_price = 0;
+    public $is_available = true;
+    public $availability_message = '';
     
     public $booking_number;
     public $pnr;
@@ -44,19 +48,148 @@ new class extends Component
     public function mount($hotel_id = null): void
     {
         $this->hotels = Hotel::where('status', 'approved')->get();
-        if ($hotel_id) {
-            $this->hotel_id = $hotel_id;
+        
+        $requestedHotelId = request()->query('hotel_id', $hotel_id);
+        if ($requestedHotelId) {
+            $this->hotel_id = $requestedHotelId;
         } elseif ($this->hotels->count() > 0) {
             $this->hotel_id = $this->hotels->first()->id;
         }
-        $this->checkin_date = date('Y-m-d');
-        $this->checkout_date = date('Y-m-d', strtotime('+1 day'));
+
+        $this->checkin_date = request()->query('checkin', date('Y-m-d'));
+        $this->checkout_date = request()->query('checkout', date('Y-m-d', strtotime('+1 day')));
+        $this->guests_count = (int) request()->query('guests', 1);
+
+        $this->calculatePriceAndDates();
+
+        $roomId = request()->query('room_id');
+        $roomTypeId = request()->query('room_type_id');
+
+        if ($roomId) {
+            $room = Room::with('roomType')->find($roomId);
+            if ($room) {
+                $this->selectRoom($room->id);
+                return;
+            }
+        }
+
+        if ($roomTypeId) {
+            $roomType = RoomType::where('hotel_id', $this->hotel_id)->find($roomTypeId);
+            if (!$roomType) {
+                $roomType = RoomType::find($roomTypeId);
+            }
+            if ($roomType) {
+                $this->selectRoomType($roomType->id);
+            }
+        }
+    }
+
+    public function updatedCheckinDate(): void
+    {
+        $this->calculatePriceAndDates();
+    }
+
+    public function updatedCheckoutDate(): void
+    {
+        $this->calculatePriceAndDates();
+    }
+
+    public function calculatePriceAndDates(): void
+    {
+        try {
+            $checkin = new \DateTime($this->checkin_date);
+            $checkout = new \DateTime($this->checkout_date);
+            if ($checkout <= $checkin) {
+                $checkout = (clone $checkin)->modify('+1 day');
+                $this->checkout_date = $checkout->format('Y-m-d');
+            }
+            $diff = $checkin->diff($checkout);
+            $this->total_days = max(1, (int) $diff->days);
+        } catch (\Exception $e) {
+            $this->total_days = 1;
+        }
+
+        if ($this->selectedRoom) {
+            $rate = (float) ($this->selectedRoom->price ?: ($this->selectedRoomType->base_price ?? 59.95));
+            $this->total_price = $rate * $this->total_days;
+            $this->checkRoomAvailability();
+        } elseif ($this->selectedRoomType) {
+            $rate = (float) ($this->selectedRoomType->daily_rate ?: ($this->selectedRoomType->base_price ?: 59.95));
+            $this->total_price = $rate * $this->total_days;
+            $this->checkRoomAvailability();
+        }
+    }
+
+    public function checkRoomAvailability(): void
+    {
+        if (!$this->selectedRoom && !$this->selectedRoomType) {
+            $this->is_available = true;
+            $this->availability_message = '';
+            return;
+        }
+
+        if ($this->selectedRoom) {
+            // Check if specific room is available for dates
+            $isOccupied = Reservation::whereHas('rooms', function ($q) {
+                $q->where('rooms.id', $this->selectedRoom->id);
+            })
+            ->whereIn('status', ['Confirmed', 'Checked-In', 'Pending'])
+            ->where('check_in_date', '<', $this->checkout_date)
+            ->where('check_out_date', '>', $this->checkin_date)
+            ->exists();
+
+            if ($isOccupied || $this->selectedRoom->status === 'Maintenance') {
+                $this->is_available = false;
+                $this->availability_message = 'This room is not available for the selected dates.';
+            } else {
+                $this->is_available = true;
+                $this->availability_message = 'Available for instant booking!';
+            }
+        } elseif ($this->selectedRoomType) {
+            $availableRoom = Room::where('room_type_id', $this->selectedRoomTypeId)
+                ->where('hotel_id', $this->hotel_id)
+                ->availableBetween($this->checkin_date, $this->checkout_date)
+                ->first();
+
+            if ($availableRoom) {
+                $this->selectedRoom = $availableRoom;
+                $this->selectedRoomId = $availableRoom->id;
+                $this->is_available = true;
+                $this->availability_message = 'Available for instant booking!';
+            } else {
+                $this->is_available = false;
+                $this->availability_message = 'No available rooms of this type for selected dates.';
+            }
+        }
     }
 
     public function getSelectedHotelProperty()
     {
         if (!$this->hotel_id) return null;
         return Hotel::with('images')->find($this->hotel_id);
+    }
+
+    public function getRoomsProperty()
+    {
+        if (!$this->hotel_id) return collect();
+        
+        $rooms = Room::with('roomType')
+            ->where('hotel_id', $this->hotel_id)
+            ->get();
+
+        foreach ($rooms as $room) {
+            $isOccupied = Reservation::whereHas('rooms', function ($q) use ($room) {
+                $q->where('rooms.id', $room->id);
+            })
+            ->whereIn('status', ['Confirmed', 'Checked-In', 'Pending'])
+            ->where('check_in_date', '<', $this->checkout_date)
+            ->where('check_out_date', '>', $this->checkin_date)
+            ->exists();
+
+            $room->is_available = !$isOccupied && $room->status !== 'Maintenance';
+        }
+
+        return $rooms;
     }
 
     public function getRoomTypesProperty()
@@ -67,16 +200,39 @@ new class extends Component
             ->get();
     }
 
+    public function selectRoom($roomId): void
+    {
+        $this->selectedRoomId = $roomId;
+        $this->selectedRoom = Room::with('roomType')->findOrFail($roomId);
+        $this->selectedRoomTypeId = $this->selectedRoom->room_type_id;
+        $this->selectedRoomType = $this->selectedRoom->roomType;
+        $this->hotel_id = $this->selectedRoom->hotel_id;
+
+        $this->calculatePriceAndDates();
+        $this->step = 2;
+    }
+
     public function selectRoomType($id): void
     {
         $this->selectedRoomTypeId = $id;
         $this->selectedRoomType = RoomType::findOrFail($id);
         
-        $checkin = new DateTime($this->checkin_date);
-        $checkout = new DateTime($this->checkout_date);
-        $rate = (float) ($this->selectedRoomType->daily_rate ?: ($this->selectedRoomType->base_price ?: 59.95));
-        $this->total_price = $rate * $this->total_days;
-        
+        $availableRoom = Room::where('room_type_id', $id)
+            ->where('hotel_id', $this->hotel_id)
+            ->availableBetween($this->checkin_date, $this->checkout_date)
+            ->first();
+
+        if ($availableRoom) {
+            $this->selectedRoom = $availableRoom;
+            $this->selectedRoomId = $availableRoom->id;
+        } else {
+            $this->selectedRoom = Room::where('room_type_id', $id)->where('hotel_id', $this->hotel_id)->first();
+            if ($this->selectedRoom) {
+                $this->selectedRoomId = $this->selectedRoom->id;
+            }
+        }
+
+        $this->calculatePriceAndDates();
         $this->step = 2;
     }
 
@@ -88,6 +244,13 @@ new class extends Component
             'guest_phone' => 'required|string|max:20',
             'guest_nationality' => 'required|string',
         ]);
+
+        $this->calculatePriceAndDates();
+
+        if (!$this->is_available) {
+            $this->addError('booking', 'Sorry, this room is not available for the selected dates. Please select another date or room.');
+            return;
+        }
 
         DB::transaction(function () {
             // 1. Create or update the Guest globally
@@ -111,13 +274,15 @@ new class extends Component
                 ]);
             }
 
-            // 2. Allocate an available room of this type
-            $room = Room::where('room_type_id', $this->selectedRoomTypeId)
-                ->where('hotel_id', $this->hotel_id)
-                ->where('status', 'Available')
-                ->first();
+            // 2. Allocate selected room or available room
+            $room = $this->selectedRoom;
+            if (!$room) {
+                $room = Room::where('room_type_id', $this->selectedRoomTypeId)
+                    ->where('hotel_id', $this->hotel_id)
+                    ->availableBetween($this->checkin_date, $this->checkout_date)
+                    ->first();
+            }
 
-            // Fallback: If no vacant room is found, pick any room under this type for demo
             if (!$room) {
                 $room = Room::where('room_type_id', $this->selectedRoomTypeId)
                     ->where('hotel_id', $this->hotel_id)
@@ -141,7 +306,7 @@ new class extends Component
 
             // Link room and update room status
             if ($room) {
-                $reservation->rooms()->attach($room->id, ['price' => $room->price]);
+                $reservation->rooms()->attach($room->id, ['price' => $room->price ?: ($this->selectedRoomType->base_price ?? 2500)]);
                 $room->update(['status' => 'Occupied']);
             }
 
@@ -173,8 +338,7 @@ new class extends Component
             $this->booking_number = 'RES-' . $reservation->id . '-' . date('Y');
             $this->pnr = $reservation->pnr;
 
-            // 6. Send Booking Request Notification ONLY to Registered Hotel Email (e.g. rikkisaini61@gmail.com)
-            // Customer will receive confirmation email ONLY after Hotel Admin ACCEPTS the reservation in dashboard
+            // 7. Send Booking Request Notification ONLY to Registered Hotel Email
             try {
                 $hotel = Hotel::find($this->hotel_id);
                 if ($hotel && $hotel->email) {
