@@ -58,9 +58,9 @@ new class extends Component
             ->latest()
             ->get();
 
-        // Calculate usage metrics
-        $this->roomsCount = Room::count();
-        $this->usersCount = User::count();
+        // Calculate usage metrics scoped to hotel
+        $this->roomsCount = Room::where('hotel_id', $hotelId)->count();
+        $this->usersCount = User::where('hotel_id', $hotelId)->count();
     }
 
     public function selectPlan($planId): void

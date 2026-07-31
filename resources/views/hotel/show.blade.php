@@ -187,7 +187,7 @@
                                     <div class="flex-1 flex flex-col justify-between">
                                         <div>
                                             <div class="flex justify-between items-start">
-                                                <h3 class="text-lg font-bold text-slate-900">{{ $room->name ?? 'Standard Room' }} ({{ $room->room_number }})</h3>
+                                                <h3 class="text-lg font-bold text-slate-900">{{ $room->roomType->name ?? 'Standard Room' }} (Room {{ $room->room_number }})</h3>
                                                 <span class="text-xs font-bold px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg">Available</span>
                                             </div>
                                             <p class="text-xs text-slate-500 mt-1">Bed Type: {{ ucfirst($room->bed_type ?? 'Standard') }} | Max Guests: {{ $room->capacity ?? 2 }}</p>

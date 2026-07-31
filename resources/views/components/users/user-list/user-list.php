@@ -59,11 +59,31 @@ new class extends Component
         }
         $this->validate($rules);
 
+        $hotel_id = Auth::user()->hotel_id ?? null;
+
+        if (!$this->isEditMode && $hotel_id) {
+            $activeSub = \App\Models\Subscription::where('hotel_id', $hotel_id)
+                ->whereIn('status', ['active', 'trialing'])
+                ->with('plan')
+                ->latest()
+                ->first();
+
+            if ($activeSub && $activeSub->plan && $activeSub->plan->max_users !== null) {
+                $currentUsersCount = User::where('hotel_id', $hotel_id)->count();
+                if ($currentUsersCount >= $activeSub->plan->max_users) {
+                    $this->addError('email', "Plan user limit reached ({$activeSub->plan->max_users} users max). Please upgrade your subscription plan.");
+                    $this->dispatch('toast', message: "Plan user limit reached ({$activeSub->plan->max_users} users max). Please upgrade your subscription plan.", type: 'error');
+                    return;
+                }
+            }
+        }
+
         $data = [
-            'name'    => $this->name,
-            'email'   => $this->email,
-            'role_id' => $this->role_id ?: null,
-            'status'  => $this->status,
+            'name'     => $this->name,
+            'email'    => $this->email,
+            'role_id'  => $this->role_id ?: null,
+            'status'   => $this->status,
+            'hotel_id' => $hotel_id,
         ];
         if ($this->password) {
             $data['password'] = Hash::make($this->password);
@@ -104,10 +124,15 @@ new class extends Component
 
     public function render(): mixed
     {
+        $hotel_id = Auth::user()->hotel_id ?? null;
+
         $users = User::with('role')
+            ->when($hotel_id, fn ($q) => $q->where('hotel_id', $hotel_id))
             ->when($this->search, fn ($q) =>
-                $q->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('email', 'like', "%{$this->search}%")
+                $q->where(function ($sub) {
+                    $sub->where('name', 'like', "%{$this->search}%")
+                        ->orWhere('email', 'like', "%{$this->search}%");
+                })
             )
             ->latest()
             ->paginate(15);

@@ -11,9 +11,7 @@ class PublicHotelController extends Controller
     {
         // Load the hotel along with its active rooms and images if approved
         $hotel = Hotel::where('status', 'approved')
-            ->with(['images', 'rooms' => function($q) {
-                $q->where('is_active', true);
-            }])->findOrFail($id);
+            ->with(['images', 'rooms.roomType'])->findOrFail($id);
 
         return view('hotel.show', compact('hotel'));
     }

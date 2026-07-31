@@ -26,6 +26,13 @@ new class extends Component
         $this->loadPlans();
     }
 
+    public function updatedName($val): void
+    {
+        if (!$this->isEdit || empty($this->slug)) {
+            $this->slug = \Illuminate\Support\Str::slug($val);
+        }
+    }
+
     public function loadPlans(): void
     {
         $this->plans = SubscriptionPlan::latest()->get();
