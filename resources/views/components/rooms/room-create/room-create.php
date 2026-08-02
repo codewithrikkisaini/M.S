@@ -81,7 +81,7 @@ new class extends Component
 
     public function saveRoom(): void
     {
-        $hotel_id = Auth::user()->hotel_id ?? null;
+        $hotel_id = Auth::user()->hotel_id ?? \App\Models\Hotel::first()?->id ?? null;
 
         $this->validate([
             'room_number'    => [
@@ -159,7 +159,7 @@ new class extends Component
 
     public function render(): mixed
     {
-        $hotel_id = Auth::user()->hotel_id ?? null;
+        $hotel_id = Auth::user()->hotel_id ?? \App\Models\Hotel::first()?->id ?? null;
         $roomTypes = RoomType::all();
 
         $roomsQuery = Room::with('roomType');

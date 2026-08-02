@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class HotelApproved extends Mailable
+class HotelRejected extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -32,7 +32,7 @@ class HotelApproved extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Hotel Has Been Approved',
+            subject: 'Hotel Registration Update',
         );
     }
 
@@ -42,7 +42,7 @@ class HotelApproved extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.hotel-approved',
+            view: 'emails.hotel-rejected',
         );
     }
 

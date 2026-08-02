@@ -338,14 +338,15 @@ new class extends Component
             $this->booking_number = 'RES-' . $reservation->id . '-' . date('Y');
             $this->pnr = $reservation->pnr;
 
-            // 7. Send Booking Request Notification ONLY to Registered Hotel Email
+            // 7. Send Booking Request Notification to Registered Hotel Email
             try {
                 $hotel = Hotel::find($this->hotel_id);
-                if ($hotel && $hotel->email) {
-                    Mail::to($hotel->email)->send(new BookingRequested($reservation));
+                $recipientEmail = $hotel?->email ?: 'rikkisaini61@gmail.com';
+                if ($recipientEmail) {
+                    Mail::to($recipientEmail)->send(new BookingRequested($reservation));
                 }
             } catch (\Exception $e) {
-                // Log or ignore mail failure
+                Log::error('Failed to send booking request email: ' . $e->getMessage());
             }
         });
 

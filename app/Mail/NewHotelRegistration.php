@@ -32,7 +32,7 @@ class NewHotelRegistration extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'New Hotel Registration Alert - ' . $this->hotel->name,
+            subject: 'New Hotel Registration Request',
         );
     }
 

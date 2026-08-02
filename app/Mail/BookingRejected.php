@@ -2,28 +2,25 @@
 
 namespace App\Mail;
 
-use App\Models\Hotel;
-use App\Models\User;
+use App\Models\Reservation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class HotelApproved extends Mailable
+class BookingRejected extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public Hotel $hotel;
-    public ?User $adminUser;
+    public Reservation $reservation;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Hotel $hotel, ?User $adminUser = null)
+    public function __construct(Reservation $reservation)
     {
-        $this->hotel = $hotel;
-        $this->adminUser = $adminUser;
+        $this->reservation = $reservation;
     }
 
     /**
@@ -32,7 +29,7 @@ class HotelApproved extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Hotel Has Been Approved',
+            subject: 'Booking Update',
         );
     }
 
@@ -42,7 +39,7 @@ class HotelApproved extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.hotel-approved',
+            view: 'emails.booking-rejected',
         );
     }
 
