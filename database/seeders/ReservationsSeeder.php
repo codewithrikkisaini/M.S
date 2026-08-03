@@ -25,17 +25,23 @@ class ReservationsSeeder extends Seeder
 
             $room = $rooms->random();
 
-            $reservation = Reservation::create([
-                'guest_id' => $guests->random()->id,
-                'check_in_date' => $checkIn,
-                'check_out_date' => $checkOut,
-                'adults' => rand(1, 2),
-                'children' => rand(0, 2),
-                'special_notes' => 'Seeded reservation',
-                'status' => $status,
-            ]);
+            $reservation = Reservation::updateOrCreate(
+                ['id' => $i],
+                [
+                    'guest_id' => $guests->random()->id,
+                    'check_in_date' => $checkIn,
+                    'check_out_date' => $checkOut,
+                    'adults' => rand(1, 2),
+                    'children' => rand(0, 2),
+                    'special_notes' => 'Seeded reservation',
+                    'status' => $status,
+                ]
+            );
 
-            $reservation->rooms()->attach($room->id, ['price' => $room->price]);
+            if (method_exists($reservation, 'rooms')) {
+                $reservation->rooms()->syncWithPivotValues([$room->id], ['price' => $room->price]);
+            }
         }
     }
 }
+
