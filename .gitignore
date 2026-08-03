@@ -20,7 +20,7 @@
 .pnp.js
 
 # Vite
-/dist
+
 /.vite
 
 # IDEs / OS
