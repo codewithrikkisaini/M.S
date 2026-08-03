@@ -4,18 +4,16 @@ namespace App\Mail;
 
 use App\Models\Reservation;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Mail\Mailables\Address;
 
 class BookingRequested extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $reservation;
+    public Reservation $reservation;
 
     /**
      * Create a new message instance.
@@ -31,7 +29,7 @@ class BookingRequested extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Booking Requested - ' . ($this->reservation->hotel->name ?? 'Hotel'),
+            subject: 'New Room Booking Request',
         );
     }
 

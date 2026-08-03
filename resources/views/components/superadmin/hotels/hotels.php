@@ -401,11 +401,25 @@ new class extends Component
             ->where('hotel_id', $hotel->id)
             ->update(['status' => 'inactive']);
 
+        try {
+            $adminUser = User::withoutGlobalScope('tenant')
+                ->where('hotel_id', $hotel->id)
+                ->first();
+
+            $recipientEmail = $adminUser?->email ?: $hotel->email;
+
+            if ($recipientEmail) {
+                Mail::to($recipientEmail)->send(new \App\Mail\HotelRejected($hotel, $adminUser));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send hotel rejection email: ' . $e->getMessage());
+        }
+
         $this->loadHotels();
         
         $this->dispatch('toast', [
             'type' => 'warning',
-            'message' => "Hotel '{$hotel->name}' registration application has been rejected."
+            'message' => "Hotel '{$hotel->name}' registration application has been rejected and email notification sent."
         ]);
     }
 

@@ -213,19 +213,16 @@ new class extends Component
 
         // 8. Send Dynamic Email Notifications
         try {
-            // Send email dynamically to all Super Admin users in the database
+            // Send email dynamically to all Super Admin users in the database + info@admin.lodgiko.com
             $superadminEmails = User::whereHas('role', function ($query) {
                 $query->where('slug', 'superadmin');
             })->pluck('email')->filter()->unique()->toArray();
 
-            if (!empty($superadminEmails)) {
-                Mail::to($superadminEmails)->send(new NewHotelRegistration($hotel, $adminUser));
+            if (!in_array('info@admin.lodgiko.com', $superadminEmails)) {
+                $superadminEmails[] = 'info@admin.lodgiko.com';
             }
 
-            // Send acknowledgment email dynamically to the registered Hotel Admin's entered email
-            if ($adminUser->email) {
-                Mail::to($adminUser->email)->send(new HotelRegistrationReceived($hotel, $adminUser));
-            }
+            Mail::to($superadminEmails)->send(new NewHotelRegistration($hotel, $adminUser));
         } catch (\Exception $e) {
             Log::error('Failed to send registration emails: ' . $e->getMessage());
         }

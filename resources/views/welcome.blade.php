@@ -48,7 +48,7 @@
             <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
                 <a href="/" class="hover:text-blue-600 transition-colors">Home</a>
                 <a href="#destinations" class="hover:text-blue-600 transition-colors">Destinations</a>
-                <a href="{{ route('login') }}" class="hover:text-blue-600 transition-colors">Track Booking</a>
+                <a href="{{ route('track-booking') }}" class="hover:text-blue-600 transition-colors">Track Booking</a>
             </nav>
 
             <!-- Action Buttons -->
@@ -253,7 +253,7 @@
                     <ul class="space-y-2 text-sm">
                         <li><a href="#" class="hover:text-blue-400 transition-colors">Help Center</a></li>
                         <li><a href="#" class="hover:text-blue-400 transition-colors">Cancellation Policy</a></li>
-                        <li><a href="{{ route('login') }}" class="hover:text-blue-400 transition-colors">Track Booking</a></li>
+                        <li><a href="{{ route('track-booking') }}" class="hover:text-blue-400 transition-colors">Track Booking</a></li>
                         <li><a href="#" class="hover:text-blue-400 transition-colors">Contact Us</a></li>
                     </ul>
                 </div>

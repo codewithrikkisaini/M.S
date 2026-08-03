@@ -104,7 +104,7 @@ class ReservationService
                     Mail::to($res->guest->email)->send(new BookingAccepted($res));
                 }
             } catch (\Exception $e) {
-                // Log or ignore mail failure
+                \Illuminate\Support\Facades\Log::error('Failed to send booking acceptance email: ' . $e->getMessage());
             }
 
             return $res;
@@ -125,6 +125,15 @@ class ReservationService
             }
             
             $res->update(['status' => 'Rejected']);
+
+            try {
+                if ($res->guest && $res->guest->email) {
+                    Mail::to($res->guest->email)->send(new \App\Mail\BookingRejected($res));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send booking rejection email: ' . $e->getMessage());
+            }
+
             return $res;
         });
     }
