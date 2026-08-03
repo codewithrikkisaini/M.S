@@ -74,6 +74,13 @@
                 <span x-show="sidebarOpen" x-transition>Global Settings</span>
             </a>
 
+            <a href="{{ route('settings') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-cog nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>System Settings</span>
+            </a>
+
             {{-- Category: Integrations --}}
             <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Integrations</span>
@@ -224,12 +231,7 @@
                 <span x-show="sidebarOpen" x-transition>Users</span>
             </a>
 
-            <a href="{{ route('settings') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
-               :class="sidebarOpen ? '' : 'justify-center px-0'">
-                <i class="fas fa-cog nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-                <span x-show="sidebarOpen" x-transition>Settings</span>
-            </a>
+
 
             <a href="{{ route('profile') }}" wire:navigate
                class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('profile') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
@@ -327,6 +329,11 @@
                 <i class="fas fa-sliders-h nav-icon"></i><span>Global Settings</span>
             </a>
 
+            <a href="{{ route('settings') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-cog nav-icon"></i><span>System Settings</span>
+            </a>
+
             <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Integrations</span></div>
 
             <a href="{{ route('integrations.channels') }}" wire:navigate @click="mobileSidebarOpen = false"
@@ -420,10 +427,7 @@
                 <i class="fas fa-user-shield nav-icon"></i><span>Users</span>
             </a>
             
-            <a href="{{ route('settings') }}" wire:navigate @click="mobileSidebarOpen = false"
-               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
-                <i class="fas fa-cog nav-icon"></i><span>Settings</span>
-            </a>
+
 
             <a href="{{ route('profile') }}" wire:navigate @click="mobileSidebarOpen = false"
                class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('profile') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
