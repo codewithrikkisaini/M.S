@@ -175,24 +175,9 @@
                     Sign In to Dashboard
                 </button>
 
-                {{-- Quick Login Buttons --}}
-                <div class="pt-4 border-t border-slate-100 mt-6">
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3 text-center">Quick Login (Demo)</p>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button type="button" onclick="document.getElementById('email').value = 'superadmin@merahkie.com'; document.getElementById('password').value = '123456'; document.getElementById('login-form').submit();"
-                                class="flex flex-col items-center justify-center gap-1.5 p-2 bg-slate-50 border border-slate-200 hover:border-indigo-500/50 hover:bg-indigo-50/40 rounded-xl text-[10px] font-bold text-slate-600 hover:text-indigo-600 transition-all cursor-pointer">
-                            <i class="fas fa-crown text-indigo-650 text-sm"></i> Super Admin
-                        </button>
-                        <button type="button" onclick="document.getElementById('email').value = 'admin@merahkie.com'; document.getElementById('password').value = '123456'; document.getElementById('login-form').submit();"
-                                class="flex flex-col items-center justify-center gap-1.5 p-2 bg-slate-50 border border-slate-200 hover:border-indigo-500/50 hover:bg-indigo-50/40 rounded-xl text-[10px] font-bold text-slate-600 hover:text-indigo-600 transition-all cursor-pointer">
-                            <i class="fas fa-user-shield text-indigo-655 text-sm"></i> Hotel Admin
-                        </button>
-                        <button type="button" onclick="document.getElementById('email').value = 'receptionist@merahkie.com'; document.getElementById('password').value = '123456'; document.getElementById('login-form').submit();"
-                                class="flex flex-col items-center justify-center gap-1.5 p-2 bg-slate-50 border border-slate-200 hover:border-indigo-500/50 hover:bg-indigo-50/40 rounded-xl text-[10px] font-bold text-slate-600 hover:text-indigo-600 transition-all cursor-pointer">
-                            <i class="fas fa-user text-indigo-655 text-sm"></i> Receptionist
-                        </button>
-                    </div>
-                </div>
+
+
+
 
                 {{-- Public Hotel Registration Link --}}
                 <div class="mt-5 text-center">
