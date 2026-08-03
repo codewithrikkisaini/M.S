@@ -9,7 +9,7 @@
         
         <div style="border-bottom: 2px solid #10b981; padding-bottom: 16px; margin-bottom: 24px; text-align: center;">
             <h2 style="color: #059669; margin: 0; font-size: 24px; font-weight: 800;">🎉 Congratulations!</h2>
-            <p style="color: #64748b; font-size: 15px; margin-top: 6px; margin-bottom: 0;">Aapka hotel successfully approve ho gaya hai.</p>
+            <p style="color: #64748b; font-size: 15px; margin-top: 6px; margin-bottom: 0;">Your hotel has been successfully approved..</p>
         </div>
 
         <p style="font-size: 15px; color: #1e293b; line-height: 1.6;">
@@ -17,13 +17,13 @@
         </p>
 
         <p style="font-size: 14px; color: #475569; line-height: 1.6;">
-            Ab aap dashboard me login karke:
+           You can now log in to your dashboard to:
         </p>
 
         <ul style="font-size: 14px; color: #334155; line-height: 1.8; margin-bottom: 24px;">
-            <li>🏨 <strong>Rooms Add</strong> kar sakte hain.</li>
-            <li>📅 <strong>Room Booking receive</strong> kar sakte hain.</li>
-            <li>⚙️ <strong>Hotel manage</strong> kar sakte hain.</li>
+            <li>🏨 <strong>Add rooms</strong></li>
+            <li>📅 <strong>View bookings</strong></li>
+            <li>⚙️ <strong>Manage Hotel,pricing, etc.</strong></li>
         </ul>
 
         <div style="background-color: #f0fdf4; border-radius: 10px; padding: 20px; margin: 20px 0; border: 1px solid #bbf7d0;">
