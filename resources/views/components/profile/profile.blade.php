@@ -503,10 +503,20 @@
                 <div class="space-y-4 pt-2">
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                         @foreach($gallery_images as $img)
+                            @php
+                                $imgSrc = $img['image_path'] ?? '';
+                                if (\Illuminate\Support\Str::startsWith($imgSrc, ['http://', 'https://'])) {
+                                    $imgUrl = $imgSrc;
+                                } elseif (\Illuminate\Support\Str::startsWith(ltrim($imgSrc, '/'), 'storage/')) {
+                                    $imgUrl = asset(ltrim($imgSrc, '/'));
+                                } else {
+                                    $imgUrl = asset('storage/' . ltrim($imgSrc, '/'));
+                                }
+                            @endphp
                             <div class="relative group rounded-2xl overflow-hidden border {{ $img['is_primary'] ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-md' : 'border-slate-200/80 shadow-sm' }} bg-white flex flex-col transition-all">
                                 {{-- Image Container --}}
                                 <div class="relative aspect-[4/3] bg-slate-900 overflow-hidden">
-                                    <img src="{{ asset('storage/' . $img['image_path']) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    <img src="{{ $imgUrl }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                     
                                     {{-- Primary Cover Badge --}}
                                     @if($img['is_primary'])
