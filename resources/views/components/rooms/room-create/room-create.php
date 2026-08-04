@@ -141,31 +141,6 @@ new class extends Component
             return;
         }
 
-        // Handle existing room numbers gracefully
-        $existing = Room::where('hotel_id', $hotel_id)
-            ->whereIn('room_number', $roomNumbers)
-            ->pluck('room_number')
-            ->toArray();
-
-        $skippedStr = '';
-        if (!empty($existing)) {
-            $skippedStr = implode(', ', $existing);
-            // Keep only room numbers that don't exist yet
-            $roomNumbers = array_values(array_diff($roomNumbers, $existing));
-            
-            // If all numbers already exist, auto-increment to the next available room numbers
-            if (empty($roomNumbers)) {
-                foreach ($existing as $exNum) {
-                    $counter = 1;
-                    do {
-                        $candidate = is_numeric($exNum) ? (string)((int)$exNum + $counter) : "{$exNum}-{$counter}";
-                        $counter++;
-                    } while (Room::where('hotel_id', $hotel_id)->where('room_number', $candidate)->exists());
-                    $roomNumbers[] = $candidate;
-                }
-            }
-        }
-
         if ($hotel_id) {
             $activeSub = \App\Models\Subscription::where('hotel_id', $hotel_id)
                 ->whereIn('status', ['active', 'trialing'])
@@ -219,7 +194,7 @@ new class extends Component
                 ]
             );
 
-            // 2. Create Physical Rooms
+            // 2. Create or Update Physical Rooms
             foreach ($roomNumbers as $num) {
                 $floorToUse = $this->floor;
                 if (!empty($num) && is_numeric($num[0]) && $floorToUse === '1' && strlen($num) >= 3) {
@@ -239,14 +214,14 @@ new class extends Component
                     $roomData['image_path'] = $finalImagePath;
                 }
 
-                Room::create($roomData);
+                Room::updateOrCreate(
+                    ['hotel_id' => $hotel_id, 'room_number' => $num],
+                    $roomData
+                );
             }
 
             $addedStr = implode(', ', $roomNumbers);
-            $msg = "Room(s) {$addedStr} added successfully under {$roomType->name}!";
-            if (!empty($skippedStr)) {
-                $msg .= " (Skipped existing: {$skippedStr})";
-            }
+            $msg = "Room(s) {$addedStr} saved successfully under {$roomType->name}!";
             $this->reset(['room_number', 'image_path', 'photos']);
             $this->dispatch('toast', message: $msg, type: 'success');
         } catch (UniqueConstraintViolationException $e) {
