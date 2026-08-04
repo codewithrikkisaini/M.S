@@ -35,13 +35,13 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <!-- Brand Logo -->
             <a href="/" class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-paper-plane text-white text-lg"></i>
-                </div>
-                <div class="flex flex-col">
+                 <img src="{{ asset('images/lodgiko.png') }}"
+                    alt="Merahkie Logo"
+                    class="h-12 w-auto">
+                <!-- <div class="flex flex-col">
                     <span class="text-xl font-black tracking-tight text-slate-900 leading-none">MERAHKIE</span>
                     <span class="text-[10px] font-bold tracking-widest text-blue-600 uppercase mt-1">Bookings</span>
-                </div>
+                </div> -->
             </a>
             
             <!-- Navigation Links -->
@@ -225,10 +225,13 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-slate-800 pb-12">
                 <div class="col-span-1 md:col-span-1">
                     <div class="flex items-center gap-2 mb-4">
-                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <!-- <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                             <i class="fas fa-paper-plane text-white text-sm"></i>
-                        </div>
-                        <span class="text-xl font-black text-white">MERAHKIE</span>
+                        </div> -->
+                        <!-- <span class="text-xl font-black text-white">MERAHKIE</span> -->
+                          <img src="{{ asset('images/whitelogo.png') }}"
+                    alt="Merahkie Logo"
+                    class="h-12 w-auto">
                     </div>
                     <p class="text-sm text-slate-400 mb-6">Your premium hotel booking partner for luxury stays, resorts, and vacation rentals worldwide.</p>
                     <div class="flex items-center gap-4">
@@ -268,7 +271,7 @@
             </div>
             
             <div class="pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-slate-500">
-                <p>&copy; {{ date('Y') }} Merahkie Bookings. All rights reserved.</p>
+                <p>&copy; {{ date('Y') }} Lodgiko Bookings. All rights reserved.</p>
                 <div class="flex items-center gap-4 mt-4 md:mt-0">
                     <i class="fab fa-cc-visa text-2xl"></i>
                     <i class="fab fa-cc-mastercard text-2xl"></i>
