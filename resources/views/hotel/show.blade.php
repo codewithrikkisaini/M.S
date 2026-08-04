@@ -132,13 +132,13 @@
             @endphp
 
             @if($images && $images->count() > 0)
-                <div class="md:col-span-2 aspect-[4/3] md:aspect-auto">
-                    <img src="{{ asset('storage/' . $images[0]->image_path) }}" class="w-full h-full object-cover">
+                <div class="md:col-span-2 aspect-[4/3] md:aspect-auto bg-slate-200">
+                    <img src="{{ $images[0]->url }}" onerror="this.onerror=null; this.src='{{ $defaultImages[0] }}';" class="w-full h-full object-cover">
                 </div>
                 <div class="md:col-span-2 grid grid-cols-2 gap-4">
-                    @foreach($images->slice(1, 4) as $img)
+                    @foreach($images->slice(1, 4) as $idx => $img)
                         <div class="aspect-video bg-slate-100 overflow-hidden">
-                            <img src="{{ asset('storage/' . $img->image_path) }}" class="w-full h-full object-cover">
+                            <img src="{{ $img->url }}" onerror="this.onerror=null; this.src='{{ $defaultImages[($idx + 1) % count($defaultImages)] }}';" class="w-full h-full object-cover">
                         </div>
                     @endforeach
                 </div>

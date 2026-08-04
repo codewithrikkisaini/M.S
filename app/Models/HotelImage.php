@@ -21,4 +21,22 @@ class HotelImage extends Model
     {
         return $this->belongsTo(Hotel::class);
     }
+
+    public function getUrlAttribute(): string
+    {
+        if (empty($this->image_path)) {
+            return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
+        }
+
+        if (\Illuminate\Support\Str::startsWith($this->image_path, ['http://', 'https://'])) {
+            return $this->image_path;
+        }
+
+        $cleanPath = ltrim($this->image_path, '/');
+        if (\Illuminate\Support\Str::startsWith($cleanPath, 'storage/')) {
+            return asset($cleanPath);
+        }
+
+        return asset('storage/' . $cleanPath);
+    }
 }

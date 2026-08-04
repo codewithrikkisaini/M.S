@@ -113,7 +113,14 @@ new class extends Component
 
     public function saveRoom(): void
     {
-        $hotel_id = Auth::user()->hotel_id ?? \App\Models\Hotel::first()?->id ?? null;
+        $user = Auth::user();
+        $hotel_id = $user?->hotel_id ?? \App\Models\Hotel::where('status', 'approved')->first()?->id ?? \App\Models\Hotel::first()?->id;
+
+        if (!$hotel_id) {
+            $this->addError('room_number', 'No active hotel found to assign room.');
+            $this->dispatch('toast', message: "No active hotel found.", type: 'error');
+            return;
+        }
 
         $this->validate([
             'room_number'    => 'required|string',
@@ -125,7 +132,7 @@ new class extends Component
             'tax_percent'    => 'required|numeric|min:0|max:100',
             'status'         => 'required|in:Available,Occupied,Reserved,Maintenance',
             'image_path'     => 'nullable|string',
-            'photos.*'       => 'image|max:4096',
+            'photos.*'       => 'nullable|image|max:4096',
         ]);
 
         $roomNumbers = $this->parseRoomNumbers($this->room_number);
@@ -190,7 +197,9 @@ new class extends Component
         if (!empty($this->photos) && is_array($this->photos)) {
             foreach ($this->photos as $p) {
                 if ($p) {
-                    $paths[] = $p->store('rooms', 'public');
+                    try {
+                        $paths[] = $p->store('rooms', 'public');
+                    } catch (\Throwable $e) {}
                 }
             }
         }
@@ -238,6 +247,10 @@ new class extends Component
         } catch (UniqueConstraintViolationException $e) {
             $this->addError('room_number', 'One or more room numbers already exist for this hotel.');
             $this->dispatch('toast', message: "Room number already exists.", type: 'error');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Room save failed: ' . $e->getMessage());
+            $this->addError('room_number', 'Could not save room: ' . $e->getMessage());
+            $this->dispatch('toast', message: "Error saving room: " . $e->getMessage(), type: 'error');
         }
     }
 
