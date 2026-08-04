@@ -99,14 +99,19 @@ new class extends Component
         $finalImagePath = count($paths) > 0 ? (count($paths) === 1 ? $paths[0] : json_encode(array_values($paths))) : null;
 
         try {
-            $this->room->update([
+            $updateData = [
                 'room_number'  => $this->room_number,
-                'image_path'   => $finalImagePath,
                 'room_type_id' => $this->room_type_id,
                 'price'        => $this->price,
                 'status'       => $this->status,
                 'floor'        => $this->floor,
-            ]);
+            ];
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'image_path')) {
+                $updateData['image_path'] = $finalImagePath;
+            }
+
+            $this->room->update($updateData);
 
             session()->flash('toast', ['message' => 'Room updated successfully!', 'type' => 'success']);
             $this->redirect(route('rooms.index'), navigate: true);

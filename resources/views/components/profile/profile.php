@@ -200,11 +200,17 @@ new class extends Component
                 $this->stats_revenue_month = $monthRev > 0 ? '₹' . number_format($monthRev) : '₹18,40,000';
 
                 // Query gallery images
-                $this->gallery_images = HotelImage::where('hotel_id', $hotel->id)
+                $images = HotelImage::where('hotel_id', $hotel->id)
                     ->orderBy('is_primary', 'desc')
                     ->orderBy('id', 'asc')
-                    ->get()
-                    ->toArray();
+                    ->get();
+
+                $this->gallery_images = [];
+                foreach ($images as $img) {
+                    $item = $img->toArray();
+                    $item['url'] = $img->url;
+                    $this->gallery_images[] = $item;
+                }
             }
         }
 
