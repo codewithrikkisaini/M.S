@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $hotelName }} | Sign In</title>
+    <title>{{ $hotelName ?? 'Lodgiko PMS' }} | Sign In</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -57,7 +57,7 @@
         <div class="relative z-10 flex flex-col justify-between p-12 w-full">
             {{-- Logo --}}
             <div class="flex items-center gap-3">
-                <img src="{{ asset('images/logo.png') }}" alt="{{ $hotelName }}" class="h-16 w-auto object-contain bg-white p-1.5 rounded-2xl shadow-sm">
+                <img src="{{ asset('images/logo.png') }}" alt="{{ $hotelName ?? 'Lodgiko PMS' }}" class="h-16 w-auto object-contain bg-white p-1.5 rounded-2xl shadow-sm">
             </div>
 
             {{-- Center Content --}}
@@ -104,7 +104,7 @@
                 <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i class="fas fa-hotel text-white"></i>
                 </div>
-                <span class="text-slate-800 font-bold text-xl">{{ $hotelName }}</span>
+                <span class="text-slate-800 font-bold text-xl">{{ $hotelName ?? 'Lodgiko PMS' }}</span>
             </div>
 
             <div class="mb-8">
@@ -189,7 +189,7 @@
             </form>
 
             <p class="mt-8 text-center text-xs text-slate-400">
-                &copy; {{ date('Y') }} {{ $hotelName }}. All rights reserved.
+                &copy; {{ date('Y') }} {{ $hotelName ?? 'Lodgiko PMS' }}. All rights reserved.
             </p>
         </div>
     </div>

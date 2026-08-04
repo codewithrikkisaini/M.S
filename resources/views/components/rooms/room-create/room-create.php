@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use App\Models\RoomType;
 use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
@@ -9,6 +10,8 @@ use Illuminate\Database\UniqueConstraintViolationException;
 
 new class extends Component
 {
+    use WithFileUploads;
+
     public string $room_number = '';
     public string $floor = '1';
     public string $room_type_select = 'Single';
@@ -18,6 +21,8 @@ new class extends Component
     public string $monthly_rate = '990.00';
     public string $tax_percent = '15';
     public string $status = 'Available';
+    public string $image_path = '';
+    public $photos = [];
     public bool $is_custom_type = false;
 
     public function mount(): void
@@ -79,19 +84,39 @@ new class extends Component
         }
     }
 
+    private function parseRoomNumbers(string $input): array
+    {
+        $numbers = [];
+        $parts = explode(',', $input);
+
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if (empty($part)) continue;
+
+            if (preg_match('/^(\d+)\s*-\s*(\d+)$/', $part, $matches)) {
+                $start = (int) $matches[1];
+                $end = (int) $matches[2];
+                if ($start <= $end && ($end - $start) <= 50) {
+                    for ($i = $start; $i <= $end; $i++) {
+                        $numbers[] = (string) $i;
+                    }
+                } else {
+                    $numbers[] = $part;
+                }
+            } else {
+                $numbers[] = $part;
+            }
+        }
+
+        return array_unique($numbers);
+    }
+
     public function saveRoom(): void
     {
         $hotel_id = Auth::user()->hotel_id ?? \App\Models\Hotel::first()?->id ?? null;
 
         $this->validate([
-            'room_number'    => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('rooms', 'room_number')->where(function ($query) use ($hotel_id) {
-                    return $query->where('hotel_id', $hotel_id);
-                }),
-            ],
+            'room_number'    => 'required|string',
             'floor'          => 'required|string|max:50',
             'room_type_name' => 'required|string|max:100',
             'daily_rate'     => 'required|numeric|min:0',
@@ -99,7 +124,40 @@ new class extends Component
             'monthly_rate'   => 'required|numeric|min:0',
             'tax_percent'    => 'required|numeric|min:0|max:100',
             'status'         => 'required|in:Available,Occupied,Reserved,Maintenance',
+            'image_path'     => 'nullable|string',
+            'photos.*'       => 'image|max:4096',
         ]);
+
+        $roomNumbers = $this->parseRoomNumbers($this->room_number);
+        if (empty($roomNumbers)) {
+            $this->addError('room_number', 'Please enter at least one valid room number.');
+            return;
+        }
+
+        // Handle existing room numbers gracefully
+        $existing = Room::where('hotel_id', $hotel_id)
+            ->whereIn('room_number', $roomNumbers)
+            ->pluck('room_number')
+            ->toArray();
+
+        $skippedStr = '';
+        if (!empty($existing)) {
+            $skippedStr = implode(', ', $existing);
+            // Keep only room numbers that don't exist yet
+            $roomNumbers = array_values(array_diff($roomNumbers, $existing));
+            
+            // If all numbers already exist, auto-increment to the next available room numbers
+            if (empty($roomNumbers)) {
+                foreach ($existing as $exNum) {
+                    $counter = 1;
+                    do {
+                        $candidate = is_numeric($exNum) ? (string)((int)$exNum + $counter) : "{$exNum}-{$counter}";
+                        $counter++;
+                    } while (Room::where('hotel_id', $hotel_id)->where('room_number', $candidate)->exists());
+                    $roomNumbers[] = $candidate;
+                }
+            }
+        }
 
         if ($hotel_id) {
             $activeSub = \App\Models\Subscription::where('hotel_id', $hotel_id)
@@ -110,13 +168,34 @@ new class extends Component
 
             if ($activeSub && $activeSub->plan && $activeSub->plan->max_rooms !== null) {
                 $currentRoomsCount = Room::where('hotel_id', $hotel_id)->count();
-                if ($currentRoomsCount >= $activeSub->plan->max_rooms) {
+                if (($currentRoomsCount + count($roomNumbers)) > $activeSub->plan->max_rooms) {
                     $this->addError('room_number', "Plan limit reached ({$activeSub->plan->max_rooms} rooms max). Please upgrade your subscription plan.");
                     $this->dispatch('toast', message: "Plan limit reached ({$activeSub->plan->max_rooms} rooms max). Please upgrade your subscription plan.", type: 'error');
                     return;
                 }
             }
         }
+
+        $paths = [];
+        if (!empty($this->image_path)) {
+            $urlList = preg_split('/[\r\n,]+/', $this->image_path);
+            foreach ($urlList as $u) {
+                $u = trim($u);
+                if ($u !== '') {
+                    $paths[] = $u;
+                }
+            }
+        }
+
+        if (!empty($this->photos) && is_array($this->photos)) {
+            foreach ($this->photos as $p) {
+                if ($p) {
+                    $paths[] = $p->store('rooms', 'public');
+                }
+            }
+        }
+
+        $finalImagePath = count($paths) > 0 ? json_encode(array_values($paths)) : null;
 
         try {
             // 1. Create or Update Room Type Tariff
@@ -131,22 +210,34 @@ new class extends Component
                 ]
             );
 
-            // 2. Create Physical Room
-            $newRoom = Room::create([
-                'room_number'  => $this->room_number,
-                'room_type_id' => $roomType->id,
-                'price'        => $this->daily_rate,
-                'floor'        => $this->floor,
-                'status'       => $this->status,
-                'hotel_id'     => $hotel_id,
-            ]);
+            // 2. Create Physical Rooms
+            foreach ($roomNumbers as $num) {
+                $floorToUse = $this->floor;
+                if (!empty($num) && is_numeric($num[0]) && $floorToUse === '1' && strlen($num) >= 3) {
+                    $floorToUse = $num[0];
+                }
 
-            $createdNum = $this->room_number;
-            $this->reset(['room_number']);
-            $this->dispatch('toast', message: "Room {$createdNum} added successfully under {$roomType->name}!", type: 'success');
+                Room::create([
+                    'room_number'  => $num,
+                    'image_path'   => $finalImagePath,
+                    'room_type_id' => $roomType->id,
+                    'price'        => $this->daily_rate,
+                    'floor'        => $floorToUse,
+                    'status'       => $this->status,
+                    'hotel_id'     => $hotel_id,
+                ]);
+            }
+
+            $addedStr = implode(', ', $roomNumbers);
+            $msg = "Room(s) {$addedStr} added successfully under {$roomType->name}!";
+            if (!empty($skippedStr)) {
+                $msg .= " (Skipped existing: {$skippedStr})";
+            }
+            $this->reset(['room_number', 'image_path', 'photos']);
+            $this->dispatch('toast', message: $msg, type: 'success');
         } catch (UniqueConstraintViolationException $e) {
-            $this->addError('room_number', 'This room number already exists for this hotel.');
-            $this->dispatch('toast', message: "Room number '{$this->room_number}' already exists.", type: 'error');
+            $this->addError('room_number', 'One or more room numbers already exist for this hotel.');
+            $this->dispatch('toast', message: "Room number already exists.", type: 'error');
         }
     }
 

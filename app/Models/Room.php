@@ -10,7 +10,49 @@ class Room extends Model
 {
     use HasFactory, BelongsToTenant;
 
-    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'hotel_id'];
+    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'hotel_id', 'image_path'];
+
+    public function getImagesAttribute(): array
+    {
+        if (!empty($this->image_path)) {
+            $decoded = json_decode($this->image_path, true);
+            if (is_array($decoded) && count($decoded) > 0) {
+                return array_map(function ($img) {
+                    return filter_var($img, FILTER_VALIDATE_URL) ? $img : asset('storage/' . $img);
+                }, $decoded);
+            }
+
+            if (str_contains($this->image_path, ',')) {
+                $items = array_filter(array_map('trim', explode(',', $this->image_path)));
+                return array_map(function ($img) {
+                    return filter_var($img, FILTER_VALIDATE_URL) ? $img : asset('storage/' . $img);
+                }, array_values($items));
+            }
+
+            return [filter_var($this->image_path, FILTER_VALIDATE_URL) ? $this->image_path : asset('storage/' . $this->image_path)];
+        }
+
+        $fallbacks = [
+            'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1000&q=80',
+            'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1000&q=80'
+        ];
+
+        $offset = abs(crc32($this->room_number ?? (string)$this->id));
+        return [
+            $fallbacks[$offset % count($fallbacks)],
+            $fallbacks[($offset + 1) % count($fallbacks)],
+            $fallbacks[($offset + 2) % count($fallbacks)],
+        ];
+    }
+
+    public function getImageUrlAttribute(): string
+    {
+        $all = $this->images;
+        return $all[0] ?? 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';
+    }
 
     public function roomType()
     {
