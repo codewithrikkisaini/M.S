@@ -5,12 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Support\Str;
+
 class Hotel extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'name',
+        'slug',
         'code',
         'email',
         'phone',
@@ -36,6 +39,42 @@ class Hotel extends Model
         'current_channel_manager',
         'current_website',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Hotel $hotel) {
+            if (empty($hotel->slug) && !empty($hotel->name)) {
+                $hotel->slug = Str::slug($hotel->name);
+            }
+        });
+
+        static::updating(function (Hotel $hotel) {
+            if ($hotel->isDirty('name') || empty($hotel->slug)) {
+                if (!empty($hotel->name)) {
+                    $hotel->slug = Str::slug($hotel->name);
+                }
+            }
+        });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    public function getSlugAttribute($value): string
+    {
+        return $value ?: Str::slug($this->name ?? 'hotel');
+    }
+
+    public function getUrlAttribute(): string
+    {
+        $baseSlug = $this->slug ?: Str::slug($this->name ?? 'hotel');
+        if (Str::endsWith($baseSlug, '-' . $this->id)) {
+            return url('/hotel/' . $baseSlug);
+        }
+        return url('/hotel/' . $baseSlug . '-' . $this->id);
+    }
 
     public function users()
     {

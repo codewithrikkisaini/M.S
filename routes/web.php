@@ -10,7 +10,7 @@ Route::get('/', function () {
     $hotels = \App\Models\Hotel::where('status', 'approved')->with(['images', 'rooms'])->get();
     return view('welcome', compact('hotels'));
 });
-Route::get('/hotel/{id}', [PublicHotelController::class, 'show'])->name('hotel.show');
+Route::get('/hotel/{slug}', [PublicHotelController::class, 'show'])->name('hotel.show');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -258,7 +258,9 @@ Route::get('/setup-project', function () {
 // ─── Public Registration & Booking ─────────────────────────────────────────
 Route::livewire('/register-hotel', 'public.register')->name('register-hotel');
 Route::livewire('/book/{hotel_id?}', 'public.booking-engine')->name('booking-engine');
+Route::livewire('/{city}/{slug}/book', 'public.booking-engine')->name('booking-engine.seo');
 Route::livewire('/track', 'public.track-booking')->name('track-booking');
+Route::get('/booking/slip/{pnr}/download', [\App\Http\Controllers\BookingSlipController::class, 'download'])->name('booking.slip.download');
 
 // ─── Auth-protected (all MFC via Route::livewire) ──────────────────────────
 Route::middleware('auth')->group(function () {

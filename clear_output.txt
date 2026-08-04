@@ -1,0 +1,13 @@
+=== Clearing Cache ===
+View Cache: 
+   INFO  Compiled views cleared successfully.  
+
+
+Route Cache: 
+   INFO  Route cache cleared successfully.  
+
+
+Config Cache: 
+   INFO  Configuration cache cleared successfully.  
+
+

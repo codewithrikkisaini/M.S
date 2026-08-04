@@ -1,11 +1,38 @@
 @php
     $selectedHotel = $this->selectedHotel;
-    $currencySymbol = ($selectedHotel && in_array(strtoupper($selectedHotel->currency), ['INR', 'RS'])) ? '₹' : ($selectedHotel->currency ?? '₹');
+    $selectedRoom = $this->selectedRoom;
+    $selectedRoomType = $this->selectedRoomType;
+    $hotels = $this->hotels;
+    $currencySymbol = ($selectedHotel && in_array(strtoupper($selectedHotel->currency ?? ''), ['INR', 'RS'])) ? '₹' : ($selectedHotel->currency ?? '₹');
 @endphp
+<style>
+@media print {
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    .no-print, header, footer, nav, .navbar {
+        display: none !important;
+    }
+    #printable-voucher {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+}
+</style>
+
 <div class="min-h-screen bg-slate-50 text-slate-800 py-10 px-4 sm:px-6 lg:px-8">
     <div class="max-w-6xl mx-auto">
         {{-- Branding & Header --}}
-        <div class="text-center mb-8">
+        <div class="text-center mb-8 no-print">
             <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mb-3 shadow-sm">
                 <i class="fas fa-shield-alt"></i> Direct Room Booking & Details Portal
             </div>
@@ -14,7 +41,7 @@
         </div>
 
         {{-- Progress Bar --}}
-        <div class="flex items-center justify-center gap-2 mb-8">
+        <div class="flex items-center justify-center gap-2 mb-8 no-print">
             <span class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs {{ $step >= 1 ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-400 border border-slate-200' }}">1</span>
             <div class="w-12 h-1 {{ $step >= 2 ? 'bg-blue-600' : 'bg-slate-200' }}"></div>
             <span class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs {{ $step >= 2 ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-400 border border-slate-200' }}">2</span>
@@ -175,19 +202,24 @@
                 $price = $room->price ?: ($room->roomType->base_price ?? 2500);
             @endphp
             <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col md:flex-row hover:shadow-lg transition-all duration-300 group shadow-sm">
-                <div class="w-full md:w-1/3 bg-slate-100 min-h-[180px] flex items-center justify-center relative border-r border-slate-200">
-                    <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover">
+                <div class="w-full md:w-1/3 bg-slate-100 min-h-[200px] flex items-center justify-center relative border-r border-slate-200 overflow-hidden group/img">
+                    <img src="{{ $room->image_url }}" class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500">
                     <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm border border-slate-200 text-slate-800 text-[11px] font-bold px-3 py-1 rounded-lg shadow-sm">
                         Room {{ $room->room_number }}
                     </span>
-                    <span class="absolute bottom-4 left-4">
+                    @if(count($room->images) > 1)
+                        <span class="absolute top-4 right-4 bg-slate-900/70 backdrop-blur-sm border border-white/20 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm flex items-center gap-1">
+                            <i class="fas fa-images text-blue-400"></i> {{ count($room->images) }} Photos
+                        </span>
+                    @endif
+                    <span class="absolute bottom-4 left-4 z-10">
                         @if($room->is_available)
-                            <span class="bg-emerald-500 text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md">
-                                <i class="fas fa-check-circle mr-1"></i> Available
+                            <span class="bg-emerald-500 text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+                                <i class="fas fa-check-circle"></i> Available
                             </span>
                         @else
-                            <span class="bg-rose-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md">
-                                <i class="fas fa-times-circle mr-1"></i> Not Available / Occupied
+                            <span class="bg-rose-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+                                <i class="fas fa-times-circle"></i> Not Available / Occupied
                             </span>
                         @endif
                     </span>
@@ -220,7 +252,7 @@
                             </button>
                         @else
                             <button disabled class="bg-slate-200 text-slate-400 font-bold text-xs py-2.5 px-6 rounded-xl cursor-not-allowed flex items-center gap-1.5">
-                                <i class="fas fa-ban text-xs"></i> Not Available
+                                <i class="fas fa-ban text-xs"></i> Not Available / Occupied
                             </button>
                         @endif
                     </div>
@@ -238,6 +270,13 @@
 
         {{-- Step 2: Room Details & Booking Form --}}
         @if($step == 2)
+        @php
+            $roomImages = $selectedRoom ? $selectedRoom->images : [
+                'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1000&q=80',
+                'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80',
+                'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1000&q=80'
+            ];
+        @endphp
         <div class="mb-4 flex justify-between items-center">
             <button wire:click="$set('step', 1)" class="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-all bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm cursor-pointer">
                 <i class="fas fa-arrow-left"></i> Back to Rooms List
@@ -252,13 +291,17 @@
             
             {{-- Room Details Showcase Card (7 Columns) --}}
             <div class="lg:col-span-7 space-y-6">
-                <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-                    {{-- Room Header Banner & Image --}}
-                    <div class="relative aspect-video bg-slate-900">
-                        <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1000&q=80" class="w-full h-full object-cover opacity-90">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
-                        
-                        <div class="absolute top-4 left-4">
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden" x-data="{ activeRoomImgIdx: 0, rmImages: @js($roomImages) }">
+                    {{-- Room Header Banner & Image Gallery Slider --}}
+                    <div class="relative aspect-video bg-slate-900 overflow-hidden border-b border-slate-200">
+                        <template x-for="(rImg, rIdx) in rmImages" :key="rIdx">
+                            <img x-show="activeRoomImgIdx === rIdx" :src="rImg" class="w-full h-full object-cover transition-all duration-500">
+                        </template>
+
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/30 pointer-events-none"></div>
+
+                        {{-- Availability Status Badge --}}
+                        <div class="absolute top-4 left-4 z-10">
                             @if($is_available)
                                 <span class="bg-emerald-500 text-white text-xs font-black px-3.5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 border border-emerald-400">
                                     <i class="fas fa-check-circle"></i> Available for Selected Dates
@@ -270,16 +313,39 @@
                             @endif
                         </div>
 
-                        <div class="absolute bottom-4 left-4 right-4 text-white">
-                            <span class="text-xs font-bold text-blue-300 uppercase tracking-widest block">{{ $selectedHotel->name ?? 'Hotel' }}</span>
-                            <h2 class="text-2xl font-black text-white tracking-tight mt-0.5">
-                                {{ $selectedRoomType->name ?? 'Luxury Suite' }} 
-                                @if($selectedRoom)
-                                    <span class="text-blue-400">(Room {{ $selectedRoom->room_number }})</span>
-                                @endif
-                            </h2>
+                        {{-- Controls & Image Counter --}}
+                        <div class="absolute inset-x-0 bottom-0 p-4 flex justify-between items-end text-white text-xs z-10">
+                            <div>
+                                <span class="text-xs font-bold text-blue-300 uppercase tracking-widest block">{{ $selectedHotel->name ?? 'Hotel' }}</span>
+                                <h2 class="text-2xl font-black text-white tracking-tight mt-0.5">
+                                    {{ $selectedRoomType->name ?? 'Luxury Suite' }} 
+                                    @if($selectedRoom)
+                                        <span class="text-blue-400">(Room {{ $selectedRoom->room_number }})</span>
+                                    @endif
+                                </h2>
+                            </div>
+                            <div class="flex items-center gap-2" x-show="rmImages.length > 1">
+                                <span class="font-bold text-[10px] bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20 uppercase tracking-wider" x-text="(activeRoomImgIdx + 1) + ' / ' + rmImages.length"></span>
+                                <button @click="activeRoomImgIdx = (activeRoomImgIdx - 1 + rmImages.length) % rmImages.length" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center cursor-pointer transition-all border border-white/20 backdrop-blur-md">
+                                    <i class="fas fa-chevron-left text-xs"></i>
+                                </button>
+                                <button @click="activeRoomImgIdx = (activeRoomImgIdx + 1) % rmImages.length" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center cursor-pointer transition-all border border-white/20 backdrop-blur-md">
+                                    <i class="fas fa-chevron-right text-xs"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
+
+                    {{-- Room Image Gallery Thumbnails --}}
+                    @if(count($roomImages) > 1)
+                    <div class="p-3 bg-slate-50 border-b border-slate-100 flex gap-2 overflow-x-auto scrollbar-thin">
+                        <template x-for="(rImg, rIdx) in rmImages" :key="rIdx">
+                            <button @click="activeRoomImgIdx = rIdx" class="w-20 h-14 rounded-xl overflow-hidden border-2 transition-all cursor-pointer flex-shrink-0" :class="activeRoomImgIdx === rIdx ? 'border-blue-600 scale-95 shadow-md ring-2 ring-blue-500/30' : 'border-slate-200 opacity-60 hover:opacity-100'">
+                                <img :src="rImg" class="w-full h-full object-cover">
+                            </button>
+                        </template>
+                    </div>
+                    @endif
 
                     {{-- Room Specifications & Highlights --}}
                     <div class="p-6 space-y-6">
@@ -362,7 +428,7 @@
                     <div class="my-4 bg-blue-50/70 border border-blue-100 rounded-2xl p-4 space-y-2 text-xs">
                         <div class="flex justify-between text-slate-600 font-semibold">
                             <span>Rate per Night:</span>
-                            <span>{{ $currencySymbol }}{{ number_format($selectedRoom->price ?? ($selectedRoomType->base_price ?? 2500)) }}</span>
+                            <span>{{ $currencySymbol }}{{ number_format((float) ($selectedRoom?->price ?: ($selectedRoomType?->base_price ?: ($total_price / max(1, $total_days)))), 2) }}</span>
                         </div>
                         <div class="flex justify-between text-slate-600 font-semibold">
                             <span>Duration:</span>
@@ -399,42 +465,148 @@
                         </div>
                     </div>
 
-                    {{-- Payment Method Selection --}}
+                    {{-- Payment Method Selection & Dynamic Form Fields --}}
                     <div class="pt-4">
                         <h3 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-2.5"><i class="fas fa-wallet mr-1 text-blue-500"></i> Payment Mode</h3>
                         <div class="grid grid-cols-2 gap-2">
                             <label class="cursor-pointer">
-                                <input type="radio" wire:model="payment_method" value="Card" class="peer sr-only">
-                                <div class="rounded-xl border border-slate-200 bg-white p-2.5 text-center hover:bg-slate-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-xs font-bold">
+                                <input type="radio" wire:model.live="payment_method" value="Card" class="peer sr-only">
+                                <div class="rounded-xl border border-slate-200 bg-white p-2.5 text-center hover:bg-slate-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-xs font-bold shadow-sm">
                                     <i class="fas fa-credit-card mr-1 text-blue-500"></i> Card
                                 </div>
                             </label>
                             <label class="cursor-pointer">
-                                <input type="radio" wire:model="payment_method" value="UPI" class="peer sr-only">
-                                <div class="rounded-xl border border-slate-200 bg-white p-2.5 text-center hover:bg-slate-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-xs font-bold">
+                                <input type="radio" wire:model.live="payment_method" value="UPI" class="peer sr-only">
+                                <div class="rounded-xl border border-slate-200 bg-white p-2.5 text-center hover:bg-slate-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-xs font-bold shadow-sm">
                                     <i class="fas fa-qrcode mr-1 text-blue-500"></i> UPI
                                 </div>
                             </label>
                             <label class="cursor-pointer">
-                                <input type="radio" wire:model="payment_method" value="Net Banking" class="peer sr-only">
-                                <div class="rounded-xl border border-slate-200 bg-white p-2.5 text-center hover:bg-slate-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-xs font-bold">
+                                <input type="radio" wire:model.live="payment_method" value="Net Banking" class="peer sr-only">
+                                <div class="rounded-xl border border-slate-200 bg-white p-2.5 text-center hover:bg-slate-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-xs font-bold shadow-sm">
                                     <i class="fas fa-university mr-1 text-blue-500"></i> Net Banking
                                 </div>
                             </label>
                             <label class="cursor-pointer">
-                                <input type="radio" wire:model="payment_method" value="Cash" class="peer sr-only">
-                                <div class="rounded-xl border border-slate-200 bg-white p-2.5 text-center hover:bg-slate-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-xs font-bold">
+                                <input type="radio" wire:model.live="payment_method" value="Cash" class="peer sr-only">
+                                <div class="rounded-xl border border-slate-200 bg-white p-2.5 text-center hover:bg-slate-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-xs font-bold shadow-sm">
                                     <i class="fas fa-money-bill-wave mr-1 text-blue-500"></i> Pay at Hotel
                                 </div>
                             </label>
+                        </div>
+
+                        {{-- Dynamic Fields per Selected Payment Mode --}}
+                        <div class="mt-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                            {{-- CARD FIELDS --}}
+                            @if($payment_method === 'Card')
+                            <div class="space-y-3 animate-fadeIn">
+                                <div class="flex items-center justify-between text-xs font-extrabold text-slate-700 border-b border-slate-200 pb-2">
+                                    <span><i class="fas fa-credit-card text-blue-500 mr-1"></i> Credit / Debit Card</span>
+                                    <span class="text-blue-600">Amount: {{ $currencySymbol }}{{ number_format($total_price, 2) }}</span>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">Card Number *</label>
+                                    <input type="text" wire:model="card_number" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-blue-500" placeholder="4532 •••• •••• 8921">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">Card Holder Name *</label>
+                                    <input type="text" wire:model="card_holder" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-blue-500" placeholder="e.g. Rahul Sharma">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">Expiry Date *</label>
+                                        <input type="text" wire:model="card_expiry" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-xs font-mono font-semibold focus:outline-none focus:border-blue-500" placeholder="MM/YY">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">CVV *</label>
+                                        <input type="password" maxlength="4" wire:model="card_cvv" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-xs font-mono font-semibold focus:outline-none focus:border-blue-500" placeholder="•••">
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+
+                            {{-- UPI FIELDS --}}
+                            @if($payment_method === 'UPI')
+                            <div class="space-y-3 animate-fadeIn">
+                                <div class="flex items-center justify-between text-xs font-extrabold text-slate-700 border-b border-slate-200 pb-2">
+                                    <span><i class="fas fa-qrcode text-blue-500 mr-1"></i> UPI Direct / QR Payment</span>
+                                    <span class="text-blue-600">Amount: {{ $currencySymbol }}{{ number_format($total_price, 2) }}</span>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">UPI ID *</label>
+                                    <input type="text" wire:model="upi_id" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-blue-500" placeholder="e.g. username@upi or mobilenumber@paytm">
+                                </div>
+                                <div class="text-center pt-2">
+                                    <span class="block text-[10px] font-extrabold uppercase text-slate-400 mb-2">Or Scan QR Code to Pay</span>
+                                    <div class="w-36 h-36 mx-auto bg-white p-2 border border-slate-200 rounded-2xl shadow-sm flex flex-col items-center justify-center relative">
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=hotel@upi&pn=MerahkieHotel&am={{ $total_price }}&cu=INR" alt="UPI QR Code" class="w-full h-full object-contain rounded-lg">
+                                    </div>
+                                    <p class="text-[10px] text-slate-500 mt-1 font-semibold">Scan with Google Pay, PhonePe, Paytm or BHIM</p>
+                                </div>
+                            </div>
+                            @endif
+
+                            {{-- CASH FIELDS --}}
+                            @if($payment_method === 'Cash')
+                            <div class="space-y-3 animate-fadeIn">
+                                <div class="flex items-center justify-between text-xs font-extrabold text-slate-700 border-b border-slate-200 pb-2">
+                                    <span><i class="fas fa-money-bill-wave text-emerald-600 mr-1"></i> Cash Payment at Hotel</span>
+                                    <span class="text-emerald-600 font-bold">Total Due: {{ $currencySymbol }}{{ number_format($total_price, 2) }}</span>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">Cash Received *</label>
+                                    <input type="number" step="1" wire:model.live.debounce.200ms="cash_received" class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500" placeholder="Enter cash amount received">
+                                </div>
+                                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex justify-between items-center text-xs">
+                                    <span class="font-bold text-emerald-800">Balance / Change to Return:</span>
+                                    <span class="font-black text-emerald-700 text-base">{{ $currencySymbol }}{{ number_format($balance_change, 2) }}</span>
+                                </div>
+                            </div>
+                            @endif
+
+                            {{-- NET BANKING FIELDS --}}
+                            @if($payment_method === 'Net Banking')
+                            <div class="space-y-3 animate-fadeIn">
+                                <div class="flex items-center justify-between text-xs font-extrabold text-slate-700 border-b border-slate-200 pb-2">
+                                    <span><i class="fas fa-university text-blue-500 mr-1"></i> Net Banking</span>
+                                    <span class="text-blue-600">Amount: {{ $currencySymbol }}{{ number_format($total_price, 2) }}</span>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">Select Bank *</label>
+                                    <select class="w-full bg-white border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-blue-500">
+                                        <option value="SBI">State Bank of India (SBI)</option>
+                                        <option value="HDFC">HDFC Bank</option>
+                                        <option value="ICICI">ICICI Bank</option>
+                                        <option value="AXIS">Axis Bank</option>
+                                        <option value="PNB">Punjab National Bank</option>
+                                    </select>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
 
                     {{-- CTA Submit Button --}}
                     <div class="pt-6">
+                        @if($errors->any())
+                            <div class="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl p-3 mb-3">
+                                <div class="font-bold mb-1"><i class="fas fa-exclamation-triangle mr-1"></i> Please check the following:</div>
+                                <ul class="list-disc list-inside space-y-0.5 text-[11px]">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         @if($is_available)
-                            <button wire:click="processBooking" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-sm py-4 rounded-2xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer flex items-center justify-center gap-2 hover:shadow-xl hover:scale-[1.01]">
-                                <i class="fas fa-lock text-xs"></i> Confirm & Book Room {{ $selectedRoom->room_number ?? '' }} Now
+                            <button type="button" wire:click="processBooking" wire:loading.attr="disabled" class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-75 text-white font-black text-sm py-4 rounded-2xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer flex items-center justify-center gap-2 hover:shadow-xl hover:scale-[1.01]">
+                                <span wire:loading.remove class="flex items-center gap-2">
+                                    <i class="fas fa-lock text-xs"></i> Confirm & Book Room {{ $selectedRoom->room_number ?? '' }} Now
+                                </span>
+                                <span wire:loading class="flex items-center gap-2">
+                                    <i class="fas fa-spinner fa-spin text-xs"></i> Booking Room {{ $selectedRoom->room_number ?? '' }}... Please wait
+                                </span>
                             </button>
                         @else
                             <button disabled class="w-full bg-slate-300 text-slate-500 font-bold text-sm py-4 rounded-2xl cursor-not-allowed flex items-center justify-center gap-2">
@@ -449,58 +621,144 @@
         </div>
         @endif
 
-        {{-- Step 3: Success Screen --}}
+        {{-- Step 3: Success Screen (Complete Booking Receipt / Confirmation) --}}
         @if($step == 3)
-        <div class="max-w-md mx-auto bg-white rounded-3xl border border-slate-200 shadow-2xl p-8 text-center animate-fadeIn relative overflow-hidden my-8">
-            <div class="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-100 shadow-sm">
-                <i class="fas fa-check-circle text-4xl"></i>
-            </div>
+        <div id="printable-voucher" class="max-w-2xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden animate-fadeIn my-8">
             
-            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Room Booking Requested!</h2>
-            <p class="text-sm text-slate-500 mt-2 leading-relaxed">Your reservation request for Room {{ $selectedRoom->room_number ?? '' }} has been submitted and is currently pending approval by the hotel administration.</p>
-
-            <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-5 my-6 text-left space-y-3">
-                <div class="flex justify-between text-sm">
-                    <span class="text-slate-500">PNR (Tracker):</span>
-                    <span class="font-black text-blue-700 tracking-wider text-base">{{ $pnr }}</span>
+            {{-- Success Header Banner --}}
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white text-center relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+                <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-3 border border-white/30 shadow-inner">
+                    <i class="fas fa-check text-3xl text-white"></i>
                 </div>
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-500">Booking Ref:</span>
-                    <span class="font-bold text-slate-800">{{ $booking_number }}</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-500">Guest Name:</span>
-                    <span class="font-bold text-slate-800">{{ $guest_name }}</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-500">Room:</span>
-                    <span class="font-bold text-slate-800">Room {{ $selectedRoom->room_number ?? '101' }} ({{ $selectedRoomType->name ?? 'Standard' }})</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-500">Dates:</span>
-                    <span class="font-bold text-slate-800">{{ date('d M', strtotime($checkin_date)) }} - {{ date('d M Y', strtotime($checkout_date)) }}</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-500">Payment Mode:</span>
-                    <span class="font-bold text-slate-800">{{ $payment_method }}</span>
-                </div>
-                <div class="flex justify-between text-xs items-center border-t border-blue-100 pt-2">
-                    <span class="text-slate-500">Status:</span>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
-                        <i class="fas fa-clock mr-1"></i> Pending Approval
-                    </span>
-                </div>
+                <h2 class="text-2xl font-black tracking-tight">Booking Confirmed!</h2>
+                <p class="text-xs text-emerald-100 mt-1">Thank you, your room reservation has been successfully completed.</p>
             </div>
 
-            <p class="text-xs text-slate-500 mb-6">You will receive an email confirmation once the hotel approves your reservation.</p>
+            {{-- Voucher Body --}}
+            <div class="p-6 sm:p-8 space-y-6">
+                
+                {{-- Top Summary Box --}}
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Reference ID (PNR)</span>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-2xl font-black text-blue-700 tracking-wider font-mono">{{ $pnr }}</span>
+                            <button onclick="navigator.clipboard.writeText('{{ $pnr }}'); alert('Reference ID {{ $pnr }} copied to clipboard!');" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer no-print" title="Copy Reference ID">
+                                <i class="fas fa-copy text-xs"></i> Copy Reference ID
+                            </button>
+                        </div>
+                        <span class="text-[11px] text-slate-500 font-semibold block mt-0.5">Ref: {{ $booking_number }}</span>
+                    </div>
 
-            <div class="space-y-3">
-                <a href="{{ url('/') }}" class="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3.5 rounded-2xl shadow-md transition-all cursor-pointer">
-                    <i class="fas fa-search text-xs"></i> Find More Hotels
-                </a>
-                <a href="{{ url('/track') }}" class="w-full inline-flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-sm py-3.5 rounded-2xl transition-all cursor-pointer">
-                    <i class="fas fa-ticket-alt text-xs"></i> Track Booking
-                </a>
+                    <div class="text-center sm:text-right">
+                        <span class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block mb-1">Booking Status</span>
+                        @if(strtolower($booking_status) === 'confirmed')
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-sm">
+                                <i class="fas fa-check-circle text-emerald-600"></i> Confirmed
+                            </span>
+                        @elseif(strtolower($booking_status) === 'cancelled' || strtolower($booking_status) === 'rejected')
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-rose-100 text-rose-800 border border-rose-300 shadow-sm">
+                                <i class="fas fa-times-circle text-rose-600"></i> Cancelled
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-sm">
+                                <i class="fas fa-clock text-amber-600"></i> Pending
+                            </span>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Key Details Grid --}}
+                <div class="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100 text-xs">
+                    
+                    {{-- Row 1: Guest Name & Booking Date --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 bg-white">
+                        <div class="p-4">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5"><i class="fas fa-user text-blue-500 mr-1"></i> Guest Name</span>
+                            <span class="font-bold text-slate-900 text-sm">{{ $guest_name }}</span>
+                        </div>
+                        <div class="p-4">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5"><i class="fas fa-calendar-alt text-blue-500 mr-1"></i> Booking Date</span>
+                            <span class="font-bold text-slate-800 text-sm">{{ $booking_date ?: date('d M Y, h:i A') }}</span>
+                        </div>
+                    </div>
+
+                    {{-- Row 2: Hotel Name & Room Name --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 bg-slate-50/50">
+                        <div class="p-4">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5"><i class="fas fa-hotel text-blue-500 mr-1"></i> Hotel Name</span>
+                            <span class="font-bold text-slate-900 text-sm">{{ $selectedHotel->name ?? 'Hotel' }}</span>
+                            <span class="text-[11px] text-slate-500 block mt-0.5">{{ $selectedHotel->city ?? '' }}, {{ $selectedHotel->country ?? '' }}</span>
+                        </div>
+                        <div class="p-4">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5"><i class="fas fa-door-open text-blue-500 mr-1"></i> Room Name & Number</span>
+                            <span class="font-bold text-slate-900 text-sm">{{ $selectedRoomType->name ?? 'Standard Suite' }}</span>
+                            <span class="text-[11px] font-extrabold text-blue-600 block mt-0.5">Room #{{ $selectedRoom->room_number ?? '101' }}</span>
+                        </div>
+                    </div>
+
+                    {{-- Row 3: Check-in Date & Check-out Date --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 bg-white">
+                        <div class="p-4">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5"><i class="fas fa-sign-in-alt text-emerald-500 mr-1"></i> Check-in Date</span>
+                            <span class="font-bold text-slate-900 text-sm">{{ date('d M Y', strtotime($checkin_date)) }}</span>
+                            <span class="text-[10px] text-slate-500 block">From 02:00 PM</span>
+                        </div>
+                        <div class="p-4">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5"><i class="fas fa-sign-out-alt text-rose-500 mr-1"></i> Check-out Date</span>
+                            <span class="font-bold text-slate-900 text-sm">{{ date('d M Y', strtotime($checkout_date)) }}</span>
+                            <span class="text-[10px] text-slate-500 block">Until 11:00 AM ({{ $total_days }} Night/s)</span>
+                        </div>
+                    </div>
+
+                    {{-- Row 4: Total Amount & Payment Status --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 bg-blue-50/40">
+                        <div class="p-4">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5"><i class="fas fa-receipt text-blue-500 mr-1"></i> Total Amount</span>
+                            <span class="font-black text-blue-700 text-xl">{{ $currencySymbol }}{{ number_format($total_price, 2) }}</span>
+                        </div>
+                        <div class="p-4">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5"><i class="fas fa-wallet text-blue-500 mr-1"></i> Payment Status</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="font-bold text-slate-800">{{ $payment_method }}</span>
+                                @if($payment_method === 'Cash')
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                        Pay at Hotel
+                                    </span>
+                                @else
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                        Paid
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- Footer Info Notice --}}
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-[11px] text-slate-500 flex items-start gap-2">
+                    <i class="fas fa-info-circle text-blue-500 text-sm mt-0.5"></i>
+                    <span>A confirmation email with your booking voucher has been dispatched to <strong>{{ $guest_email }}</strong>. Please present your PNR at check-in.</span>
+                </div>
+
+                {{-- Action Buttons --}}
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 no-print">
+                    <a href="{{ route('booking.slip.download', ['pnr' => $pnr]) }}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 px-3 rounded-xl shadow-md transition-all cursor-pointer">
+                        <i class="fas fa-file-pdf text-xs"></i> Download PDF
+                    </a>
+                    <button onclick="window.print()" class="w-full inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white font-bold text-xs py-3 px-3 rounded-xl shadow-md transition-all cursor-pointer">
+                        <i class="fas fa-print text-xs"></i> Print Ticket
+                    </button>
+                    <button onclick="navigator.clipboard.writeText('{{ $pnr }}'); alert('Reference ID {{ $pnr }} copied to clipboard!');" class="w-full inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3 px-3 rounded-xl transition-all cursor-pointer">
+                        <i class="fas fa-copy text-xs text-blue-600"></i> Copy PNR
+                    </button>
+                    <a href="{{ url('/track') }}" class="w-full inline-flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs py-3 px-3 rounded-xl shadow-sm transition-all cursor-pointer">
+                        <i class="fas fa-search text-xs text-blue-500"></i> Track Booking
+                    </a>
+                </div>
+
             </div>
         </div>
         @endif

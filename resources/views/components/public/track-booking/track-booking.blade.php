@@ -21,12 +21,12 @@
             <form wire:submit.prevent="trackBooking" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div class="md:col-span-2">
                     <label class="block text-xs font-bold text-slate-600 mb-1">PNR Number *</label>
-                    <input type="text" wire:model.defer="pnr" class="w-full uppercase bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder:normal-case" placeholder="e.g. AB12CD">
+                    <input type="text" wire:model="pnr" class="w-full uppercase bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder:normal-case" placeholder="e.g. DJ7UKJ">
                     @error('pnr') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Email Address *</label>
-                    <input type="email" wire:model.defer="email" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="e.g. name@example.com">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Email Address</label>
+                    <input type="email" wire:model="email" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="e.g. name@example.com">
                     @error('email') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
                 <div class="md:col-span-1">
@@ -54,17 +54,17 @@
                         <h2 class="text-2xl font-black text-slate-900 tracking-tight">{{ $reservation->hotel->name ?? 'Merahkie Hotel' }}</h2>
                     </div>
                     <div>
-                        @if($reservation->status == 'Pending')
-                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-bold text-sm shadow-sm">
-                                <i class="fas fa-clock text-amber-500"></i> Pending Approval
+                        @if(strtolower($reservation->status) == 'confirmed')
+                            <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-black text-xs shadow-sm">
+                                <i class="fas fa-check-circle text-emerald-600"></i> Confirmed
                             </span>
-                        @elseif($reservation->status == 'Confirmed')
-                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-sm shadow-sm">
-                                <i class="fas fa-check-circle text-emerald-500"></i> Confirmed
+                        @elseif(strtolower($reservation->status) == 'cancelled' || strtolower($reservation->status) == 'rejected')
+                            <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-rose-100 text-rose-800 border border-rose-300 font-black text-xs shadow-sm">
+                                <i class="fas fa-times-circle text-rose-600"></i> Cancelled
                             </span>
-                        @elseif($reservation->status == 'Cancelled' || $reservation->status == 'Rejected')
-                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-bold text-sm shadow-sm">
-                                <i class="fas fa-times-circle text-rose-500"></i> {{ $reservation->status }}
+                        @else
+                            <span class="inline-flex items-center gap-4 px-4 py-2 rounded-full bg-amber-100 text-amber-800 border border-amber-300 font-black text-xs shadow-sm">
+                                <i class="fas fa-clock text-amber-600"></i> Pending
                             </span>
                         @endif
                     </div>
@@ -150,11 +150,15 @@
                                 <div class="bg-white/10 px-4 py-3 rounded-lg border border-white/10 text-sm">
                                     <i class="fas fa-info-circle text-blue-400 mr-2"></i> Your payment is secure. We are awaiting hotel confirmation.
                                 </div>
-                            @else
-                                <a href="#" class="px-6 py-3 bg-white text-slate-900 font-bold text-sm rounded-lg hover:bg-slate-100 transition-colors shadow-sm">
-                                    Download Invoice
-                                </a>
                             @endif
+                            <div class="flex items-center gap-3">
+                                <button onclick="navigator.clipboard.writeText('{{ $reservation->pnr }}'); alert('Reference ID {{ $reservation->pnr }} copied to clipboard!');" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer border border-slate-700">
+                                    <i class="fas fa-copy text-blue-400"></i> Copy PNR
+                                </button>
+                                <a href="{{ route('booking.slip.download', ['pnr' => $reservation->pnr]) }}" target="_blank" class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition-colors shadow-sm flex items-center gap-2">
+                                    <i class="fas fa-file-pdf"></i> Download PDF
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
