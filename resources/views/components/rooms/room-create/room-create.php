@@ -226,15 +226,20 @@ new class extends Component
                     $floorToUse = $num[0];
                 }
 
-                Room::create([
+                $roomData = [
                     'room_number'  => $num,
-                    'image_path'   => $finalImagePath,
                     'room_type_id' => $roomType->id,
                     'price'        => $this->daily_rate,
                     'floor'        => $floorToUse,
                     'status'       => $this->status,
                     'hotel_id'     => $hotel_id,
-                ]);
+                ];
+
+                if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'image_path')) {
+                    $roomData['image_path'] = $finalImagePath;
+                }
+
+                Room::create($roomData);
             }
 
             $addedStr = implode(', ', $roomNumbers);
