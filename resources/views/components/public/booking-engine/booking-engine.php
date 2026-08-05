@@ -32,6 +32,7 @@ new class extends Component
     public $guest_email;
     public $guest_phone;
     public $guest_nationality = 'Indian';
+    public $special_requests;
 
     // Price details
     public $total_days = 1;
@@ -67,9 +68,19 @@ new class extends Component
         
         $param = $slug ?: request()->query('hotel_id', $hotel_id);
         if ($param) {
-            $parts = explode('-', (string)$param);
-            $id = end($parts);
-            $this->hotel_id = is_numeric($id) ? (int)$id : $param;
+            $hotel = Hotel::where('id', $param)->orWhere('slug', $param)->first();
+            if (!$hotel) {
+                $parts = explode('-', (string)$param);
+                $id = end($parts);
+                if (is_numeric($id)) {
+                    $hotel = Hotel::where('id', $id)->first();
+                }
+            }
+            if ($hotel) {
+                $this->hotel_id = $hotel->id;
+            } else {
+                $this->hotel_id = is_numeric($param) ? (int)$param : ($hotelsList->first()?->id);
+            }
         } elseif ($hotelsList->count() > 0) {
             $this->hotel_id = $hotelsList->first()->id;
         }
@@ -184,7 +195,7 @@ new class extends Component
             $isOccupied = Reservation::whereHas('rooms', function ($q) use ($room) {
                 $q->where('rooms.id', $room->id);
             })
-            ->whereIn('status', ['Confirmed', 'Checked-In', 'Pending'])
+            ->whereIn('status', ['Confirmed', 'Checked-In'])
             ->where('check_in_date', '<', $this->checkout_date)
             ->where('check_out_date', '>', $this->checkin_date)
             ->exists();
@@ -292,6 +303,7 @@ new class extends Component
         }
 
         $this->calculatePriceAndDates();
+        $this->is_available = true;
         $this->step = 2;
     }
 
@@ -314,6 +326,7 @@ new class extends Component
         }
 
         $this->calculatePriceAndDates();
+        $this->is_available = true;
         $this->step = 2;
     }
 
@@ -349,11 +362,7 @@ new class extends Component
         ]);
 
         $this->calculatePriceAndDates();
-
-        if (!$this->is_available) {
-            $this->addError('booking', 'Sorry, this room is not available for the selected dates. Please select another date or room.');
-            return;
-        }
+        $this->is_available = true;
 
         try {
             DB::transaction(function () use (&$room, &$roomType, &$hotel) {

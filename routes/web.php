@@ -71,6 +71,23 @@ Route::get('/setup-project', function () {
             $output[] = "Composite unique index creation ignored/failed: " . $e->getMessage();
         }
 
+        // 2b. Adjust rooms table unique index
+        try {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE rooms DROP INDEX rooms_room_number_unique");
+            $output[] = "Dropped old rooms_room_number_unique index.";
+        } catch (\Exception $e) {
+            $output[] = "Unique index drop ignored/failed: " . $e->getMessage();
+        }
+
+        try {
+            \Illuminate\Support\Facades\Schema::table('rooms', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->unique(['hotel_id', 'room_number'], 'rooms_hotel_id_room_number_unique');
+            });
+            $output[] = "Created new rooms composite unique index (hotel_id, room_number).";
+        } catch (\Exception $e) {
+            $output[] = "Composite unique index creation ignored/failed: " . $e->getMessage();
+        }
+
         // 3. Seed Roles
         $superadminRole = \App\Models\Role::firstOrCreate(['slug' => 'superadmin'], ['name' => 'Super Admin']);
         $adminRole = \App\Models\Role::firstOrCreate(['slug' => 'admin'], ['name' => 'Admin']);
@@ -258,6 +275,7 @@ Route::get('/setup-project', function () {
 // ─── Public Registration & Booking ─────────────────────────────────────────
 Route::livewire('/register-hotel', 'public.register')->name('register-hotel');
 Route::livewire('/book/{hotel_id?}', 'public.booking-engine')->name('booking-engine');
+Route::livewire('/hotel/{slug}/book', 'public.booking-engine')->name('booking-engine.hotel');
 Route::livewire('/{city}/{slug}/book', 'public.booking-engine')->name('booking-engine.seo');
 Route::livewire('/track', 'public.track-booking')->name('track-booking');
 Route::get('/booking/slip/{pnr}/download', [\App\Http\Controllers\BookingSlipController::class, 'download'])->name('booking.slip.download');

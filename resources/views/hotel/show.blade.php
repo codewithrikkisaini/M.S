@@ -215,7 +215,7 @@
                                 @php
                                     $roomTypeName = $room->roomType->name ?? 'Standard Room';
                                     $roomPrice = $room->price ?: ($room->roomType->base_price ?? 2500);
-                                    $bookUrl = $hotel->url . '/book?room_type_id=' . $room->room_type_id . '&room_id=' . $room->id;
+                                    $bookUrl = route('booking-engine.hotel', ['slug' => $hotel->slug ? $hotel->slug . '-' . $hotel->id : $hotel->id]) . '?room_type_id=' . $room->room_type_id . '&room_id=' . $room->id;
                                     $isAvail = $room->status === 'Available';
                                 @endphp
                                 <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row gap-6 hover:shadow-md transition-all">
@@ -258,9 +258,18 @@
                                             </div>
 
                                             <div class="flex items-center gap-2">
-                                                <a href="{{ $bookUrl }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                                                <button @click="selectedRoom = {
+                                                    name: '{{ addslashes($roomTypeName) }}',
+                                                    number: '{{ $room->room_number }}',
+                                                    price: '₹{{ number_format($roomPrice) }}',
+                                                    image: '{{ $room->image_url }}',
+                                                    description: '{{ addslashes($room->description ?: "Experience ultimate comfort in Room " . $room->room_number . ". Designed with modern luxury aesthetics, premium mattresses, soundproof acoustic windows, complimentary high-speed Wi-Fi, 24/7 room service, and private en-suite bathroom.") }}',
+                                                    bed_type: '{{ ucfirst($room->bed_type ?? "King / Queen Bed") }}',
+                                                    capacity: '{{ $room->capacity ?? 2 }} Guests',
+                                                    bookUrl: '{{ $bookUrl }}'
+                                                }; showModal = true" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
                                                     <i class="fas fa-eye text-slate-500"></i> View Details
-                                                </a>
+                                                </button>
 
                                                 <a href="{{ $bookUrl }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
                                                     <i class="fas fa-calendar-check text-xs"></i> Book Now

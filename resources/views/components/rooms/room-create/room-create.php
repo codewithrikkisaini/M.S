@@ -225,8 +225,21 @@ new class extends Component
             $this->reset(['room_number', 'image_path', 'photos']);
             $this->dispatch('toast', message: $msg, type: 'success');
         } catch (UniqueConstraintViolationException $e) {
-            $this->addError('room_number', 'One or more room numbers already exist for this hotel.');
-            $this->dispatch('toast', message: "Room number already exists.", type: 'error');
+            try {
+                foreach ($roomNumbers as $num) {
+                    $existing = Room::where('room_number', $num)->first();
+                    if ($existing) {
+                        $existing->update($roomData);
+                    }
+                }
+                $addedStr = implode(', ', $roomNumbers);
+                $msg = "Room(s) {$addedStr} updated successfully!";
+                $this->reset(['room_number', 'image_path', 'photos']);
+                $this->dispatch('toast', message: $msg, type: 'success');
+            } catch (\Throwable $ex) {
+                $this->addError('room_number', 'Room number saving error: ' . $ex->getMessage());
+                $this->dispatch('toast', message: "Error saving room.", type: 'error');
+            }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Room save failed: ' . $e->getMessage());
             $this->addError('room_number', 'Could not save room: ' . $e->getMessage());
