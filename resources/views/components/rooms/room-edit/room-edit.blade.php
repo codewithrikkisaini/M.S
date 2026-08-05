@@ -62,6 +62,78 @@
                         </select>
                         @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+
+                    <div class="sm:col-span-2 pt-4 border-t border-slate-100 space-y-3">
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                            <i class="fas fa-images mr-1 text-indigo-500"></i> Room Photos / Image Gallery (Select Multiple)
+                        </label>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {{-- Option A: Select / Upload Multiple Image Files --}}
+                            <div class="border-2 border-dashed border-indigo-100 hover:border-indigo-300 bg-indigo-50/40 rounded-2xl p-4 transition-all">
+                                <label class="block text-xs font-bold text-indigo-900 mb-1">
+                                    <i class="fas fa-cloud-upload-alt text-indigo-600 mr-1"></i> Upload Image Files (Multiple)
+                                </label>
+                                <input type="file" wire:model="photos" multiple accept="image/*" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
+                                <p class="text-[10px] text-slate-400 mt-1">Select one or multiple photos to add to this room.</p>
+                                @error('photos.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                                <div wire:loading wire:target="photos" class="text-xs text-indigo-600 font-bold mt-1">
+                                    <i class="fas fa-spinner fa-spin mr-1"></i> Uploading photos...
+                                </div>
+                            </div>
+
+                            {{-- Option B: Image URLs --}}
+                            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">
+                                    <i class="fas fa-link text-blue-500 mr-1"></i> Paste Image URLs (One per line or comma-separated)
+                                </label>
+                                <textarea wire:model.live.debounce.300ms="image_path" rows="2" class="pms-input text-xs font-medium" placeholder="https://images.unsplash.com/photo-1...&#10;https://images.unsplash.com/photo-2..."></textarea>
+                                <p class="text-[10px] text-slate-400 mt-1">Paste external image URLs or web links for this room.</p>
+                                @error('image_path') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        {{-- Live Gallery Preview --}}
+                        @php
+                            $galleryImages = [];
+                            if (!empty($photos)) {
+                                foreach ($photos as $p) {
+                                    try { $galleryImages[] = $p->temporaryUrl(); } catch (\Exception $e) {}
+                                }
+                            }
+                            if (!empty($image_path)) {
+                                $urlList = preg_split('/[\r\n,]+/', $image_path);
+                                foreach ($urlList as $u) {
+                                    $u = trim($u);
+                                    if ($u !== '') {
+                                        $galleryImages[] = filter_var($u, FILTER_VALIDATE_URL) ? $u : asset('storage/' . $u);
+                                    }
+                                }
+                            }
+                            if (empty($galleryImages) && !empty($room->images)) {
+                                $galleryImages = $room->images;
+                            }
+                        @endphp
+
+                        @if(count($galleryImages) > 0)
+                        <div class="mt-3 bg-white p-3 rounded-2xl border border-slate-200">
+                            <p class="text-[11px] font-extrabold text-slate-700 mb-2 flex items-center justify-between">
+                                <span><i class="fas fa-eye text-emerald-500 mr-1"></i> Current / Selected Room Gallery ({{ count($galleryImages) }} photo{{ count($galleryImages) > 1 ? 's' : '' }})</span>
+                                <span class="text-[10px] font-semibold text-slate-400">First photo is main thumbnail</span>
+                            </p>
+                            <div class="flex flex-wrap gap-3">
+                                @foreach($galleryImages as $idx => $imgSrc)
+                                <div class="relative w-24 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm group">
+                                    <img src="{{ $imgSrc }}" class="w-full h-full object-cover">
+                                    @if($idx === 0)
+                                    <span class="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow">Main</span>
+                                    @endif
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-6">

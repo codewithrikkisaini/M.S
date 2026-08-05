@@ -32,23 +32,63 @@
 </head>
 <body class="antialiased bg-slate-50 text-slate-800" x-data="{ showModal: false, selectedRoom: null }">
 
-    <!-- Navbar -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <!-- Navbar Header with Navigation Menu -->
+    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm" x-data="{ mobileMenu: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <!-- Brand Logo -->
             <a href="/" class="flex items-center gap-2">
                 <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
                     <i class="fas fa-paper-plane text-white text-lg"></i>
                 </div>
-                <span class="font-extrabold text-xl tracking-tight text-slate-900">MERAHKIE</span>
+                <div class="flex flex-col">
+                    <span class="text-xl font-black tracking-tight text-slate-900 leading-none">MERAHKIE</span>
+                    <span class="text-[10px] font-bold tracking-widest text-blue-600 uppercase mt-1">Bookings</span>
+                </div>
             </a>
 
-            <!-- Right Actions -->
-            <div class="flex items-center gap-4">
-                <a href="{{ route('booking-engine', ['hotel_id' => $hotel->id]) }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all">
-                    Book Room
+            <!-- Navigation Links (Home, Hotels, About, FAQ) -->
+            <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+                <a href="/" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                    <i class="fas fa-home text-xs text-blue-500"></i> Home
                 </a>
+                <a href="#available-rooms" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                    <i class="fas fa-hotel text-xs text-blue-500"></i> Hotels
+                </a>
+                <a href="#about-property" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                    <i class="fas fa-info-circle text-xs text-blue-500"></i> About
+                </a>
+                <a href="#faq-section" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                    <i class="fas fa-question-circle text-xs text-blue-500"></i> FAQ
+                </a>
+            </nav>
+
+            <!-- Right Actions -->
+            <div class="flex items-center gap-3">
+                <a href="{{ route('booking-engine', ['hotel_id' => $hotel->slug ? $hotel->slug . '-' . $hotel->id : $hotel->id]) }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+                    <i class="fas fa-calendar-check text-xs"></i> Book Room
+                </a>
+
+                <!-- Mobile Hamburger Button -->
+                <button @click="mobileMenu = !mobileMenu" class="md:hidden w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 hover:bg-slate-200 transition-all">
+                    <i class="fas" :class="mobileMenu ? 'fa-times' : 'fa-bars'"></i>
+                </button>
             </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div x-show="mobileMenu" x-cloak class="md:hidden border-t border-slate-100 bg-white px-4 pt-3 pb-5 space-y-3 shadow-lg">
+            <a href="/" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600">
+                <i class="fas fa-home w-5 text-blue-500"></i> Home
+            </a>
+            <a href="#available-rooms" @click="mobileMenu = false" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600">
+                <i class="fas fa-hotel w-5 text-blue-500"></i> Hotels
+            </a>
+            <a href="#about-property" @click="mobileMenu = false" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600">
+                <i class="fas fa-info-circle w-5 text-blue-500"></i> About
+            </a>
+            <a href="#faq-section" @click="mobileMenu = false" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600">
+                <i class="fas fa-question-circle w-5 text-blue-500"></i> FAQ
+            </a>
         </div>
     </header>
 
@@ -92,13 +132,13 @@
             @endphp
 
             @if($images && $images->count() > 0)
-                <div class="md:col-span-2 aspect-[4/3] md:aspect-auto">
-                    <img src="{{ asset('storage/' . $images[0]->image_path) }}" class="w-full h-full object-cover">
+                <div class="md:col-span-2 aspect-[4/3] md:aspect-auto bg-slate-200">
+                    <img src="{{ $images[0]->url }}" onerror="this.onerror=null; this.src='{{ $defaultImages[0] }}';" class="w-full h-full object-cover">
                 </div>
                 <div class="md:col-span-2 grid grid-cols-2 gap-4">
-                    @foreach($images->slice(1, 4) as $img)
+                    @foreach($images->slice(1, 4) as $idx => $img)
                         <div class="aspect-video bg-slate-100 overflow-hidden">
-                            <img src="{{ asset('storage/' . $img->image_path) }}" class="w-full h-full object-cover">
+                            <img src="{{ $img->url }}" onerror="this.onerror=null; this.src='{{ $defaultImages[($idx + 1) % count($defaultImages)] }}';" class="w-full h-full object-cover">
                         </div>
                     @endforeach
                 </div>
@@ -131,7 +171,7 @@
             <!-- Left Column: Hotel Info & Available Rooms -->
             <div class="lg:col-span-2 space-y-10">
                 <!-- Overview -->
-                <section class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                <section id="about-property" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm scroll-mt-24">
                     <h2 class="text-xl font-bold text-slate-900 mb-3">About the Property</h2>
                     <p class="text-sm text-slate-600 leading-relaxed">
                         Welcome to {{ $hotel->name }}. Located in {{ $hotel->city }}, this property offers modern accommodations with luxury amenities, 24/7 room service, and top-rated hospitality. Perfect for both business travelers and vacationing families.
@@ -162,8 +202,8 @@
                 </section>
 
                 <!-- Available Rooms -->
-                <section>
-                    <h2 class="text-2xl font-bold text-slate-900 mb-6">Available Rooms</h2>
+                <section id="available-rooms" class="scroll-mt-24">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-6">Available Rooms & Suites</h2>
                     
                     <div class="space-y-4">
                         @if($hotel->rooms->isEmpty())
@@ -175,17 +215,31 @@
                                 @php
                                     $roomTypeName = $room->roomType->name ?? 'Standard Room';
                                     $roomPrice = $room->price ?: ($room->roomType->base_price ?? 2500);
-                                    $bookUrl = route('booking-engine', ['hotel_id' => $hotel->id]) . '?room_type_id=' . $room->room_type_id . '&room_id=' . $room->id;
+                                    $bookUrl = $hotel->url . '/book?room_type_id=' . $room->room_type_id . '&room_id=' . $room->id;
+                                    $isAvail = $room->status === 'Available';
                                 @endphp
                                 <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row gap-6 hover:shadow-md transition-all">
-                                    <div class="w-full sm:w-1/3 aspect-video sm:aspect-auto rounded-xl bg-slate-100 overflow-hidden shrink-0">
-                                        <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover">
+                                    <div class="w-full sm:w-1/3 aspect-video sm:aspect-auto rounded-xl bg-slate-100 overflow-hidden shrink-0 relative">
+                                        <img src="{{ $room->image_url }}" class="w-full h-full object-cover">
+                                        @if(count($room->images) > 1)
+                                            <span class="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-sm border border-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                                                <i class="fas fa-images text-blue-400"></i> {{ count($room->images) }} Photos
+                                            </span>
+                                        @endif
                                     </div>
                                     <div class="flex-1 flex flex-col justify-between">
                                         <div>
                                             <div class="flex justify-between items-start">
                                                 <h3 class="text-lg font-bold text-slate-900">{{ $roomTypeName }} (Room {{ $room->room_number }})</h3>
-                                                <span class="text-xs font-bold px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg">Available</span>
+                                                @if($isAvail)
+                                                    <span class="text-xs font-bold px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg flex items-center gap-1">
+                                                        <i class="fas fa-check-circle"></i> Available
+                                                    </span>
+                                                @else
+                                                    <span class="text-xs font-bold px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg flex items-center gap-1">
+                                                        <i class="fas fa-times-circle"></i> Not Available / Occupied
+                                                    </span>
+                                                @endif
                                             </div>
                                             <p class="text-xs text-slate-500 mt-1">Bed Type: {{ ucfirst($room->bed_type ?? 'King / Queen Bed') }} | Max Capacity: {{ $room->capacity ?? 2 }} Guests</p>
                                             
@@ -217,6 +271,45 @@
                                 </div>
                             @endforeach
                         @endif
+                    </div>
+                </section>
+
+
+                <!-- FAQ Section -->
+                <section id="faq-section" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm scroll-mt-24" x-data="{ openFaq: null }">
+                    <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-question-circle text-blue-600 text-lg"></i> Frequently Asked Questions
+                    </h2>
+                    <div class="space-y-3 text-xs">
+                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                            <button @click="openFaq = openFaq === 1 ? null : 1" class="w-full bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 flex justify-between items-center cursor-pointer">
+                                <span>What are the standard Check-in and Check-out times?</span>
+                                <i class="fas text-slate-400" :class="openFaq === 1 ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            </button>
+                            <div x-show="openFaq === 1" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
+                                Standard Check-in is from 02:00 PM and Check-out is until 11:00 AM. Early check-in or late check-out is subject to availability.
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                            <button @click="openFaq = openFaq === 2 ? null : 2" class="w-full bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 flex justify-between items-center cursor-pointer">
+                                <span>Is breakfast included with room booking?</span>
+                                <i class="fas text-slate-400" :class="openFaq === 2 ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            </button>
+                            <div x-show="openFaq === 2" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
+                                Yes, complimentary high-speed Wi-Fi and daily buffet breakfast are included with most room packages.
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                            <button @click="openFaq = openFaq === 3 ? null : 3" class="w-full bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 flex justify-between items-center cursor-pointer">
+                                <span>What is the cancellation policy?</span>
+                                <i class="fas text-slate-400" :class="openFaq === 3 ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            </button>
+                            <div x-show="openFaq === 3" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
+                                Free cancellation is available up to 24 hours prior to check-in. For late cancellations, standard 1-night room charges may apply.
+                            </div>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -321,9 +414,62 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-300 py-12 mt-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
-            <p>&copy; {{ date('Y') }} Merahkie Bookings. All rights reserved.</p>
+    <footer class="bg-slate-900 text-slate-300 py-16 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-slate-800 pb-12">
+                <div class="col-span-1 md:col-span-1">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-paper-plane text-white text-sm"></i>
+                        </div>
+                        <span class="text-xl font-black text-white">MERAHKIE</span>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-6">Your premium hotel booking partner for luxury stays, resorts, and vacation rentals worldwide.</p>
+                    <div class="flex items-center gap-4">
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li><a href="/" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-home text-blue-500 text-xs"></i> Home</a></li>
+                        <li><a href="#available-rooms" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-hotel text-blue-500 text-xs"></i> Available Rooms</a></li>
+                        <li><a href="#about-property" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-info-circle text-blue-500 text-xs"></i> About Property</a></li>
+                        <li><a href="#contact-property" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-phone-alt text-blue-500 text-xs"></i> Contact & Map</a></li>
+                        <li><a href="#faq-section" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-question-circle text-blue-500 text-xs"></i> FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-bold mb-4">Support & Services</h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li><a href="{{ route('track-booking') }}" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-search text-blue-500 text-xs"></i> Track Booking</a></li>
+                        <li><a href="{{ route('register-hotel') }}" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-building text-blue-500 text-xs"></i> List Property</a></li>
+                        <li><a href="#contact-property" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-headset text-blue-500 text-xs"></i> Hotel Front Desk</a></li>
+                        <li><a href="{{ route('login') }}" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-user-lock text-blue-500 text-xs"></i> Partner Login</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-bold mb-4">For Hotel Owners</h4>
+                    <p class="text-sm text-slate-400 mb-4">Grow your bookings by listing your property on our platform.</p>
+                    <a href="{{ route('register-hotel') }}" class="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md">
+                        Partner With Us <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-slate-500">
+                <p>&copy; {{ date('Y') }} Merahkie Bookings. All rights reserved.</p>
+                <div class="flex items-center gap-4 mt-4 md:mt-0">
+                    <i class="fab fa-cc-visa text-2xl"></i>
+                    <i class="fab fa-cc-mastercard text-2xl"></i>
+                    <i class="fab fa-cc-amex text-2xl"></i>
+                </div>
+            </div>
         </div>
     </footer>
 </body>

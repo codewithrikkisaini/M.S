@@ -16,7 +16,8 @@ class AuthController extends Controller
             }
             return redirect()->route('dashboard');
         }
-        return view('auth.login');
+        $hotelName = \App\Models\Setting::where('key', 'hotel_name')->value('value') ?? 'Lodgiko PMS';
+        return view('auth.login', compact('hotelName'));
     }
 
     public function login(Request $request)

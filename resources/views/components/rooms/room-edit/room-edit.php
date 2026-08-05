@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use App\Models\Room;
 use App\Models\RoomType;
 use Illuminate\Support\Facades\Auth;
@@ -9,12 +10,16 @@ use Illuminate\Database\UniqueConstraintViolationException;
 
 new class extends Component
 {
+    use WithFileUploads;
+
     public Room $room;
     public string $room_number = '';
     public string $room_type_id = '';
     public string $price = '';
     public string $status = 'Available';
     public string $floor = '';
+    public string $image_path = '';
+    public $photos = [];
 
     public function boot(): void
     {
@@ -27,6 +32,7 @@ new class extends Component
     {
         $this->room = $room;
         $this->room_number = $room->room_number;
+        $this->image_path = $room->image_path ?? '';
         $this->room_type_id = (string) $room->room_type_id;
         $this->price = (string) $room->price;
         $this->status = $room->status;
@@ -67,16 +73,45 @@ new class extends Component
             'price'        => 'required|numeric|min:0',
             'status'       => 'required|in:Available,Occupied,Reserved,Maintenance',
             'floor'        => 'required|string|max:50',
+            'image_path'   => 'nullable|string',
+            'photos.*'     => 'image|max:4096',
         ]);
 
+        $paths = [];
+        if (!empty($this->image_path)) {
+            $urlList = preg_split('/[\r\n,]+/', $this->image_path);
+            foreach ($urlList as $u) {
+                $u = trim($u);
+                if ($u !== '') {
+                    $paths[] = $u;
+                }
+            }
+        }
+
+        if (!empty($this->photos) && is_array($this->photos)) {
+            foreach ($this->photos as $p) {
+                if ($p) {
+                    $paths[] = $p->store('rooms', 'public');
+                }
+            }
+        }
+
+        $finalImagePath = count($paths) > 0 ? (count($paths) === 1 ? $paths[0] : json_encode(array_values($paths))) : null;
+
         try {
-            $this->room->update([
+            $updateData = [
                 'room_number'  => $this->room_number,
                 'room_type_id' => $this->room_type_id,
                 'price'        => $this->price,
                 'status'       => $this->status,
                 'floor'        => $this->floor,
-            ]);
+            ];
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'image_path')) {
+                $updateData['image_path'] = $finalImagePath;
+            }
+
+            $this->room->update($updateData);
 
             session()->flash('toast', ['message' => 'Room updated successfully!', 'type' => 'success']);
             $this->redirect(route('rooms.index'), navigate: true);

@@ -10,26 +10,60 @@ new class extends Component
     public $reservation = null;
     public $error = null;
 
+    public function mount()
+    {
+        if (request()->has('pnr')) {
+            $this->pnr = trim(request()->get('pnr'));
+            if (request()->has('email')) {
+                $this->email = trim(request()->get('email'));
+            }
+            if ($this->pnr) {
+                $this->trackBooking();
+            }
+        }
+    }
+
     public function trackBooking()
     {
-        $this->validate([
-            'pnr' => 'required|string',
-            'email' => 'required|email'
-        ]);
+        $this->pnr = strtoupper(trim($this->pnr ?? ''));
+        $this->email = strtolower(trim($this->email ?? ''));
 
         $this->error = null;
+        $this->reservation = null;
 
+        if (empty($this->pnr)) {
+            $this->error = "Please enter a valid PNR reference code.";
+            return;
+        }
+
+        // Try exact PNR + Guest Email match first (case-insensitive & trimmed)
         $reservation = Reservation::with(['hotel', 'guest', 'rooms.roomType'])
-            ->where('pnr', strtoupper($this->pnr))
-            ->whereHas('guest', function ($q) {
-                $q->where('email', $this->email);
-            })->first();
+            ->whereRaw('UPPER(TRIM(pnr)) = ?', [$this->pnr])
+            ->where(function ($query) {
+                if (!empty($this->email)) {
+                    $query->whereHas('guest', function ($q) {
+                        $q->whereRaw('LOWER(TRIM(email)) = ?', [$this->email]);
+                    });
+                }
+            })
+            ->first();
+
+        // Fallback: If email didn't match strictly, check if PNR alone exists
+        if (!$reservation && !empty($this->pnr)) {
+            $reservation = Reservation::with(['hotel', 'guest', 'rooms.roomType'])
+                ->whereRaw('UPPER(TRIM(pnr)) = ?', [$this->pnr])
+                ->first();
+        }
 
         if ($reservation) {
             $this->reservation = $reservation;
+            // Populate email if missing for display
+            if (empty($this->email) && $reservation->guest) {
+                $this->email = $reservation->guest->email;
+            }
         } else {
             $this->reservation = null;
-            $this->error = "No booking found with this PNR and Email combination.";
+            $this->error = "No booking found for PNR '" . $this->pnr . "'. Please verify your PNR number and try again.";
         }
     }
 

@@ -32,7 +32,6 @@
                         <th class="p-4">Hotel Details</th>
                         <th class="p-4">Location</th>
                         <th class="p-4">Contact Info</th>
-                        <th class="p-4">Rooms</th>
                         <th class="p-4">Status</th>
                         <th class="p-4 pr-6 text-right">Actions</th>
                     </tr>
@@ -56,7 +55,6 @@
                             <div class="text-slate-650 font-semibold flex items-center gap-1.5"><i class="far fa-envelope text-slate-400"></i>{{ $h->email }}</div>
                             <div class="text-[10px] text-slate-450 mt-1 flex items-center gap-1.5"><i class="fas fa-phone text-slate-400"></i>{{ $h->phone ?? 'N/A' }}</div>
                         </td>
-                        <td class="p-4 text-slate-600 font-bold text-sm">{{ $h->rooms_count ?? 'N/A' }} Rooms</td>
                         <td class="p-4">
                             @php
                                 $statusColor = match($h->status) {
@@ -117,7 +115,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center text-slate-400 py-10">No hotels found.</td>
+                        <td colspan="6" class="text-center text-slate-400 py-10">No hotels found.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -482,7 +480,7 @@
             {{-- Modal Body --}}
             <div class="p-6 space-y-6 max-h-[78vh] overflow-y-auto bg-slate-50/60">
                 {{-- Registration Summary Bar --}}
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Registration Status</span>
                         @php
@@ -509,14 +507,6 @@
                     </div>
 
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
-                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Provisioned Rooms</span>
-                        <div class="text-sm font-black text-slate-800 flex items-center gap-1.5">
-                            <i class="fas fa-door-open text-indigo-600"></i>
-                            {{ $viewHotel->rooms_count ?: $viewHotel->rooms->count() }} Rooms
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Staff Accounts</span>
                         <div class="text-sm font-black text-slate-800 flex items-center gap-1.5">
                             <i class="fas fa-users text-indigo-600"></i>
@@ -524,7 +514,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm col-span-2 sm:col-span-1">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Subscription Plan</span>
                         <div class="text-xs font-black text-indigo-600">
                             {{ $viewHotel->subscription && $viewHotel->subscription->plan ? $viewHotel->subscription->plan->name : 'Trial Plan' }}
@@ -756,26 +746,22 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
                         <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                             <h4 class="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fas fa-door-closed"></i> Initial Inventory Summary
+                                <i class="fas fa-sliders"></i> System Features & Access
                             </h4>
-                            <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Configured</span>
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Enabled</span>
                         </div>
                         <div class="space-y-2 text-xs">
                             <div class="flex justify-between py-1 border-b border-slate-50">
-                                <span class="text-slate-400 font-medium">Target Rooms Count</span>
-                                <span class="font-extrabold text-slate-800">{{ $viewHotel->rooms_count ?: 10 }} Rooms</span>
+                                <span class="text-slate-400 font-medium">Hotel Booking Engine</span>
+                                <span class="font-bold text-emerald-600">Active</span>
                             </div>
                             <div class="flex justify-between py-1 border-b border-slate-50">
-                                <span class="text-slate-400 font-medium">Active Database Rooms</span>
-                                <span class="font-bold text-slate-700">{{ $viewHotel->rooms ? $viewHotel->rooms->count() : 0 }} Units</span>
-                            </div>
-                            <div class="flex justify-between py-1 border-b border-slate-50">
-                                <span class="text-slate-400 font-medium">Default Starting Floor</span>
-                                <span class="font-bold text-slate-700">Floor 1</span>
+                                <span class="text-slate-400 font-medium">Multi-Currency Support</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->currency ?: 'USD' }}</span>
                             </div>
                             <div class="flex justify-between py-1">
-                                <span class="text-slate-400 font-medium">Default Starting Price</span>
-                                <span class="font-bold text-slate-700">{{ $viewHotel->currency ?: 'USD' }} $100.00 / night</span>
+                                <span class="text-slate-400 font-medium">System Timezone</span>
+                                <span class="font-bold text-slate-700">{{ $viewHotel->timezone ?: 'UTC' }}</span>
                             </div>
                         </div>
                     </div>
