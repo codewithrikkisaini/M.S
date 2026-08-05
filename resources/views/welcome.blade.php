@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MERAHKIE - Book Hotels, Resorts & Homestays</title>
+    <title>Lodgiko - Book Hotels, Resorts & Homestays</title>
     
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,8 +21,11 @@
                         sans: ['Plus Jakarta Sans', 'sans-serif'],
                     },
                     colors: {
-                        primary: '#3B82F6',
-                        secondary: '#1E40AF',
+                        primary: '#0892A7',
+                        secondary: '#369B71',
+                        accent: '#DAAF6C',      // Gold
+                        dark: '#1E293B',
+                        light: '#F8FAFC',
                     }
                 }
             }
@@ -56,7 +59,7 @@
                 <a href="{{ route('register-hotel') }}" class="hidden sm:inline-flex text-xs font-bold text-slate-500 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-4 py-2.5 rounded-xl transition-all">
                     List Your Property
                 </a>
-                <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all">
+                <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-5 py-2.5 bg-accent hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all">
                     <i class="far fa-user-circle mr-2"></i> Log In
                 </a>
             </div>
@@ -64,7 +67,7 @@
     </header>
 
     <!-- Hero Search Section -->
-    <section class="relative pt-20 pb-32 bg-blue-700 overflow-hidden">
+    <section class="relative pt-20 pb-32 bg-primary  overflow-hidden">
         <!-- Background Pattern -->
         <div class="absolute inset-0 opacity-10">
             <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
@@ -86,7 +89,7 @@
                     <div class="col-span-1 md:col-span-1 bg-slate-50 border border-slate-200 rounded-2xl p-3 relative group">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Destination</label>
                         <div class="flex items-center gap-2">
-                            <i class="fas fa-map-marker-alt text-blue-500"></i>
+                            <i class="fas fa-map-marker-alt text-secondary"></i>
                             <input type="text" placeholder="City or Hotel Name" class="w-full bg-transparent border-none outline-none text-sm font-semibold text-slate-800 placeholder-slate-400">
                         </div>
                     </div>
@@ -94,7 +97,7 @@
                     <div class="col-span-1 md:col-span-1 bg-slate-50 border border-slate-200 rounded-2xl p-3">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Check-In</label>
                         <div class="flex items-center gap-2">
-                            <i class="far fa-calendar-alt text-blue-500"></i>
+                            <i class="far fa-calendar-alt  text-secondary"></i>
                             <input type="date" class="w-full bg-transparent border-none outline-none text-sm font-semibold text-slate-800">
                         </div>
                     </div>
@@ -102,13 +105,13 @@
                     <div class="col-span-1 md:col-span-1 bg-slate-50 border border-slate-200 rounded-2xl p-3">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Check-Out</label>
                         <div class="flex items-center gap-2">
-                            <i class="far fa-calendar-alt text-blue-500"></i>
+                            <i class="far fa-calendar-alt  text-secondary"></i>
                             <input type="date" class="w-full bg-transparent border-none outline-none text-sm font-semibold text-slate-800">
                         </div>
                     </div>
 
                     <div class="col-span-1 md:col-span-1 flex">
-                        <button type="submit" class="w-full h-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-colors text-lg shadow-lg">
+                        <button type="submit" class="w-full h-full bg-accent hover:bg-dark text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-colors text-lg shadow-lg">
                             Search <i class="fas fa-search"></i>
                         </button>
                     </div>

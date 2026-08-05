@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Models\Hotel;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -14,9 +15,12 @@ class HotelController extends Controller
     
     public function index()
     {
-        return response()->json([
-            ['id' => 1, 'name' => 'Test Hotel']
-        ]);
+      
+            $hotels = Hotel::all();
+
+        return response()->json($hotels);
+      
+  
     }
 
 
