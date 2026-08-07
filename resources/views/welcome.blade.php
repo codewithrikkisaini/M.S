@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MERAHKIE - Book Hotels, Resorts & Homestays</title>
+    <title>Lodgiko - Book Hotels, Resorts & Homestays</title>
     
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,8 +21,11 @@
                         sans: ['Plus Jakarta Sans', 'sans-serif'],
                     },
                     colors: {
-                        primary: '#3B82F6',
-                        secondary: '#1E40AF',
+                        primary: '#0892A7',
+                        secondary: '#369B71',
+                        accent: '#DAAF6C',      // Gold
+                        dark: '#1E293B',
+                        light: '#F8FAFC',
                     }
                 }
             }
@@ -38,13 +41,13 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <!-- Brand Logo -->
             <a href="/" class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-paper-plane text-white text-lg"></i>
-                </div>
-                <div class="flex flex-col">
+                 <img src="{{ asset('images/lodgiko.png') }}"
+                    alt="Merahkie Logo"
+                    class="h-12 w-auto">
+                <!-- <div class="flex flex-col">
                     <span class="text-xl font-black tracking-tight text-slate-900 leading-none">MERAHKIE</span>
                     <span class="text-[10px] font-bold tracking-widest text-blue-600 uppercase mt-1">Bookings</span>
-                </div>
+                </div> -->
             </a>
             
             <!-- Navigation Links -->
@@ -74,7 +77,7 @@
                 <a href="{{ route('register-hotel') }}" class="hidden sm:inline-flex text-xs font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-3.5 py-2.5 rounded-xl transition-all">
                     List Your Property
                 </a>
-                <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all">
+                <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-accent hover:bg-secondary text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all">
                     <i class="far fa-user-circle mr-2"></i> Log In
                 </a>
 
@@ -114,7 +117,7 @@
     </header>
 
     <!-- Hero Search Section -->
-    <section class="relative pt-20 pb-28 bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-700 overflow-hidden">
+    <section class="relative pt-20 pb-28 bg-gradient-to-br bg-primary to-indigo-700 overflow-hidden">
         <!-- Floating Bokeh & Glowing Background Effect -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute -top-10 left-1/4 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
@@ -168,7 +171,7 @@
 
                     {{-- Search Button --}}
                     <div class="md:col-span-2 h-full flex">
-                        <button type="submit" class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl sm:rounded-full flex items-center justify-center gap-2.5 transition-all text-base shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 cursor-pointer active:scale-95">
+                        <button type="submit" class="w-full py-4 px-6 bg-accent hover:bg-secondary text-white font-black rounded-2xl sm:rounded-full flex items-center justify-center gap-2.5 transition-all text-base shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 cursor-pointer active:scale-95">
                             <span>Search</span>
                             <i class="fas fa-search text-sm"></i>
                         </button>
@@ -476,10 +479,13 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-slate-800 pb-12">
                 <div class="col-span-1 md:col-span-1">
                     <div class="flex items-center gap-2 mb-4">
-                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <!-- <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                             <i class="fas fa-paper-plane text-white text-sm"></i>
-                        </div>
-                        <span class="text-xl font-black text-white">MERAHKIE</span>
+                        </div> -->
+                        <!-- <span class="text-xl font-black text-white">MERAHKIE</span> -->
+                          <img src="{{ asset('images/whitelogo.png') }}"
+                    alt="Merahkie Logo"
+                    class="h-12 w-auto">
                     </div>
                     <p class="text-sm text-slate-400 mb-6">Your premium hotel booking partner for luxury stays, resorts, and vacation rentals worldwide.</p>
                     <div class="flex items-center gap-4">
@@ -520,7 +526,7 @@
             </div>
             
             <div class="pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-slate-500">
-                <p>&copy; {{ date('Y') }} Merahkie Bookings. All rights reserved.</p>
+                <p>&copy; {{ date('Y') }} Lodgiko Bookings. All rights reserved.</p>
                 <div class="flex items-center gap-4 mt-4 md:mt-0">
                     <i class="fab fa-cc-visa text-2xl"></i>
                     <i class="fab fa-cc-mastercard text-2xl"></i>
