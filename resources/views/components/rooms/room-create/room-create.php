@@ -250,6 +250,34 @@ new class extends Component
         }
     }
 
+    public function removeExistingImage(int $index): void
+    {
+        $paths = [];
+        if (!empty($this->image_path)) {
+            $urlList = preg_split('/[\r\n,]+/', $this->image_path);
+            foreach ($urlList as $u) {
+                $u = trim($u);
+                if ($u !== '') {
+                    $paths[] = $u;
+                }
+            }
+        }
+
+        if (isset($paths[$index])) {
+            unset($paths[$index]);
+        }
+
+        $this->image_path = implode("\n", array_values($paths));
+    }
+
+    public function removeUploadedImage(int $index): void
+    {
+        if (isset($this->photos[$index])) {
+            unset($this->photos[$index]);
+            $this->photos = array_values($this->photos);
+        }
+    }
+
     public function deleteRoom(int $id): void
     {
         $room = Room::findOrFail($id);

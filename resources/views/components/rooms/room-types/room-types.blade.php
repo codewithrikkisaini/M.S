@@ -135,6 +135,7 @@
             <table class="pms-table">
                 <thead>
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500">
+                        <th class="font-bold">Photo</th>
                         <th class="font-bold">Room No.</th>
                         <th class="font-bold">Room Type</th>
                         <th class="font-bold">Daily Rate</th>
@@ -149,6 +150,17 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse($rooms as $r)
                     <tr wire:key="room-row-{{ $r->id }}" class="hover:bg-slate-50/40 transition-colors">
+                        <td>
+                            <div class="flex items-center gap-1.5">
+                                <img src="{{ $r->image_url }}" alt="Room {{ $r->room_number }}" class="w-12 h-9 object-cover rounded-lg border border-slate-200 shadow-sm shrink-0">
+                                @php $imgs = $r->images; @endphp
+                                @if(count($imgs) > 1)
+                                <span class="px-1.5 py-0.5 text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-md shrink-0" title="{{ count($imgs) }} total photos">
+                                    +{{ count($imgs) - 1 }}
+                                </span>
+                                @endif
+                            </div>
+                        </td>
                         <td>
                             <span class="font-black text-slate-800 text-sm bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 shadow-sm">Room {{ $r->room_number }}</span>
                         </td>
