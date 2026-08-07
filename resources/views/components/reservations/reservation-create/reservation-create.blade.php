@@ -96,6 +96,7 @@
                             'room_number' => $r->room_number,
                             'type' => $r->roomType->name ?? '',
                             'price' => $r->price,
+                            'image_url' => $r->image_url,
                             'hk' => optional($r->latestHousekeeping)->status ?? 'Clean',
                             'maint' => $r->activeMaintenanceTickets->count()
                         ])),
@@ -182,6 +183,7 @@
                                                     </svg>
                                                 </template>
                                             </div>
+                                            <img :src="room.image_url" class="w-12 h-9 object-cover rounded-lg border border-slate-200 shadow-sm shrink-0">
                                             <div class="flex flex-col">
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-bold text-slate-800 text-sm" x-text="'Room ' + room.room_number"></span>

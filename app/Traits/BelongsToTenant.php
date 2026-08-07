@@ -17,6 +17,10 @@ trait BelongsToTenant
         });
 
         static::addGlobalScope('tenant', function (Builder $builder) {
+            if (request() && (request()->is('hotel/*', 'hotel', 'book/*', 'book', 'track*', '/', 'setup-project') || request()->routeIs('hotel.*', 'booking-engine*'))) {
+                return;
+            }
+
             if (Auth::hasUser()) {
                 $user = Auth::user();
                 if ($user && $user->hotel_id) {

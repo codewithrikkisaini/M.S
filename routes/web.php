@@ -7,10 +7,14 @@ use App\Http\Controllers\PublicHotelController;
 
 // ─── Public ────────────────────────────────────────────────────────────────
 Route::get('/', function () {
-    $hotels = \App\Models\Hotel::where('status', 'approved')->with(['images', 'rooms'])->get();
+    $hotels = \App\Models\Hotel::where('status', 'approved')->with(['images', 'rooms' => function ($q) {
+        $q->withoutGlobalScope('tenant');
+    }])->get();
     return view('welcome', compact('hotels'));
 });
 Route::get('/hotel/{slug}', [PublicHotelController::class, 'show'])->name('hotel.show');
+Route::get('/hotel/{slug}/reserve/{room?}', [PublicHotelController::class, 'reserveRoom'])->name('hotel.reserve');
+Route::post('/hotel/book-instant', [PublicHotelController::class, 'bookInstant'])->name('hotel.book-instant');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -67,6 +71,23 @@ Route::get('/setup-project', function () {
                 $table->unique(['key', 'hotel_id']);
             });
             $output[] = "Created new settings composite unique index.";
+        } catch (\Exception $e) {
+            $output[] = "Composite unique index creation ignored/failed: " . $e->getMessage();
+        }
+
+        // 2b. Adjust rooms table unique index
+        try {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE rooms DROP INDEX rooms_room_number_unique");
+            $output[] = "Dropped old rooms_room_number_unique index.";
+        } catch (\Exception $e) {
+            $output[] = "Unique index drop ignored/failed: " . $e->getMessage();
+        }
+
+        try {
+            \Illuminate\Support\Facades\Schema::table('rooms', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->unique(['hotel_id', 'room_number'], 'rooms_hotel_id_room_number_unique');
+            });
+            $output[] = "Created new rooms composite unique index (hotel_id, room_number).";
         } catch (\Exception $e) {
             $output[] = "Composite unique index creation ignored/failed: " . $e->getMessage();
         }
@@ -257,8 +278,36 @@ Route::get('/setup-project', function () {
 
 // ─── Public Registration & Booking ─────────────────────────────────────────
 Route::livewire('/register-hotel', 'public.register')->name('register-hotel');
-Route::livewire('/book/{hotel_id?}', 'public.booking-engine')->name('booking-engine');
-Route::livewire('/{city}/{slug}/book', 'public.booking-engine')->name('booking-engine.seo');
+Route::get('/book/{hotel_id?}', function ($hotel_id = null) {
+    $id = $hotel_id ?: request('hotel_id');
+    if ($id) {
+        $hotel = \App\Models\Hotel::find($id);
+        if ($hotel) {
+            return redirect()->route('hotel.show', ['slug' => $hotel->slug ?: $hotel->id]);
+        }
+    }
+    if ($search = request('search')) {
+        $hotel = \App\Models\Hotel::where('name', 'LIKE', '%' . $search . '%')
+            ->orWhere('city', 'LIKE', '%' . $search . '%')
+            ->first();
+        if ($hotel) {
+            return redirect()->route('hotel.show', ['slug' => $hotel->slug ?: $hotel->id]);
+        }
+    }
+    $firstHotel = \App\Models\Hotel::first();
+    if ($firstHotel) {
+        return redirect()->route('hotel.show', ['slug' => $firstHotel->slug ?: $firstHotel->id]);
+    }
+    return redirect('/');
+})->name('booking-engine');
+
+Route::get('/hotel/{slug}/book', function ($slug) {
+    return redirect()->route('hotel.show', ['slug' => $slug]);
+})->name('booking-engine.hotel');
+
+Route::get('/{city}/{slug}/book', function ($city, $slug) {
+    return redirect()->route('hotel.show', ['slug' => $slug]);
+})->name('booking-engine.seo');
 Route::livewire('/track', 'public.track-booking')->name('track-booking');
 Route::get('/booking/slip/{pnr}/download', [\App\Http\Controllers\BookingSlipController::class, 'download'])->name('booking.slip.download');
 

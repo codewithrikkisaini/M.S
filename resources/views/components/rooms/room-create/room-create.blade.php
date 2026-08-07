@@ -84,36 +84,64 @@
 
                 {{-- Live Image Gallery Preview --}}
                 @php
-                    $previewImages = [];
-                    if (!empty($photos)) {
-                        foreach ($photos as $p) {
-                            try { $previewImages[] = $p->temporaryUrl(); } catch (\Exception $e) {}
-                        }
-                    }
+                    $existingImages = [];
                     if (!empty($image_path)) {
                         $urlList = preg_split('/[\r\n,]+/', $image_path);
                         foreach ($urlList as $u) {
                             $u = trim($u);
                             if ($u !== '') {
-                                $previewImages[] = filter_var($u, FILTER_VALIDATE_URL) ? $u : asset('storage/' . $u);
+                                $existingImages[] = [
+                                    'src' => filter_var($u, FILTER_VALIDATE_URL) ? $u : asset('storage/' . $u),
+                                    'path' => $u
+                                ];
                             }
+                        }
+                    }
+                    $uploadedImages = [];
+                    if (!empty($photos)) {
+                        foreach ($photos as $pIdx => $p) {
+                            try {
+                                $uploadedImages[] = [
+                                    'src' => $p->temporaryUrl(),
+                                    'index' => $pIdx
+                                ];
+                            } catch (\Exception $e) {}
                         }
                     }
                 @endphp
 
-                @if(count($previewImages) > 0)
+                @if(count($existingImages) > 0 || count($uploadedImages) > 0)
                 <div class="mt-3 bg-white p-3 rounded-2xl border border-slate-200">
                     <p class="text-[11px] font-extrabold text-slate-700 mb-2 flex items-center justify-between">
-                        <span><i class="fas fa-eye text-emerald-500 mr-1"></i> Selected Gallery Photos Preview ({{ count($previewImages) }} photo{{ count($previewImages) > 1 ? 's' : '' }})</span>
+                        <span><i class="fas fa-eye text-emerald-500 mr-1"></i> Selected Gallery Photos Preview ({{ count($existingImages) + count($uploadedImages) }} photo{{ (count($existingImages) + count($uploadedImages)) > 1 ? 's' : '' }})</span>
                         <span class="text-[10px] font-semibold text-slate-400">First photo will be main thumbnail</span>
                     </p>
                     <div class="flex flex-wrap gap-3">
-                        @foreach($previewImages as $idx => $imgSrc)
+                        {{-- Render Existing Images --}}
+                        @foreach($existingImages as $idx => $img)
                         <div class="relative w-24 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm group">
-                            <img src="{{ $imgSrc }}" class="w-full h-full object-cover">
-                            @if($idx === 0)
+                            <img src="{{ $img['src'] }}" class="w-full h-full object-cover">
+                            @if($idx === 0 && count($uploadedImages) === 0)
                             <span class="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow">Main</span>
                             @endif
+                            {{-- Delete Button --}}
+                            <button type="button" wire:click="removeExistingImage({{ $idx }})" class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                <i class="fas fa-times text-[8px]"></i>
+                            </button>
+                        </div>
+                        @endforeach
+
+                        {{-- Render Newly Uploaded Images --}}
+                        @foreach($uploadedImages as $idx => $img)
+                        <div class="relative w-24 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm group">
+                            <img src="{{ $img['src'] }}" class="w-full h-full object-cover">
+                            @if($idx === 0 && count($existingImages) === 0)
+                            <span class="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow">Main</span>
+                            @endif
+                            {{-- Delete Button --}}
+                            <button type="button" wire:click="removeUploadedImage({{ $img['index'] }})" class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                <i class="fas fa-times text-[8px]"></i>
+                            </button>
                         </div>
                         @endforeach
                     </div>
@@ -205,6 +233,7 @@
             <table class="pms-table">
                 <thead>
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500">
+                        <th class="font-bold">Photo</th>
                         <th class="font-bold">Room No.</th>
                         <th class="font-bold">Room Type</th>
                         <th class="font-bold">Daily Rate</th>
@@ -219,6 +248,17 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse($rooms as $r)
                     <tr wire:key="room-row-{{ $r->id }}" class="hover:bg-slate-50/40 transition-colors">
+                        <td>
+                            <div class="flex items-center gap-1.5">
+                                <img src="{{ $r->image_url }}" alt="Room {{ $r->room_number }}" class="w-12 h-9 object-cover rounded-lg border border-slate-200 shadow-sm shrink-0">
+                                @php $imgs = $r->images; @endphp
+                                @if(count($imgs) > 1)
+                                <span class="px-1.5 py-0.5 text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-md shrink-0" title="{{ count($imgs) }} total photos">
+                                    +{{ count($imgs) - 1 }}
+                                </span>
+                                @endif
+                            </div>
+                        </td>
                         <td>
                             <span class="font-black text-slate-800 text-sm bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 shadow-sm">Room {{ $r->room_number }}</span>
                         </td>

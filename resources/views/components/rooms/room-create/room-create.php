@@ -21,6 +21,7 @@ new class extends Component
     public string $monthly_rate = '990.00';
     public string $tax_percent = '15';
     public string $status = 'Available';
+    public string $description = '';
     public string $image_path = '';
     public $photos = [];
     public bool $is_custom_type = false;
@@ -131,6 +132,7 @@ new class extends Component
             'monthly_rate'   => 'required|numeric|min:0',
             'tax_percent'    => 'required|numeric|min:0|max:100',
             'status'         => 'required|in:Available,Occupied,Reserved,Maintenance',
+            'description'    => 'nullable|string',
             'image_path'     => 'nullable|string',
             'photos.*'       => 'nullable|image|max:4096',
         ]);
@@ -206,6 +208,7 @@ new class extends Component
                     'room_type_id' => $roomType->id,
                     'price'        => $this->daily_rate,
                     'floor'        => $floorToUse,
+                    'description'  => $this->description,
                     'status'       => $this->status,
                     'hotel_id'     => $hotel_id,
                 ];
@@ -222,15 +225,56 @@ new class extends Component
 
             $addedStr = implode(', ', $roomNumbers);
             $msg = "Room(s) {$addedStr} saved successfully under {$roomType->name}!";
-            $this->reset(['room_number', 'image_path', 'photos']);
+            $this->reset(['room_number', 'description', 'image_path', 'photos']);
             $this->dispatch('toast', message: $msg, type: 'success');
         } catch (UniqueConstraintViolationException $e) {
-            $this->addError('room_number', 'One or more room numbers already exist for this hotel.');
-            $this->dispatch('toast', message: "Room number already exists.", type: 'error');
+            try {
+                foreach ($roomNumbers as $num) {
+                    $existing = Room::where('room_number', $num)->first();
+                    if ($existing) {
+                        $existing->update($roomData);
+                    }
+                }
+                $addedStr = implode(', ', $roomNumbers);
+                $msg = "Room(s) {$addedStr} updated successfully!";
+                $this->reset(['room_number', 'image_path', 'photos']);
+                $this->dispatch('toast', message: $msg, type: 'success');
+            } catch (\Throwable $ex) {
+                $this->addError('room_number', 'Room number saving error: ' . $ex->getMessage());
+                $this->dispatch('toast', message: "Error saving room.", type: 'error');
+            }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Room save failed: ' . $e->getMessage());
             $this->addError('room_number', 'Could not save room: ' . $e->getMessage());
             $this->dispatch('toast', message: "Error saving room: " . $e->getMessage(), type: 'error');
+        }
+    }
+
+    public function removeExistingImage(int $index): void
+    {
+        $paths = [];
+        if (!empty($this->image_path)) {
+            $urlList = preg_split('/[\r\n,]+/', $this->image_path);
+            foreach ($urlList as $u) {
+                $u = trim($u);
+                if ($u !== '') {
+                    $paths[] = $u;
+                }
+            }
+        }
+
+        if (isset($paths[$index])) {
+            unset($paths[$index]);
+        }
+
+        $this->image_path = implode("\n", array_values($paths));
+    }
+
+    public function removeUploadedImage(int $index): void
+    {
+        if (isset($this->photos[$index])) {
+            unset($this->photos[$index]);
+            $this->photos = array_values($this->photos);
         }
     }
 
