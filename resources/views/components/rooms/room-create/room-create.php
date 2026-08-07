@@ -21,6 +21,7 @@ new class extends Component
     public string $monthly_rate = '990.00';
     public string $tax_percent = '15';
     public string $status = 'Available';
+    public string $description = '';
     public string $image_path = '';
     public $photos = [];
     public bool $is_custom_type = false;
@@ -131,6 +132,7 @@ new class extends Component
             'monthly_rate'   => 'required|numeric|min:0',
             'tax_percent'    => 'required|numeric|min:0|max:100',
             'status'         => 'required|in:Available,Occupied,Reserved,Maintenance',
+            'description'    => 'nullable|string',
             'image_path'     => 'nullable|string',
             'photos.*'       => 'nullable|image|max:4096',
         ]);
@@ -206,6 +208,7 @@ new class extends Component
                     'room_type_id' => $roomType->id,
                     'price'        => $this->daily_rate,
                     'floor'        => $floorToUse,
+                    'description'  => $this->description,
                     'status'       => $this->status,
                     'hotel_id'     => $hotel_id,
                 ];
@@ -222,7 +225,7 @@ new class extends Component
 
             $addedStr = implode(', ', $roomNumbers);
             $msg = "Room(s) {$addedStr} saved successfully under {$roomType->name}!";
-            $this->reset(['room_number', 'image_path', 'photos']);
+            $this->reset(['room_number', 'description', 'image_path', 'photos']);
             $this->dispatch('toast', message: $msg, type: 'success');
         } catch (UniqueConstraintViolationException $e) {
             try {

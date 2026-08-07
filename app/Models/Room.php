@@ -10,7 +10,7 @@ class Room extends Model
 {
     use HasFactory, BelongsToTenant;
 
-    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'hotel_id', 'image_path'];
+    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'description', 'hotel_id', 'image_path'];
 
     public function getImagesAttribute(): array
     {

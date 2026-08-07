@@ -30,7 +30,78 @@
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="antialiased bg-slate-50 text-slate-800" x-data="{ showModal: false, selectedRoom: null }">
+<body class="antialiased bg-slate-50 text-slate-800" x-data="{ 
+    showModal: false, 
+    selectedRoom: null,
+    modalImgIdx: 0,
+    showBookingModal: false,
+    bookingSubmitted: false,
+    selectedRoomForBooking: null,
+    bookingData: { 
+        guest_name: '', 
+        guest_email: '', 
+        guest_phone: '', 
+        checkin_date: '{{ date('Y-m-d') }}', 
+        checkout_date: '{{ date('Y-m-d', strtotime('+1 day')) }}', 
+        special_requests: '', 
+        payment_method: 'Cash' 
+    },
+    get nights() {
+        if (!this.bookingData.checkin_date || !this.bookingData.checkout_date) return 1;
+        let d1 = new Date(this.bookingData.checkin_date);
+        let d2 = new Date(this.bookingData.checkout_date);
+        let diffTime = d2.getTime() - d1.getTime();
+        let diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+        return diffDays > 0 ? diffDays : 1;
+    },
+    get totalPayable() {
+        if (!this.selectedRoomForBooking) return 0;
+        let rawRate = Number(this.selectedRoomForBooking.rawPrice || 0);
+        return rawRate * this.nights;
+    },
+    get totalPayableFormatted() {
+        return '₹' + this.totalPayable.toLocaleString('en-IN');
+    },
+    isSubmitting: false,
+    successResult: null,
+    errorMessage: '',
+    async submitBooking() {
+        if (!this.selectedRoomForBooking) return;
+        this.isSubmitting = true;
+        this.errorMessage = '';
+        try {
+            let res = await fetch('{{ route('hotel.book-instant') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    hotel_id: {{ $hotel->id }},
+                    room_id: this.selectedRoomForBooking.id,
+                    guest_name: this.bookingData.guest_name,
+                    guest_email: this.bookingData.guest_email,
+                    guest_phone: this.bookingData.guest_phone,
+                    checkin_date: this.bookingData.checkin_date,
+                    checkout_date: this.bookingData.checkout_date,
+                    special_requests: this.bookingData.special_requests,
+                    payment_method: this.bookingData.payment_method
+                })
+            });
+            let data = await res.json();
+            if (data.success) {
+                this.successResult = data;
+                this.bookingSubmitted = true;
+            } else {
+                this.errorMessage = data.message || 'Error completing booking.';
+            }
+        } catch (e) {
+            this.errorMessage = 'Network error occurred. Please try again.';
+        } finally {
+            this.isSubmitting = false;
+        }
+    }
+}">
 
     <!-- Navbar Header with Navigation Menu -->
     <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm" x-data="{ mobileMenu: false }">
@@ -64,7 +135,7 @@
 
             <!-- Right Actions -->
             <div class="flex items-center gap-3">
-                <a href="{{ route('booking-engine', ['hotel_id' => $hotel->slug ? $hotel->slug . '-' . $hotel->id : $hotel->id]) }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+                <a href="#available-rooms" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
                     <i class="fas fa-calendar-check text-xs"></i> Book Room
                 </a>
 
@@ -259,19 +330,21 @@
 
                                             <div class="flex items-center gap-2">
                                                 <button @click="selectedRoom = {
-                                                    name: '{{ addslashes($roomTypeName) }}',
-                                                    number: '{{ $room->room_number }}',
+                                                    id: '{{ $room->id }}',
+                                                    name: {!! json_encode($roomTypeName) !!},
+                                                    number: {!! json_encode($room->room_number) !!},
                                                     price: '₹{{ number_format($roomPrice) }}',
-                                                    image: '{{ $room->image_url }}',
-                                                    description: '{{ addslashes($room->description ?: "Experience ultimate comfort in Room " . $room->room_number . ". Designed with modern luxury aesthetics, premium mattresses, soundproof acoustic windows, complimentary high-speed Wi-Fi, 24/7 room service, and private en-suite bathroom.") }}',
-                                                    bed_type: '{{ ucfirst($room->bed_type ?? "King / Queen Bed") }}',
-                                                    capacity: '{{ $room->capacity ?? 2 }} Guests',
-                                                    bookUrl: '{{ $bookUrl }}'
-                                                }; showModal = true" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                                                    rawPrice: {{ $roomPrice }},
+                                                    image: {!! json_encode($room->image_url) !!},
+                                                    images: {!! json_encode($room->images) !!},
+                                                    description: {!! json_encode($room->description ?: "Experience ultimate comfort in Room " . $room->room_number . ". Designed with modern luxury aesthetics, premium mattresses, soundproof acoustic windows, complimentary high-speed Wi-Fi, 24/7 room service, and private en-suite bathroom.") !!},
+                                                    bed_type: {!! json_encode(ucfirst($room->bed_type ?? "King / Queen Bed")) !!},
+                                                    capacity: {!! json_encode(($room->capacity ?? 2) . ' Guests') !!}
+                                                }; modalImgIdx = 0; showModal = true" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
                                                     <i class="fas fa-eye text-slate-500"></i> View Details
                                                 </button>
 
-                                                <a href="{{ $bookUrl }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                                                <a href="{{ route('hotel.reserve', ['slug' => $hotel->slug ?: $hotel->id, 'room' => $room->id]) }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
                                                     <i class="fas fa-calendar-check text-xs"></i> Book Now
                                                 </a>
                                             </div>
@@ -365,16 +438,50 @@
     <!-- Room Details Modal -->
     <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
         <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden relative transform transition-all" @click.away="showModal = false">
-            <!-- Modal Header / Image -->
-            <div class="relative aspect-video bg-slate-100">
-                <img :src="selectedRoom?.image" class="w-full h-full object-cover">
-                <button @click="showModal = false" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-900/60 text-white hover:bg-slate-900 flex items-center justify-center cursor-pointer transition-all border border-white/20 backdrop-blur-md">
+            <!-- Modal Header / Image Carousel -->
+            <div class="relative aspect-video bg-slate-100 group">
+                <img :src="selectedRoom?.images && selectedRoom?.images.length > 0 ? selectedRoom?.images[modalImgIdx] : selectedRoom?.image" class="w-full h-full object-cover transition-all duration-300">
+                
+                <!-- Next / Previous Controls -->
+                <template x-if="selectedRoom?.images && selectedRoom?.images.length > 1">
+                    <div class="absolute inset-0 flex items-center justify-between p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button type="button" @click="modalImgIdx = (modalImgIdx - 1 + selectedRoom.images.length) % selectedRoom.images.length" class="w-8 h-8 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-md border border-white/20 shadow-md cursor-pointer transition-all">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                        </button>
+                        <button type="button" @click="modalImgIdx = (modalImgIdx + 1) % selectedRoom.images.length" class="w-8 h-8 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-md border border-white/20 shadow-md cursor-pointer transition-all">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+                </template>
+
+                <!-- Close Button -->
+                <button @click="showModal = false" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-900/60 text-white hover:bg-slate-900 flex items-center justify-center cursor-pointer transition-all border border-white/20 backdrop-blur-md z-10 shadow-md">
                     <i class="fas fa-times"></i>
                 </button>
-                <div class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-white/10">
+
+                <!-- Room Title Badge -->
+                <div class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-white/10 shadow-md">
                     <span x-text="selectedRoom?.name + ' (Room ' + selectedRoom?.number + ')'"></span>
                 </div>
+
+                <!-- Image Counter Badge -->
+                <template x-if="selectedRoom?.images && selectedRoom?.images.length > 1">
+                    <div class="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-lg border border-white/10 shadow-md">
+                        <i class="fas fa-images text-blue-400 mr-1"></i> <span x-text="(modalImgIdx + 1) + '/' + selectedRoom?.images.length"></span>
+                    </div>
+                </template>
             </div>
+
+            <!-- Thumbnail Gallery Strip -->
+            <template x-if="selectedRoom?.images && selectedRoom?.images.length > 1">
+                <div class="flex gap-2 p-2.5 bg-slate-50 border-b border-slate-200 overflow-x-auto">
+                    <template x-for="(img, idx) in selectedRoom.images" :key="idx">
+                        <button type="button" @click="modalImgIdx = idx" class="w-14 h-10 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer" :class="modalImgIdx === idx ? 'border-blue-500 scale-105 shadow-md' : 'border-slate-200 opacity-60 hover:opacity-100'">
+                            <img :src="img" class="w-full h-full object-cover">
+                        </button>
+                    </template>
+                </div>
+            </template>
 
             <!-- Modal Body -->
             <div class="p-6 space-y-5">
@@ -414,7 +521,7 @@
                     <button @click="showModal = false" class="px-5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-all cursor-pointer">
                         Close
                     </button>
-                    <a :href="selectedRoom?.bookUrl" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center gap-2">
+                    <a :href="'/hotel/{{ $hotel->slug ?: $hotel->id }}/reserve/' + selectedRoom?.id" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center gap-2">
                         <i class="fas fa-calendar-check text-xs"></i> Book This Room Now
                     </a>
                 </div>
