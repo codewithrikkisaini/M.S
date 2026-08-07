@@ -77,11 +77,7 @@
                 <a href="{{ route('register-hotel') }}" class="hidden sm:inline-flex text-xs font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-3.5 py-2.5 rounded-xl transition-all">
                     List Your Property
                 </a>
-<<<<<<< HEAD
-                <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-5 py-2.5 bg-accent hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all">
-=======
-                <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all">
->>>>>>> 1b36bc314dcc9c8ee03f104fe115664d808bfc3f
+                <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-accent hover:bg-secondary text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all">
                     <i class="far fa-user-circle mr-2"></i> Log In
                 </a>
 
@@ -121,15 +117,7 @@
     </header>
 
     <!-- Hero Search Section -->
-<<<<<<< HEAD
-    <section class="relative pt-20 pb-32 bg-primary  overflow-hidden">
-        <!-- Background Pattern -->
-        <div class="absolute inset-0 opacity-10">
-            <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-                <path fill="#ffffff" d="M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z"></path>
-            </svg>
-=======
-    <section class="relative pt-20 pb-28 bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-700 overflow-hidden">
+    <section class="relative pt-20 pb-28 bg-gradient-to-br bg-primary to-indigo-700 overflow-hidden">
         <!-- Floating Bokeh & Glowing Background Effect -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute -top-10 left-1/4 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
@@ -140,7 +128,6 @@
             <div class="absolute bottom-8 left-1/4 w-20 h-20 bg-white/10 rounded-full blur-sm"></div>
             <div class="absolute top-16 right-1/3 w-36 h-36 bg-white/10 rounded-full blur-md"></div>
             <div class="absolute bottom-6 right-1/4 w-24 h-24 bg-white/15 rounded-full blur-md"></div>
->>>>>>> 1b36bc314dcc9c8ee03f104fe115664d808bfc3f
         </div>
         
         <div class="max-w-6xl mx-auto px-4 relative z-10 text-center">
@@ -151,38 +138,6 @@
                 Search through premium hotels, luxury resorts, and cozy homestays at the best prices.
             </p>
 
-<<<<<<< HEAD
-            <!-- Search Bar Component -->
-            <div class="bg-white p-3 sm:p-4 rounded-3xl shadow-2xl mx-auto max-w-4xl text-left transform translate-y-10">
-                <form action="#destinations" class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    <div class="col-span-1 md:col-span-1 bg-slate-50 border border-slate-200 rounded-2xl p-3 relative group">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Destination</label>
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-map-marker-alt text-secondary"></i>
-                            <input type="text" placeholder="City or Hotel Name" class="w-full bg-transparent border-none outline-none text-sm font-semibold text-slate-800 placeholder-slate-400">
-                        </div>
-                    </div>
-                    
-                    <div class="col-span-1 md:col-span-1 bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Check-In</label>
-                        <div class="flex items-center gap-2">
-                            <i class="far fa-calendar-alt  text-secondary"></i>
-                            <input type="date" class="w-full bg-transparent border-none outline-none text-sm font-semibold text-slate-800">
-                        </div>
-                    </div>
-
-                    <div class="col-span-1 md:col-span-1 bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Check-Out</label>
-                        <div class="flex items-center gap-2">
-                            <i class="far fa-calendar-alt  text-secondary"></i>
-                            <input type="date" class="w-full bg-transparent border-none outline-none text-sm font-semibold text-slate-800">
-                        </div>
-                    </div>
-
-                    <div class="col-span-1 md:col-span-1 flex">
-                        <button type="submit" class="w-full h-full bg-accent hover:bg-dark text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-colors text-lg shadow-lg">
-                            Search <i class="fas fa-search"></i>
-=======
             <!-- Pill Search Bar Component (Exact match to screenshot) -->
             <div class="bg-white p-2 sm:p-3 rounded-[32px] sm:rounded-full shadow-2xl shadow-blue-950/30 mx-auto max-w-5xl text-left border border-white/50">
                 <form action="{{ route('booking-engine') }}" method="get" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-2 items-center">
@@ -216,10 +171,9 @@
 
                     {{-- Search Button --}}
                     <div class="md:col-span-2 h-full flex">
-                        <button type="submit" class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl sm:rounded-full flex items-center justify-center gap-2.5 transition-all text-base shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 cursor-pointer active:scale-95">
+                        <button type="submit" class="w-full py-4 px-6 bg-accent hover:bg-secondary text-white font-black rounded-2xl sm:rounded-full flex items-center justify-center gap-2.5 transition-all text-base shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 cursor-pointer active:scale-95">
                             <span>Search</span>
                             <i class="fas fa-search text-sm"></i>
->>>>>>> 1b36bc314dcc9c8ee03f104fe115664d808bfc3f
                         </button>
                     </div>
                 </form>
