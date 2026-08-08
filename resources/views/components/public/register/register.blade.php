@@ -17,7 +17,7 @@
                     <i class="fas fa-paper-plane text-blue-600 text-lg"></i>
                 </div>
                 <div>
-                    <span class="text-white font-black text-xl tracking-tight block">MERAHKIE</span>
+                    <span class="text-white font-black text-xl tracking-tight block">LODGIKO</span>
                     <span class="text-[10px] uppercase font-bold tracking-widest text-blue-200">Partner Network</span>
                 </div>
             </a>

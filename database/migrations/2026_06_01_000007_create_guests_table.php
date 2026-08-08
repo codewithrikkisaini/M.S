@@ -8,14 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('hotels')) {
-            Schema::create('hotels', function (Blueprint $table) {
+        if (!Schema::hasTable('guests')) {
+            Schema::create('guests', function (Blueprint $table) {
                 $table->id();
+                $table->string('guest_id')->unique(); // Custom string ID
                 $table->string('name');
-                $table->string('email')->unique();
+                $table->string('email')->unique()->nullable();
                 $table->string('phone')->nullable();
+                $table->string('nationality')->nullable();
+                $table->string('passport_number')->nullable();
                 $table->text('address')->nullable();
-                $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
                 $table->timestamps();
             });
         }
@@ -23,6 +25,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('hotels');
+        Schema::dropIfExists('guests');
     }
 };
