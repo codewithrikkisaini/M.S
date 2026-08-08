@@ -32,10 +32,21 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('reservations') && Schema::hasColumn('reservations', 'room_id')) {
-            Schema::table('reservations', function (Blueprint $table) {
-                $table->dropForeign(['room_id']);
-                $table->dropColumn('room_id');
-            });
+            try {
+                Schema::table('reservations', function (Blueprint $table) {
+                    $table->dropForeign(['room_id']);
+                });
+            } catch (\Throwable $e) {
+                // Ignore if foreign key constraint does not exist
+            }
+
+            try {
+                Schema::table('reservations', function (Blueprint $table) {
+                    $table->dropColumn('room_id');
+                });
+            } catch (\Throwable $e) {
+                // Ignore if column cannot be dropped
+            }
         }
     }
 
