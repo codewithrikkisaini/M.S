@@ -18,6 +18,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Schema::defaultStringLength(191);
+
         // Share hotel settings with ALL views (layouts, sidebar, etc.)
         View::composer('*', function ($view) {
             try {
