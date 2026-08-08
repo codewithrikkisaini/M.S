@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('reservations', function (Blueprint $table) {
-            $table->string('pnr', 10)->nullable()->after('hotel_id');
-        });
+        if (!Schema::hasColumn('reservations', 'pnr')) {
+            Schema::table('reservations', function (Blueprint $table) {
+                $table->string('pnr', 10)->nullable()->after('hotel_id');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('reservations', function (Blueprint $table) {
-            $table->dropColumn('pnr');
-        });
+        if (Schema::hasColumn('reservations', 'pnr')) {
+            Schema::table('reservations', function (Blueprint $table) {
+                $table->dropColumn('pnr');
+            });
+        }
     }
 };

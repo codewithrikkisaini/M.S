@@ -9,6 +9,7 @@ return new class extends Migration
     protected array $tables = [
         'users',
         'room_types',
+        'rooms',
         'guests',
         'reservations',
         'checkins',
