@@ -8,7 +8,6 @@ return new class extends Migration
 {
     protected array $tables = [
         'users',
-        'rooms',
         'room_types',
         'guests',
         'reservations',
@@ -36,8 +35,8 @@ return new class extends Migration
     {
         foreach ($this->tables as $tableName) {
             if (Schema::hasTable($tableName) && Schema::hasColumn($tableName, 'hotel_id')) {
-                Schema::table($tableName, function (Blueprint $table) use ($tableName) {
-                    $table->dropForeign([$tableName . '_hotel_id_foreign']);
+                Schema::table($tableName, function (Blueprint $table) {
+                    $table->dropForeign(['hotel_id']);
                     $table->dropColumn('hotel_id');
                 });
             }
