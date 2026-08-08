@@ -35,10 +35,21 @@ return new class extends Migration
     {
         foreach ($this->tables as $tableName) {
             if (Schema::hasTable($tableName) && Schema::hasColumn($tableName, 'hotel_id')) {
-                Schema::table($tableName, function (Blueprint $table) {
-                    $table->dropForeign(['hotel_id']);
-                    $table->dropColumn('hotel_id');
-                });
+                try {
+                    Schema::table($tableName, function (Blueprint $table) {
+                        $table->dropForeign(['hotel_id']);
+                    });
+                } catch (\Throwable $e) {
+                    // Ignore if foreign key constraint does not exist
+                }
+
+                try {
+                    Schema::table($tableName, function (Blueprint $table) {
+                        $table->dropColumn('hotel_id');
+                    });
+                } catch (\Throwable $e) {
+                    // Ignore if column cannot be dropped
+                }
             }
         }
     }

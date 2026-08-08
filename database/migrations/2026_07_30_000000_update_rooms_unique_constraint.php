@@ -37,12 +37,9 @@ return new class extends Migration {
     public function down(): void
     {
         try {
-            $indexes = collect(Schema::getIndexes('rooms'));
-            if ($indexes->contains('name', 'rooms_hotel_id_room_number_unique')) {
-                Schema::table('rooms', function (Blueprint $table) {
-                    $table->dropUnique('rooms_hotel_id_room_number_unique');
-                });
-            }
+            Schema::table('rooms', function (Blueprint $table) {
+                $table->dropUnique('rooms_hotel_id_room_number_unique');
+            });
         } catch (\Throwable $e) {
             // Ignore
         }
