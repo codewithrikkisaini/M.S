@@ -8,16 +8,31 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
-        });
+        if (Schema::hasTable('users') && !Schema::hasColumn('users', 'role_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['role_id']);
-            $table->dropColumn('role_id');
-        });
+        if (Schema::hasTable('users') && Schema::hasColumn('users', 'role_id')) {
+            try {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->dropForeign(['role_id']);
+                });
+            } catch (\Throwable $e) {
+                // Foreign key may not exist
+            }
+
+            try {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->dropColumn('role_id');
+                });
+            } catch (\Throwable $e) {
+                // Column may not exist
+            }
+        }
     }
 };
