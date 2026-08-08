@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $hotelName }} | {{ $title ?? 'Dashboard' }}</title>
+    <title>{{ $hotelName ?? 'Lodgiko Admin' }} | {{ $title ?? 'Dashboard' }}</title>
 
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,7 +52,7 @@
         {{-- Footer --}}
         <footer class="border-t border-gray-200 bg-white px-6 py-3">
             <p class="text-xs text-gray-400 text-center">
-                &copy; {{ date('Y') }} {{ $hotelName }} &mdash; All rights reserved.
+                &copy; {{ date('Y') }} {{ $hotelName ?? 'Lodgiko' }} &mdash; All rights reserved.
             </p>
         </footer>
     </div>
