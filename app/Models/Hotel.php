@@ -15,10 +15,15 @@ class Hotel extends Model
         'name',
         'slug',
         'code',
+        'hotel_code',
         'email',
         'phone',
         'address',
         'status', // pending, approved, rejected
+        'account_status', // pending_approval, active, suspended, cancelled
+        'registration_notes',
+        'approved_at',
+        'approved_by',
         'business_name',
         'owner_name',
         'tax_id',
@@ -46,6 +51,12 @@ class Hotel extends Model
             if (empty($hotel->slug) && !empty($hotel->name)) {
                 $hotel->slug = Str::slug($hotel->name);
             }
+            if (empty($hotel->hotel_code)) {
+                $hotel->hotel_code = self::generateNextHotelCode();
+            }
+            if (empty($hotel->account_status)) {
+                $hotel->account_status = 'pending_approval';
+            }
         });
 
         static::updating(function (Hotel $hotel) {
@@ -57,9 +68,23 @@ class Hotel extends Model
         });
     }
 
+    public static function generateNextHotelCode(): string
+    {
+        $maxId = (int) self::max('id') + 1;
+        return 'LDG-' . str_pad((string)$maxId, 6, '0', STR_PAD_LEFT);
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('id', $value)
+            ->orWhere('slug', $value)
+            ->orWhere('hotel_code', $value)
+            ->firstOrFail();
     }
 
     public function getSlugAttribute($value): string

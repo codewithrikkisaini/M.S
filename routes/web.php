@@ -277,7 +277,19 @@ Route::get('/setup-project', function () {
 });
 
 // ─── Public Registration & Booking ─────────────────────────────────────────
-Route::livewire('/register-hotel', 'public.register')->name('register-hotel');
+Route::get('/register-hotel', [\App\Http\Controllers\HotelRegistrationController::class, 'showForm'])->name('register-hotel');
+Route::post('/register-hotel', [\App\Http\Controllers\HotelRegistrationController::class, 'register'])->name('register-hotel.post');
+Route::get('/register-hotel/success', [\App\Http\Controllers\HotelRegistrationController::class, 'success'])->name('register-hotel.success');
+
+// ─── PayPal Billing & Webhook Routes ──────────────────────────────
+Route::get('/billing/pay/{invoice}', [\App\Http\Controllers\PayPalController::class, 'showPaymentPage'])->name('billing.pay');
+Route::post('/billing/paypal/{invoice}/create-order', [\App\Http\Controllers\PayPalController::class, 'createOrder'])->name('billing.paypal.create-order');
+Route::post('/billing/paypal/{invoice}/capture-order', [\App\Http\Controllers\PayPalController::class, 'captureOrder'])->name('billing.paypal.capture.api');
+Route::get('/billing/paypal/{invoice}/capture', [\App\Http\Controllers\PayPalController::class, 'captureOrder'])->name('billing.paypal.capture');
+Route::get('/billing/paypal/{invoice}/success', [\App\Http\Controllers\PayPalController::class, 'success'])->name('billing.paypal.success');
+Route::get('/billing/paypal/{invoice}/cancel', [\App\Http\Controllers\PayPalController::class, 'cancel'])->name('billing.paypal.cancel');
+Route::post('/api/webhooks/paypal', [\App\Http\Controllers\PayPalController::class, 'handleWebhook'])->name('webhooks.paypal');
+
 Route::get('/book/{hotel_id?}', function ($hotel_id = null) {
     $id = $hotel_id ?: request('hotel_id');
     if ($id) {
@@ -321,7 +333,17 @@ Route::middleware('auth')->group(function () {
     // Super Admin Routes
     Route::middleware('superadmin')->group(function () {
         Route::livewire('/superadmin/dashboard', 'superadmin.dashboard')->name('superadmin.dashboard');
-        Route::livewire('/superadmin/hotels', 'superadmin.hotels')->name('superadmin.hotels.index');
+        Route::get('/superadmin/hotels', [\App\Http\Controllers\SuperAdminHotelController::class, 'index'])->name('superadmin.hotels.index');
+        Route::get('/superadmin/hotels/{hotel}', [\App\Http\Controllers\SuperAdminHotelController::class, 'show'])->name('superadmin.hotels.show');
+        Route::post('/superadmin/hotels/{hotel}/approve-7day', [\App\Http\Controllers\SuperAdminHotelController::class, 'approve7DayTrial'])->name('superadmin.hotels.approve-7day');
+        Route::post('/superadmin/hotels/{hotel}/approve-15day', [\App\Http\Controllers\SuperAdminHotelController::class, 'approve15DayTrial'])->name('superadmin.hotels.approve-15day');
+        Route::post('/superadmin/hotels/{hotel}/approve-paid', [\App\Http\Controllers\SuperAdminHotelController::class, 'createPaidSubscription'])->name('superadmin.hotels.approve-paid');
+        Route::post('/superadmin/hotels/{hotel}/extend-trial', [\App\Http\Controllers\SuperAdminHotelController::class, 'extendTrial'])->name('superadmin.hotels.extend-trial');
+        Route::post('/superadmin/hotels/{hotel}/suspend', [\App\Http\Controllers\SuperAdminHotelController::class, 'suspend'])->name('superadmin.hotels.suspend');
+        Route::post('/superadmin/hotels/{hotel}/activate', [\App\Http\Controllers\SuperAdminHotelController::class, 'activate'])->name('superadmin.hotels.activate');
+        Route::post('/superadmin/hotels/{hotel}/resend-invoice/{invoice}', [\App\Http\Controllers\SuperAdminHotelController::class, 'resendInvoice'])->name('superadmin.hotels.resend-invoice');
+        Route::post('/superadmin/hotels/{hotel}/resend-welcome', [\App\Http\Controllers\SuperAdminHotelController::class, 'resendWelcome'])->name('superadmin.hotels.resend-welcome');
+        Route::delete('/superadmin/hotels/{hotel}', [\App\Http\Controllers\SuperAdminHotelController::class, 'destroy'])->name('superadmin.hotels.destroy');
         Route::livewire('/superadmin/saas-plans', 'superadmin.saas-plans')->name('superadmin.saas-plans.index');
         Route::livewire('/superadmin/saas-billing', 'superadmin.saas-billing')->name('superadmin.saas-billing.index');
         Route::livewire('/superadmin/saas-invoices', 'superadmin.saas-invoices')->name('superadmin.saas-invoices.index');

@@ -143,6 +143,10 @@ class PublicHotelController extends Controller
             return response()->json(['success' => false, 'message' => 'Invalid Hotel or Room selection.'], 422);
         }
 
+        if ($hotel->account_status === 'suspended' || $hotel->account_status === 'pending_approval' || $hotel->status !== 'approved') {
+            return response()->json(['success' => false, 'message' => 'Online bookings for this hotel are currently paused or pending approval.'], 422);
+        }
+
         $checkin = $request->checkin_date ?: date('Y-m-d');
         $checkout = $request->checkout_date ?: date('Y-m-d', strtotime('+1 day'));
         $days = max(1, (strtotime($checkout) - strtotime($checkin)) / 86400);
