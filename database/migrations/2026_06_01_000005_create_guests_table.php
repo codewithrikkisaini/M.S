@@ -8,17 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('guests', function (Blueprint $table) {
-            $table->id();
-            $table->string('guest_id')->unique(); // Custom string ID
-            $table->string('name');
-            $table->string('email')->unique()->nullable();
-            $table->string('phone')->nullable();
-            $table->string('nationality')->nullable();
-            $table->string('passport_number')->nullable();
-            $table->text('address')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('guests')) {
+            Schema::create('guests', function (Blueprint $table) {
+                $table->id();
+                $table->string('guest_id')->unique(); // Custom string ID
+                $table->string('name');
+                $table->string('email')->unique()->nullable();
+                $table->string('phone')->nullable();
+                $table->string('nationality')->nullable();
+                $table->string('passport_number')->nullable();
+                $table->text('address')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void
