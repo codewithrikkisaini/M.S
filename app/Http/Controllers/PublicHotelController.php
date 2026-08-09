@@ -143,7 +143,7 @@ class PublicHotelController extends Controller
             return response()->json(['success' => false, 'message' => 'Invalid Hotel or Room selection.'], 422);
         }
 
-        if ($hotel->account_status === 'suspended' || $hotel->account_status === 'pending_approval' || $hotel->status !== 'approved') {
+        if ($hotel->account_status === 'suspended' || ($hotel->status !== 'approved' && $hotel->account_status !== 'active')) {
             return response()->json(['success' => false, 'message' => 'Online bookings for this hotel are currently paused or pending approval.'], 422);
         }
 
