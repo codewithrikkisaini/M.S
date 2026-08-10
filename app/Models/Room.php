@@ -21,16 +21,27 @@ class Room extends Model
 
         if (filter_var($img, FILTER_VALIDATE_URL) || \Illuminate\Support\Str::startsWith($img, ['http://', 'https://'])) {
             if (preg_match('/https?:\/\/localhost(:\d+)?\/(storage\/)?(.*)/i', $img, $matches)) {
-                $relativePath = ltrim($matches[3], '/');
-                return '/storage/' . $relativePath;
+                $img = ltrim($matches[3], '/');
+            } else {
+                return $img;
             }
-            return $img;
         }
 
         $clean = preg_replace('/^\/?(storage\/|public\/)+/', '', $img);
         $clean = ltrim($clean, '/');
 
-        return '/storage/' . $clean;
+        if (empty($clean)) {
+            return '';
+        }
+
+        $pubPath = public_path('storage/' . $clean);
+        $storPath = storage_path('app/public/' . $clean);
+
+        if (file_exists($pubPath) || file_exists($storPath)) {
+            return '/storage/' . $clean;
+        }
+
+        return '';
     }
 
     public function getImagesAttribute(): array
