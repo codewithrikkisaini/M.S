@@ -9,6 +9,14 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->role?->slug === 'superadmin') {
+                return redirect()->route('superadmin.dashboard');
+            }
+            return redirect()->route('dashboard');
+        }
+
         $hotelName = \App\Models\Setting::where('key', 'hotel_name')->value('value') ?? 'Lodgiko PMS';
         return view('auth.login', compact('hotelName'));
     }
@@ -53,7 +61,11 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
-            return redirect()->route('login')->with('status', 'Logged in successfully!');
+            if ($user->role?->slug === 'superadmin') {
+                return redirect()->route('superadmin.dashboard')->with('status', 'Welcome back, Super Admin!');
+            }
+
+            return redirect()->intended(route('dashboard'))->with('status', 'Logged in successfully!');
         }
 
         return back()->withErrors([
