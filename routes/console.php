@@ -9,3 +9,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('report:send-daily-cash-sheet')->everyMinute();
+Schedule::command('subscriptions:process-expiries')->dailyAt('00:01');
+Schedule::command('subscriptions:send-reminders')->dailyAt('09:00');
+

@@ -36,6 +36,11 @@ new class extends Component
             return;
         }
 
+        if (str_starts_with($this->pnr, 'LDG-')) {
+            $this->error = "'{$this->pnr}' is a Hotel Code. Track Booking requires a 6-character Room Reservation PNR (e.g. 0N9GFJ) sent in your booking confirmation email.";
+            return;
+        }
+
         // Try exact PNR + Guest Email match first (case-insensitive & trimmed)
         $reservation = Reservation::with(['hotel', 'guest', 'rooms.roomType'])
             ->whereRaw('UPPER(TRIM(pnr)) = ?', [$this->pnr])
@@ -63,7 +68,7 @@ new class extends Component
             }
         } else {
             $this->reservation = null;
-            $this->error = "No booking found for PNR '" . $this->pnr . "'. Please verify your PNR number and try again.";
+            $this->error = "No booking found for PNR '" . $this->pnr . "'. Please verify your 6-character PNR number (e.g., 0N9GFJ) and try again.";
         }
     }
 

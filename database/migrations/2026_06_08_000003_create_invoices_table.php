@@ -8,12 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('invoices', function (Blueprint $table) {
-            $table->id();
-            $table->string('invoice_number')->unique();
-            $table->foreignId('checkout_id')->constrained('checkouts')->cascadeOnDelete();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('invoices')) {
+            Schema::create('invoices', function (Blueprint $table) {
+                $table->id();
+                $table->string('invoice_number')->unique();
+                $table->foreignId('checkout_id')->constrained('checkouts')->cascadeOnDelete();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

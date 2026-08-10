@@ -32,7 +32,19 @@ new class extends Component
     {
         $this->room = $room;
         $this->room_number = $room->room_number;
-        $this->image_path = $room->image_path ?? '';
+        
+        $img = $room->image_path ?? '';
+        if (!empty($img)) {
+            $decoded = json_decode($img, true);
+            if (is_array($decoded)) {
+                $this->image_path = implode("\n", $decoded);
+            } else {
+                $this->image_path = $img;
+            }
+        } else {
+            $this->image_path = '';
+        }
+
         $this->room_type_id = (string) $room->room_type_id;
         $this->price = (string) $room->price;
         $this->status = $room->status;
@@ -117,6 +129,34 @@ new class extends Component
             $this->redirect(route('rooms.index'), navigate: true);
         } catch (UniqueConstraintViolationException $e) {
             $this->addError('room_number', 'This room number already exists for this hotel.');
+        }
+    }
+
+    public function removeExistingImage(int $index): void
+    {
+        $paths = [];
+        if (!empty($this->image_path)) {
+            $urlList = preg_split('/[\r\n,]+/', $this->image_path);
+            foreach ($urlList as $u) {
+                $u = trim($u);
+                if ($u !== '') {
+                    $paths[] = $u;
+                }
+            }
+        }
+
+        if (isset($paths[$index])) {
+            unset($paths[$index]);
+        }
+
+        $this->image_path = implode("\n", array_values($paths));
+    }
+
+    public function removeUploadedImage(int $index): void
+    {
+        if (isset($this->photos[$index])) {
+            unset($this->photos[$index]);
+            $this->photos = array_values($this->photos);
         }
     }
 

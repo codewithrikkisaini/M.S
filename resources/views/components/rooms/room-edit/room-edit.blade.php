@@ -95,39 +95,74 @@
 
                         {{-- Live Gallery Preview --}}
                         @php
-                            $galleryImages = [];
-                            if (!empty($photos)) {
-                                foreach ($photos as $p) {
-                                    try { $galleryImages[] = $p->temporaryUrl(); } catch (\Exception $e) {}
-                                }
-                            }
+                            $existingImages = [];
                             if (!empty($image_path)) {
                                 $urlList = preg_split('/[\r\n,]+/', $image_path);
                                 foreach ($urlList as $u) {
                                     $u = trim($u);
                                     if ($u !== '') {
-                                        $galleryImages[] = filter_var($u, FILTER_VALIDATE_URL) ? $u : asset('storage/' . $u);
+                                        $existingImages[] = [
+                                            'src' => filter_var($u, FILTER_VALIDATE_URL) ? $u : asset('storage/' . $u),
+                                            'path' => $u
+                                        ];
                                     }
                                 }
                             }
-                            if (empty($galleryImages) && !empty($room->images)) {
-                                $galleryImages = $room->images;
+                            $uploadedImages = [];
+                            if (!empty($photos)) {
+                                foreach ($photos as $pIdx => $p) {
+                                    try {
+                                        $uploadedImages[] = [
+                                            'src' => $p->temporaryUrl(),
+                                            'index' => $pIdx
+                                        ];
+                                    } catch (\Exception $e) {}
+                                }
+                            }
+
+                            // Fallback to room images if no changes are made and both inputs are empty
+                            if (empty($existingImages) && empty($uploadedImages) && !empty($room->images)) {
+                                foreach ($room->images as $imgUrl) {
+                                    $existingImages[] = [
+                                        'src' => $imgUrl,
+                                        'path' => $imgUrl
+                                    ];
+                                }
                             }
                         @endphp
 
-                        @if(count($galleryImages) > 0)
+                        @if(count($existingImages) > 0 || count($uploadedImages) > 0)
                         <div class="mt-3 bg-white p-3 rounded-2xl border border-slate-200">
                             <p class="text-[11px] font-extrabold text-slate-700 mb-2 flex items-center justify-between">
-                                <span><i class="fas fa-eye text-emerald-500 mr-1"></i> Current / Selected Room Gallery ({{ count($galleryImages) }} photo{{ count($galleryImages) > 1 ? 's' : '' }})</span>
+                                <span><i class="fas fa-eye text-emerald-500 mr-1"></i> Current / Selected Room Gallery ({{ count($existingImages) + count($uploadedImages) }} photo{{ (count($existingImages) + count($uploadedImages)) > 1 ? 's' : '' }})</span>
                                 <span class="text-[10px] font-semibold text-slate-400">First photo is main thumbnail</span>
                             </p>
                             <div class="flex flex-wrap gap-3">
-                                @foreach($galleryImages as $idx => $imgSrc)
+                                {{-- Render Existing Images --}}
+                                @foreach($existingImages as $idx => $img)
                                 <div class="relative w-24 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm group">
-                                    <img src="{{ $imgSrc }}" class="w-full h-full object-cover">
-                                    @if($idx === 0)
+                                    <img src="{{ $img['src'] }}" class="w-full h-full object-cover">
+                                    @if($idx === 0 && count($uploadedImages) === 0)
                                     <span class="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow">Main</span>
                                     @endif
+                                    {{-- Delete Button --}}
+                                    <button type="button" wire:click="removeExistingImage({{ $idx }})" class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                        <i class="fas fa-times text-[8px]"></i>
+                                    </button>
+                                </div>
+                                @endforeach
+
+                                {{-- Render Newly Uploaded Images --}}
+                                @foreach($uploadedImages as $idx => $img)
+                                <div class="relative w-24 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm group">
+                                    <img src="{{ $img['src'] }}" class="w-full h-full object-cover">
+                                    @if($idx === 0 && count($existingImages) === 0)
+                                    <span class="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow">Main</span>
+                                    @endif
+                                    {{-- Delete Button --}}
+                                    <button type="button" wire:click="removeUploadedImage({{ $img['index'] }})" class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                        <i class="fas fa-times text-[8px]"></i>
+                                    </button>
                                 </div>
                                 @endforeach
                             </div>

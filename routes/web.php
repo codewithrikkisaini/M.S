@@ -7,10 +7,14 @@ use App\Http\Controllers\PublicHotelController;
 
 // ─── Public ────────────────────────────────────────────────────────────────
 Route::get('/', function () {
-    $hotels = \App\Models\Hotel::where('status', 'approved')->with(['images', 'rooms'])->get();
+    $hotels = \App\Models\Hotel::where('status', 'approved')->with(['images', 'rooms' => function ($q) {
+        $q->withoutGlobalScope('tenant');
+    }])->get();
     return view('welcome', compact('hotels'));
 });
 Route::get('/hotel/{slug}', [PublicHotelController::class, 'show'])->name('hotel.show');
+Route::get('/hotel/{slug}/reserve/{room?}', [PublicHotelController::class, 'reserveRoom'])->name('hotel.reserve');
+Route::post('/hotel/book-instant', [PublicHotelController::class, 'bookInstant'])->name('hotel.book-instant');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -67,6 +71,23 @@ Route::get('/setup-project', function () {
                 $table->unique(['key', 'hotel_id']);
             });
             $output[] = "Created new settings composite unique index.";
+        } catch (\Exception $e) {
+            $output[] = "Composite unique index creation ignored/failed: " . $e->getMessage();
+        }
+
+        // 2b. Adjust rooms table unique index
+        try {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE rooms DROP INDEX rooms_room_number_unique");
+            $output[] = "Dropped old rooms_room_number_unique index.";
+        } catch (\Exception $e) {
+            $output[] = "Unique index drop ignored/failed: " . $e->getMessage();
+        }
+
+        try {
+            \Illuminate\Support\Facades\Schema::table('rooms', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->unique(['hotel_id', 'room_number'], 'rooms_hotel_id_room_number_unique');
+            });
+            $output[] = "Created new rooms composite unique index (hotel_id, room_number).";
         } catch (\Exception $e) {
             $output[] = "Composite unique index creation ignored/failed: " . $e->getMessage();
         }
@@ -256,9 +277,49 @@ Route::get('/setup-project', function () {
 });
 
 // ─── Public Registration & Booking ─────────────────────────────────────────
-Route::livewire('/register-hotel', 'public.register')->name('register-hotel');
-Route::livewire('/book/{hotel_id?}', 'public.booking-engine')->name('booking-engine');
-Route::livewire('/{city}/{slug}/book', 'public.booking-engine')->name('booking-engine.seo');
+Route::get('/register-hotel', [\App\Http\Controllers\HotelRegistrationController::class, 'showForm'])->name('register-hotel');
+Route::post('/register-hotel', [\App\Http\Controllers\HotelRegistrationController::class, 'register'])->name('register-hotel.post');
+Route::get('/register-hotel/success', [\App\Http\Controllers\HotelRegistrationController::class, 'success'])->name('register-hotel.success');
+
+// ─── PayPal Billing & Webhook Routes ──────────────────────────────
+Route::get('/billing/pay/{invoice}', [\App\Http\Controllers\PayPalController::class, 'showPaymentPage'])->name('billing.pay');
+Route::post('/billing/paypal/{invoice}/create-order', [\App\Http\Controllers\PayPalController::class, 'createOrder'])->name('billing.paypal.create-order');
+Route::post('/billing/paypal/{invoice}/capture-order', [\App\Http\Controllers\PayPalController::class, 'captureOrder'])->name('billing.paypal.capture.api');
+Route::get('/billing/paypal/{invoice}/capture', [\App\Http\Controllers\PayPalController::class, 'captureOrder'])->name('billing.paypal.capture');
+Route::get('/billing/paypal/{invoice}/success', [\App\Http\Controllers\PayPalController::class, 'success'])->name('billing.paypal.success');
+Route::get('/billing/paypal/{invoice}/cancel', [\App\Http\Controllers\PayPalController::class, 'cancel'])->name('billing.paypal.cancel');
+Route::post('/api/webhooks/paypal', [\App\Http\Controllers\PayPalController::class, 'handleWebhook'])->name('webhooks.paypal');
+
+Route::get('/book/{hotel_id?}', function ($hotel_id = null) {
+    $id = $hotel_id ?: request('hotel_id');
+    if ($id) {
+        $hotel = \App\Models\Hotel::find($id);
+        if ($hotel) {
+            return redirect()->route('hotel.show', ['slug' => $hotel->slug ?: $hotel->id]);
+        }
+    }
+    if ($search = request('search')) {
+        $hotel = \App\Models\Hotel::where('name', 'LIKE', '%' . $search . '%')
+            ->orWhere('city', 'LIKE', '%' . $search . '%')
+            ->first();
+        if ($hotel) {
+            return redirect()->route('hotel.show', ['slug' => $hotel->slug ?: $hotel->id]);
+        }
+    }
+    $firstHotel = \App\Models\Hotel::first();
+    if ($firstHotel) {
+        return redirect()->route('hotel.show', ['slug' => $firstHotel->slug ?: $firstHotel->id]);
+    }
+    return redirect('/');
+})->name('booking-engine');
+
+Route::get('/hotel/{slug}/book', function ($slug) {
+    return redirect()->route('hotel.show', ['slug' => $slug]);
+})->name('booking-engine.hotel');
+
+Route::get('/{city}/{slug}/book', function ($city, $slug) {
+    return redirect()->route('hotel.show', ['slug' => $slug]);
+})->name('booking-engine.seo');
 Route::livewire('/track', 'public.track-booking')->name('track-booking');
 Route::get('/booking/slip/{pnr}/download', [\App\Http\Controllers\BookingSlipController::class, 'download'])->name('booking.slip.download');
 
@@ -272,7 +333,17 @@ Route::middleware('auth')->group(function () {
     // Super Admin Routes
     Route::middleware('superadmin')->group(function () {
         Route::livewire('/superadmin/dashboard', 'superadmin.dashboard')->name('superadmin.dashboard');
-        Route::livewire('/superadmin/hotels', 'superadmin.hotels')->name('superadmin.hotels.index');
+        Route::get('/superadmin/hotels', [\App\Http\Controllers\SuperAdminHotelController::class, 'index'])->name('superadmin.hotels.index');
+        Route::get('/superadmin/hotels/{hotel}', [\App\Http\Controllers\SuperAdminHotelController::class, 'show'])->name('superadmin.hotels.show');
+        Route::post('/superadmin/hotels/{hotel}/approve-7day', [\App\Http\Controllers\SuperAdminHotelController::class, 'approve7DayTrial'])->name('superadmin.hotels.approve-7day');
+        Route::post('/superadmin/hotels/{hotel}/approve-15day', [\App\Http\Controllers\SuperAdminHotelController::class, 'approve15DayTrial'])->name('superadmin.hotels.approve-15day');
+        Route::post('/superadmin/hotels/{hotel}/approve-paid', [\App\Http\Controllers\SuperAdminHotelController::class, 'createPaidSubscription'])->name('superadmin.hotels.approve-paid');
+        Route::post('/superadmin/hotels/{hotel}/extend-trial', [\App\Http\Controllers\SuperAdminHotelController::class, 'extendTrial'])->name('superadmin.hotels.extend-trial');
+        Route::post('/superadmin/hotels/{hotel}/suspend', [\App\Http\Controllers\SuperAdminHotelController::class, 'suspend'])->name('superadmin.hotels.suspend');
+        Route::post('/superadmin/hotels/{hotel}/activate', [\App\Http\Controllers\SuperAdminHotelController::class, 'activate'])->name('superadmin.hotels.activate');
+        Route::post('/superadmin/hotels/{hotel}/resend-invoice/{invoice}', [\App\Http\Controllers\SuperAdminHotelController::class, 'resendInvoice'])->name('superadmin.hotels.resend-invoice');
+        Route::post('/superadmin/hotels/{hotel}/resend-welcome', [\App\Http\Controllers\SuperAdminHotelController::class, 'resendWelcome'])->name('superadmin.hotels.resend-welcome');
+        Route::delete('/superadmin/hotels/{hotel}', [\App\Http\Controllers\SuperAdminHotelController::class, 'destroy'])->name('superadmin.hotels.destroy');
         Route::livewire('/superadmin/saas-plans', 'superadmin.saas-plans')->name('superadmin.saas-plans.index');
         Route::livewire('/superadmin/saas-billing', 'superadmin.saas-billing')->name('superadmin.saas-billing.index');
         Route::livewire('/superadmin/saas-invoices', 'superadmin.saas-invoices')->name('superadmin.saas-invoices.index');
