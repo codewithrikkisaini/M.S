@@ -52,6 +52,33 @@
                         <input type="number" wire:model="price" class="pms-input text-xs" placeholder="0.00" min="0" step="0.01">
                         @error('price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                    <div>
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
+                        <select wire:model.live="bed_type" class="pms-select text-xs font-semibold">
+                            <option value="King Bed">King Bed</option>
+                            <option value="Double Bed">Double Bed</option>
+                        </select>
+                        @error('bed_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="sm:col-span-2">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider mb-0">Room Option / Feature <span class="text-red-500">*</span></label>
+                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100/80">
+                                <i class="fas fa-check-double text-[9px] mr-1"></i> Multiple Select ({{ count($room_option) }} selected)
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
+                            @foreach($this->availableOptions as $opt)
+                                <label class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer transition-all shadow-2xs group">
+                                    <input type="checkbox" wire:model.live="room_option" value="{{ $opt }}" class="w-4 h-4 text-indigo-600 rounded-md border-slate-300 focus:ring-indigo-500 focus:ring-offset-0 transition-colors">
+                                    <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-900 transition-colors leading-tight">{{ $opt }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('room_option') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        @error('room_option.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                     <div class="sm:col-span-2">
                         <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Status <span class="text-red-500">*</span></label>
                         <select wire:model="status" class="pms-select text-xs">
@@ -61,6 +88,12 @@
                             <option value="Maintenance">Maintenance</option>
                         </select>
                         @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="sm:col-span-2 pt-2">
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Room Description</label>
+                        <textarea wire:model="description" rows="2" class="pms-input text-xs font-medium" placeholder="Enter room description, special features, or notes..."></textarea>
+                        @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="sm:col-span-2 pt-4 border-t border-slate-100 space-y-3">

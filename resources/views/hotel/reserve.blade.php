@@ -117,6 +117,19 @@
                     
                     <form @submit.prevent="submitBooking()" class="space-y-6">
 
+                        <!-- Occupied Room Warning Banner -->
+                        @if(($selectedRoom->status ?? 'Available') !== 'Available')
+                            <div class="bg-rose-500/15 border-2 border-rose-500/40 text-rose-200 p-4 rounded-2xl text-xs font-bold flex items-center gap-3 shadow-md">
+                                <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 font-extrabold text-lg shadow-sm">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    <div class="font-extrabold text-sm text-white">Bro, ye room already booked / occupied hai!</div>
+                                    <div class="text-[11px] text-rose-300 mt-0.5">Room #{{ $selectedRoom->room_number }} is currently {{ $selectedRoom->status }}. Please go back to hotel page and select an available room.</div>
+                                </div>
+                            </div>
+                        @endif
+
                         <!-- Error Banner -->
                         <template x-if="errorMessage">
                             <div class="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-2xl text-xs font-bold flex items-center gap-3 shadow-sm">
@@ -344,18 +357,24 @@
 
                         <!-- Final Action CTA Button -->
                         <div class="pt-2">
-                            <button type="submit" :disabled="isSubmitting" class="w-full py-4 px-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-extrabold text-base rounded-2xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50">
-                                <template x-if="!isSubmitting">
-                                    <span class="flex items-center gap-2">
-                                        <i class="fas fa-lock text-sm"></i> Confirm & Book Room Now (<span x-text="totalPayableFormatted"></span>)
-                                    </span>
-                                </template>
-                                <template x-if="isSubmitting">
-                                    <span class="flex items-center gap-2">
-                                        <i class="fas fa-spinner fa-spin text-sm"></i> Processing Reservation...
-                                    </span>
-                                </template>
-                            </button>
+                            @if(($selectedRoom->status ?? 'Available') !== 'Available')
+                                <button type="button" disabled class="w-full py-4 px-6 bg-slate-300 text-slate-500 font-extrabold text-base rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed border border-slate-400">
+                                    <i class="fas fa-ban text-rose-500"></i> Already Booked / Occupied
+                                </button>
+                            @else
+                                <button type="submit" :disabled="isSubmitting" class="w-full py-4 px-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-extrabold text-base rounded-2xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50">
+                                    <template x-if="!isSubmitting">
+                                        <span class="flex items-center gap-2">
+                                            <i class="fas fa-lock text-sm"></i> Confirm & Book Room Now (<span x-text="totalPayableFormatted"></span>)
+                                        </span>
+                                    </template>
+                                    <template x-if="isSubmitting">
+                                        <span class="flex items-center gap-2">
+                                            <i class="fas fa-spinner fa-spin text-sm"></i> Processing Reservation...
+                                        </span>
+                                    </template>
+                                </button>
+                            @endif
                             <p class="text-center text-xs text-slate-400 mt-3 flex items-center justify-center gap-1.5">
                                 <i class="fas fa-shield-alt text-emerald-500"></i> Free cancellation • Guaranteed booking at {{ $hotel->name }}
                             </p>
@@ -413,7 +432,7 @@
                         <div class="p-6 space-y-4">
                             <div>
                                 <h3 class="text-xl font-extrabold text-white" x-text="selectedRoom.name + ' - Room #' + selectedRoom.number"></h3>
-                                <p class="text-xs text-slate-300 mt-1 flex items-center gap-3">
+                                <p class="text-xs text-slate-300 mt-1 flex flex-wrap items-center gap-2">
                                     <span><i class="fas fa-bed text-blue-400 mr-1"></i> <span x-text="selectedRoom.bed_type"></span></span>
                                     <span>•</span>
                                     <span><i class="fas fa-users text-blue-400 mr-1"></i> <span x-text="selectedRoom.capacity"></span></span>
@@ -421,6 +440,22 @@
                             </div>
 
                             <p class="text-xs text-slate-300 leading-relaxed" x-text="selectedRoom.description"></p>
+
+                            <!-- Selected Room Options / Features -->
+                            <template x-if="selectedRoom.room_option">
+                                <div class="border-t border-slate-800 pt-4">
+                                    <h4 class="text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                        <i class="fas fa-star text-amber-400"></i> Selected Room Option(s) / Features
+                                    </h4>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <template x-for="opt in selectedRoom.room_option.split(',')" :key="opt">
+                                            <span class="text-[11px] font-extrabold bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-xl flex items-center gap-1.5 shadow-2xs">
+                                                <i class="fas fa-check-circle text-amber-400 text-[10px]"></i> <span x-text="opt.trim()"></span>
+                                            </span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
 
                             <!-- Included Amenities -->
                             <div class="border-t border-slate-800 pt-4">
@@ -651,6 +686,7 @@
                 images: {!! json_encode($selectedRoom->images) !!},
                 description: {!! json_encode($selectedRoom->description ?: "Experience ultimate comfort in Room " . $selectedRoom->room_number . ".") !!},
                 bed_type: {!! json_encode(ucfirst($selectedRoom->bed_type ?? "King / Queen Bed")) !!},
+                room_option: {!! json_encode($selectedRoom->room_option ?? "") !!},
                 capacity: {!! json_encode(($selectedRoom->capacity ?? 2) . " Guests") !!}
             },
             bookingData: { 

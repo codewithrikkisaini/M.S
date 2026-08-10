@@ -405,6 +405,7 @@ Route::middleware('auth')->group(function () {
     // Daily Cash Sheet PDF actions
     Route::get('/reports/daily-cash-sheet/download', [\App\Http\Controllers\DailyCashSheetController::class, 'download'])->name('reports.daily-cash-sheet.download');
     Route::get('/reports/daily-cash-sheet/download-range', [\App\Http\Controllers\DailyCashSheetController::class, 'downloadRange'])->name('reports.daily-cash-sheet.download-range');
+    Route::get('/reports/daily-cash-sheet/customer-pdf/{reservationId}', [\App\Http\Controllers\DailyCashSheetController::class, 'downloadCustomerPdf'])->name('reports.daily-cash-sheet.customer-pdf');
 
 
 
