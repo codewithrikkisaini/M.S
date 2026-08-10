@@ -12,24 +12,53 @@ class Room extends Model
 
     protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'bed_type', 'room_option', 'description', 'hotel_id', 'image_path'];
 
+    public static function formatUrl(string $img): string
+    {
+        $img = trim($img);
+        if (empty($img)) {
+            return '';
+        }
+
+        if (filter_var($img, FILTER_VALIDATE_URL) || \Illuminate\Support\Str::startsWith($img, ['http://', 'https://'])) {
+            if (preg_match('/https?:\/\/localhost(:\d+)?\/(storage\/)?(.*)/i', $img, $matches)) {
+                $relativePath = ltrim($matches[3], '/');
+                return '/storage/' . $relativePath;
+            }
+            return $img;
+        }
+
+        $clean = preg_replace('/^\/?(storage\/|public\/)+/', '', $img);
+        $clean = ltrim($clean, '/');
+
+        return '/storage/' . $clean;
+    }
+
     public function getImagesAttribute(): array
     {
         if (!empty($this->image_path)) {
-            $decoded = json_decode($this->image_path, true);
+            $raw = $this->image_path;
+            $items = [];
+
+            $decoded = json_decode($raw, true);
             if (is_array($decoded) && count($decoded) > 0) {
-                return array_map(function ($img) {
-                    return filter_var($img, FILTER_VALIDATE_URL) ? $img : asset('storage/' . $img);
-                }, $decoded);
+                $items = $decoded;
+            } elseif (str_contains($raw, ',')) {
+                $items = array_filter(array_map('trim', explode(',', $raw)));
+            } else {
+                $items = [$raw];
             }
 
-            if (str_contains($this->image_path, ',')) {
-                $items = array_filter(array_map('trim', explode(',', $this->image_path)));
-                return array_map(function ($img) {
-                    return filter_var($img, FILTER_VALIDATE_URL) ? $img : asset('storage/' . $img);
-                }, array_values($items));
+            $formatted = [];
+            foreach ($items as $img) {
+                $u = self::formatUrl((string) $img);
+                if (!empty($u)) {
+                    $formatted[] = $u;
+                }
             }
 
-            return [filter_var($this->image_path, FILTER_VALIDATE_URL) ? $this->image_path : asset('storage/' . $this->image_path)];
+            if (count($formatted) > 0) {
+                return array_values($formatted);
+            }
         }
 
         $fallbacks = [
