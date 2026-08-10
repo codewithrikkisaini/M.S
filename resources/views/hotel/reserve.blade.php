@@ -49,90 +49,7 @@
 @php
     $roomPrice = $selectedRoom->price ?: ($selectedRoom->roomType?->base_price ?? 2500);
 @endphp
-<body class="antialiased bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between" x-data='{ 
-    bookingSubmitted: false,
-    selectedRoom: {
-        id: "{{ $selectedRoom->id }}",
-        name: {!! json_encode($selectedRoom->roomType?->name ?: "Standard Room") !!},
-        number: "{{ $selectedRoom->room_number }}",
-        price: "₹{{ number_format($roomPrice) }}",
-        rawPrice: {{ $roomPrice }},
-        image: "{{ $selectedRoom->image_url }}",
-        images: {!! json_encode($selectedRoom->images) !!},
-        description: {!! json_encode($selectedRoom->description ?: "Experience ultimate comfort in Room " . $selectedRoom->room_number . ". Designed with modern luxury aesthetics, premium mattresses, soundproof acoustic windows, complimentary high-speed Wi-Fi, 24/7 room service, and private en-suite bathroom.") !!},
-        bed_type: {!! json_encode(ucfirst($selectedRoom->bed_type ?? "King / Queen Bed")) !!},
-        capacity: {!! json_encode(($selectedRoom->capacity ?? 2) . " Guests") !!}
-    },
-    bookingData: { 
-        guest_name: "", 
-        guest_email: "", 
-        guest_phone: "", 
-        checkin_date: "{{ $checkin }}", 
-        checkout_date: "{{ $checkout }}", 
-        special_requests: "", 
-        payment_method: "Cash",
-        utr_number: "",
-        card_name: "",
-        card_number: "",
-        card_expiry: "",
-        card_cvv: ""
-    },
-    get nights() {
-        if (!this.bookingData.checkin_date || !this.bookingData.checkout_date) return 1;
-        let d1 = new Date(this.bookingData.checkin_date);
-        let d2 = new Date(this.bookingData.checkout_date);
-        let diffTime = d2.getTime() - d1.getTime();
-        let diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
-        return diffDays > 0 ? diffDays : 1;
-    },
-    get totalPayable() {
-        let rawRate = Number(this.selectedRoom.rawPrice || 0);
-        return rawRate * this.nights;
-    },
-    get totalPayableFormatted() {
-        return "₹" + this.totalPayable.toLocaleString("en-IN");
-    },
-    isSubmitting: false,
-    successResult: null,
-    errorMessage: "",
-    async submitBooking() {
-        if (!this.selectedRoom) return;
-        this.isSubmitting = true;
-        this.errorMessage = "";
-        try {
-            let res = await fetch("{{ route('hotel.book-instant') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                },
-                body: JSON.stringify({
-                    hotel_id: {{ $hotel->id }},
-                    room_id: this.selectedRoom.id,
-                    guest_name: this.bookingData.guest_name,
-                    guest_email: this.bookingData.guest_email,
-                    guest_phone: this.bookingData.guest_phone,
-                    checkin_date: this.bookingData.checkin_date,
-                    checkout_date: this.bookingData.checkout_date,
-                    special_requests: this.bookingData.special_requests,
-                    payment_method: this.bookingData.payment_method
-                })
-            });
-            let data = await res.json();
-            if (data.success) {
-                this.successResult = data;
-                this.bookingSubmitted = true;
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            } else {
-                this.errorMessage = data.message || "Error completing room reservation.";
-            }
-        } catch (e) {
-            this.errorMessage = "Network error occurred. Please try again.";
-        } finally {
-            this.isSubmitting = false;
-        }
-    }
-}'>
+<body class="antialiased bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between" x-data="bookingApp()">
 
     <!-- Top Header Navigation -->
     <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm no-print">
@@ -192,7 +109,7 @@
         </div>
 
         <!-- FORM CONTAINER (When Reservation Pending) -->
-        <template x-if="!bookingSubmitted">
+        <div x-show="!bookingSubmitted">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
                 <!-- Left Column (8 cols): Guest Form & Payment Options -->
@@ -570,11 +487,11 @@
                 </div>
 
             </div>
-        </template>
+        </div>
 
 
         <!-- SUCCESS VOUCHER DISPLAY (When Reservation Submitted) -->
-        <template x-if="bookingSubmitted">
+        <div x-show="bookingSubmitted" x-cloak>
             <div class="max-w-3xl mx-auto space-y-6 print-only-container">
 
                 <!-- Action Toolbar (No Print) -->
@@ -708,7 +625,7 @@
                 </div>
 
             </div>
-        </template>
+        </div>
 
     </main>
 
@@ -720,5 +637,94 @@
         </div>
     </footer>
 
+    <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('bookingApp', () => ({
+            bookingSubmitted: false,
+            selectedRoom: {
+                id: "{{ $selectedRoom->id }}",
+                name: {!! json_encode($selectedRoom->roomType?->name ?: "Standard Room") !!},
+                number: "{{ $selectedRoom->room_number }}",
+                price: "₹{{ number_format($roomPrice) }}",
+                rawPrice: {{ $roomPrice }},
+                image: {!! json_encode($selectedRoom->image_url) !!},
+                images: {!! json_encode($selectedRoom->images) !!},
+                description: {!! json_encode($selectedRoom->description ?: "Experience ultimate comfort in Room " . $selectedRoom->room_number . ".") !!},
+                bed_type: {!! json_encode(ucfirst($selectedRoom->bed_type ?? "King / Queen Bed")) !!},
+                capacity: {!! json_encode(($selectedRoom->capacity ?? 2) . " Guests") !!}
+            },
+            bookingData: { 
+                guest_name: "", 
+                guest_email: "", 
+                guest_phone: "", 
+                checkin_date: "{{ $checkin }}", 
+                checkout_date: "{{ $checkout }}", 
+                special_requests: "", 
+                payment_method: "Cash",
+                utr_number: "",
+                card_name: "",
+                card_number: "",
+                card_expiry: "",
+                card_cvv: ""
+            },
+            get nights() {
+                if (!this.bookingData.checkin_date || !this.bookingData.checkout_date) return 1;
+                let d1 = new Date(this.bookingData.checkin_date);
+                let d2 = new Date(this.bookingData.checkout_date);
+                let diffTime = d2.getTime() - d1.getTime();
+                let diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+                return diffDays > 0 ? diffDays : 1;
+            },
+            get totalPayable() {
+                let rawRate = Number(this.selectedRoom.rawPrice || 0);
+                return rawRate * this.nights;
+            },
+            get totalPayableFormatted() {
+                return "₹" + this.totalPayable.toLocaleString("en-IN");
+            },
+            isSubmitting: false,
+            successResult: null,
+            errorMessage: "",
+            async submitBooking() {
+                if (!this.selectedRoom) return;
+                this.isSubmitting = true;
+                this.errorMessage = "";
+                try {
+                    let res = await fetch("{{ route('hotel.book-instant') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        body: JSON.stringify({
+                            hotel_id: {{ $hotel->id }},
+                            room_id: this.selectedRoom.id,
+                            guest_name: this.bookingData.guest_name,
+                            guest_email: this.bookingData.guest_email,
+                            guest_phone: this.bookingData.guest_phone,
+                            checkin_date: this.bookingData.checkin_date,
+                            checkout_date: this.bookingData.checkout_date,
+                            special_requests: this.bookingData.special_requests,
+                            payment_method: this.bookingData.payment_method
+                        })
+                    });
+                    let data = await res.json().catch(() => ({ success: false, message: 'Server error or invalid response. Please try again.' }));
+                    if (res.ok && data.success) {
+                        this.successResult = data;
+                        this.bookingSubmitted = true;
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                    } else {
+                        this.errorMessage = data.message || "Error completing room reservation.";
+                    }
+                } catch (e) {
+                    this.errorMessage = "Network error occurred: " + (e.message || "Please try again.");
+                } finally {
+                    this.isSubmitting = false;
+                }
+            }
+        }));
+    });
+    </script>
 </body>
 </html>

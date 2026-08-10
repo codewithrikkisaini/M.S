@@ -74,6 +74,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify({
@@ -88,15 +89,15 @@
                     payment_method: this.bookingData.payment_method
                 })
             });
-            let data = await res.json();
-            if (data.success) {
+            let data = await res.json().catch(() => ({ success: false, message: 'Server error or invalid response. Please try again.' }));
+            if (res.ok && data.success) {
                 this.successResult = data;
                 this.bookingSubmitted = true;
             } else {
                 this.errorMessage = data.message || 'Error completing booking.';
             }
         } catch (e) {
-            this.errorMessage = 'Network error occurred. Please try again.';
+            this.errorMessage = 'Network error occurred: ' + (e.message || 'Please try again.');
         } finally {
             this.isSubmitting = false;
         }
@@ -344,8 +345,12 @@
                                                     <i class="fas fa-eye text-slate-500"></i> View Details
                                                 </button>
 
-                                                <a href="{{ route('hotel.reserve', ['slug' => $hotel->slug ?: $hotel->id, 'room' => $room->id]) }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
-                                                    <i class="fas fa-calendar-check text-xs"></i> Book Now
+                                                <button @click="selectedRoomForBooking = { id: '{{ $room->id }}', name: {!! json_encode($roomTypeName) !!}, number: {!! json_encode($room->room_number) !!}, price: '₹{{ number_format($roomPrice) }}', rawPrice: {{ $roomPrice }}, image: {!! json_encode($room->image_url) !!} }; showBookingModal = true" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                                                    <i class="fas fa-bolt text-xs"></i> Book Now
+                                                </button>
+
+                                                <a href="{{ route('hotel.reserve', ['slug' => $hotel->slug ?: $hotel->id, 'room' => $room->id]) }}" class="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer" title="Open Full Page Booking Form">
+                                                    <i class="fas fa-external-link-alt text-[10px]"></i>
                                                 </a>
                                             </div>
                                         </div>
@@ -525,6 +530,171 @@
                         <i class="fas fa-calendar-check text-xs"></i> Book This Room Now
                     </a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instant Room Booking Modal -->
+    <div x-show="showBookingModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden relative my-8 transform transition-all" @click.away="showBookingModal = false">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white p-6 relative">
+                <button @click="showBookingModal = false; bookingSubmitted = false" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition-all border border-white/20">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-white text-lg font-bold border border-white/20">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-extrabold" x-text="bookingSubmitted ? 'Booking Confirmed!' : 'Instant Room Reservation'"></h3>
+                        <p class="text-xs text-blue-100 mt-0.5" x-text="selectedRoomForBooking ? selectedRoomForBooking.name + ' (Room #' + selectedRoomForBooking.number + ')' : '{{ addslashes($hotel->name) }}'"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+                <!-- FORM MODE -->
+                <template x-if="!bookingSubmitted">
+                    <form @submit.prevent="submitBooking()" class="space-y-4">
+                        <!-- Error Alert -->
+                        <template x-if="errorMessage">
+                            <div class="bg-rose-50 border border-rose-200 text-rose-700 p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2">
+                                <i class="fas fa-exclamation-circle text-rose-600 text-base shrink-0"></i>
+                                <span x-text="errorMessage"></span>
+                            </div>
+                        </template>
+
+                        <!-- Room Summary & Price Banner -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <template x-if="selectedRoomForBooking?.image">
+                                    <img :src="selectedRoomForBooking.image" class="w-14 h-12 rounded-xl object-cover border border-slate-200">
+                                </template>
+                                <div>
+                                    <span class="text-sm font-extrabold text-slate-900 block" x-text="selectedRoomForBooking?.name + ' - Room #' + selectedRoomForBooking?.number"></span>
+                                    <span class="text-xs text-slate-500" x-text="nights + ' Night' + (nights > 1 ? 's' : '')"></span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs text-slate-400 font-bold block uppercase tracking-wider">Total Amount</span>
+                                <span class="text-xl font-black text-blue-600" x-text="totalPayableFormatted"></span>
+                            </div>
+                        </div>
+
+                        <!-- Date Inputs -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Check-in Date *</label>
+                                <input type="date" x-model="bookingData.checkin_date" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Check-out Date *</label>
+                                <input type="date" x-model="bookingData.checkout_date" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600">
+                            </div>
+                        </div>
+
+                        <!-- Guest Info -->
+                        <div class="space-y-3 pt-2">
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider">Guest Information</h4>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
+                                <input type="text" x-model="bookingData.guest_name" required placeholder="Full Name (e.g. Rikki Saini)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Email Address *</label>
+                                    <input type="email" x-model="bookingData.guest_email" required placeholder="your.email@example.com" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number *</label>
+                                    <input type="text" x-model="bookingData.guest_phone" required placeholder="+91 9876543210" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Special Request (Optional)</label>
+                                <input type="text" x-model="bookingData.special_requests" placeholder="e.g. Early check-in, Quiet room" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none focus:border-blue-600">
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="space-y-3 pt-2">
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider">Payment Method</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="cursor-pointer">
+                                    <input type="radio" x-model="bookingData.payment_method" value="Cash" class="peer sr-only">
+                                    <div class="p-3 rounded-xl border-2 border-slate-200 bg-white peer-checked:border-blue-600 peer-checked:bg-blue-50/80 text-xs font-bold text-slate-800 transition-all flex items-center gap-2">
+                                        <i class="fas fa-money-bill-wave text-emerald-600"></i> Pay at Hotel
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" x-model="bookingData.payment_method" value="UPI" class="peer sr-only">
+                                    <div class="p-3 rounded-xl border-2 border-slate-200 bg-white peer-checked:border-blue-600 peer-checked:bg-blue-50/80 text-xs font-bold text-slate-800 transition-all flex items-center gap-2">
+                                        <i class="fas fa-qrcode text-blue-600"></i> UPI Instant
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit CTA -->
+                        <div class="pt-4 border-t border-slate-100">
+                            <button type="submit" :disabled="isSubmitting" class="w-full py-3.5 px-6 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+                                <template x-if="!isSubmitting">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-lock text-xs"></i> Confirm Booking Now (<span x-text="totalPayableFormatted"></span>)
+                                    </span>
+                                </template>
+                                <template x-if="isSubmitting">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-spinner fa-spin text-xs"></i> Processing Reservation...
+                                    </span>
+                                </template>
+                            </button>
+                        </div>
+                    </form>
+                </template>
+
+                <!-- VOUCHER MODE -->
+                <template x-if="bookingSubmitted">
+                    <div class="space-y-4">
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
+                            <div class="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-2 text-xl shadow-md">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h4 class="text-lg font-black text-emerald-900">Room Reserved Successfully!</h4>
+                            <p class="text-xs text-emerald-700 mt-1">Your reservation code (PNR) is: <strong class="text-amber-700 font-mono text-sm" x-text="successResult?.pnr"></strong></p>
+                        </div>
+
+                        <div class="bg-slate-900 text-white p-4 rounded-2xl space-y-2 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Hotel:</span>
+                                <span class="font-bold text-white" x-text="successResult?.hotel_name"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Room:</span>
+                                <span class="font-bold text-white" x-text="successResult?.room_type + ' (Room #' + successResult?.room_number + ')'"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Dates:</span>
+                                <span class="font-bold text-white" x-text="successResult?.checkin_date + ' to ' + successResult?.checkout_date"></span>
+                            </div>
+                            <div class="flex justify-between border-t border-slate-800 pt-2">
+                                <span class="text-slate-400">Total Payable:</span>
+                                <span class="font-black text-emerald-400 text-sm" x-text="'₹' + successResult?.total_price"></span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-2">
+                            <button onclick="window.print()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fas fa-print"></i> Print Voucher Slip
+                            </button>
+                            <button @click="showBookingModal = false; bookingSubmitted = false" class="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
     </div>

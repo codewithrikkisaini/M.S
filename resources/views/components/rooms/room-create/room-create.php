@@ -208,10 +208,13 @@ new class extends Component
                     'room_type_id' => $roomType->id,
                     'price'        => $this->daily_rate,
                     'floor'        => $floorToUse,
-                    'description'  => $this->description,
                     'status'       => $this->status,
                     'hotel_id'     => $hotel_id,
                 ];
+
+                if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'description')) {
+                    $roomData['description'] = $this->description;
+                }
 
                 if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'image_path')) {
                     $roomData['image_path'] = $finalImagePath;

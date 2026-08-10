@@ -14,22 +14,35 @@
                     <span class="font-mono text-xs text-indigo-600 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full font-bold">
                         {{ $hotel->hotel_code ?: ('LDG-' . str_pad($hotel->id, 6, '0', STR_PAD_LEFT)) }}
                     </span>
+                    @if($hotel->account_status === 'pending_approval' || $hotel->status === 'pending')
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                            ⏳ Pending Approval
+                        </span>
+                    @elseif($hotel->account_status === 'active' || $hotel->status === 'approved')
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            ✅ Active
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200">
+                            🚫 {{ ucfirst($hotel->account_status) }}
+                        </span>
+                    @endif
                 </div>
                 <h1 class="text-2xl font-bold text-slate-800 mt-1">{{ $hotel->name }}</h1>
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex items-center space-x-2">
+            <div class="flex flex-wrap items-center gap-2">
                 @if($hotel->account_status === 'pending_approval' || $hotel->status === 'pending')
                     <form action="{{ route('superadmin.hotels.approve-7day', $hotel->id) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" onclick="return confirm('Approve 7-Day Trial?')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm transition">
+                        <button type="submit" onclick="return confirm('Approve 7-Day Free Trial for {{ addslashes($hotel->name) }}?')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm transition">
                             Approve 7-Day Trial
                         </button>
                     </form>
                     <form action="{{ route('superadmin.hotels.approve-15day', $hotel->id) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" onclick="return confirm('Approve 15-Day Trial?')" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold shadow-sm transition">
+                        <button type="submit" onclick="return confirm('Approve 15-Day Free Trial for {{ addslashes($hotel->name) }}?')" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold shadow-sm transition">
                             Approve 15-Day Trial
                         </button>
                     </form>
@@ -45,7 +58,7 @@
                 @else
                     <form action="{{ route('superadmin.hotels.suspend', $hotel->id) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" onclick="return confirm('Suspend hotel?')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-sm transition">
+                        <button type="submit" onclick="return confirm('Suspend hotel {{ addslashes($hotel->name) }}?')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-sm transition">
                             Suspend Hotel
                         </button>
                     </form>
@@ -54,8 +67,8 @@
                 <form action="{{ route('superadmin.hotels.destroy', $hotel->id) }}" method="POST" class="inline">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" onclick="return confirm('⚠️ PERMANENT DELETE: Are you sure you want to delete {{ addslashes($hotel->name) }}? This action cannot be undone!')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-trash-can"></i> Delete Hotel
+                    <button type="submit" onclick="return confirm('⚠️ PERMANENT DELETE: Are you sure you want to delete {{ addslashes($hotel->name) }}? This action cannot be undone!')" class="px-4 py-2 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i> Delete
                     </button>
                 </form>
             </div>
@@ -73,38 +86,106 @@
             <!-- Column 1 & 2: Details & Invoices -->
             <div class="lg:col-span-2 space-y-6">
                 
-                <!-- Hotel & Owner Profile Card -->
+                <!-- Business & Legal Record -->
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <h3 class="font-bold text-slate-800 border-b pb-3 text-base">Hotel & Owner Information</h3>
+                    <h3 class="font-bold text-slate-800 border-b pb-3 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-building text-indigo-600"></i> Business & Tax Information
+                    </h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div>
-                            <span class="text-slate-400 block text-xs">Hotel Name</span>
-                            <span class="font-medium text-slate-800">{{ $hotel->name }}</span>
+                            <span class="text-slate-400 block text-xs">Hotel Display Name</span>
+                            <span class="font-bold text-slate-900">{{ $hotel->name }}</span>
                         </div>
                         <div>
-                            <span class="text-slate-400 block text-xs">Hotel ID</span>
+                            <span class="text-slate-400 block text-xs">Hotel System Code</span>
                             <span class="font-mono font-bold text-indigo-600">{{ $hotel->hotel_code }}</span>
                         </div>
                         <div>
-                            <span class="text-slate-400 block text-xs">Owner / Contact</span>
-                            <span class="font-medium text-slate-800">{{ $hotel->owner_name ?: 'N/A' }}</span>
+                            <span class="text-slate-400 block text-xs">Legal Business Name</span>
+                            <span class="font-medium text-slate-800">{{ $hotel->business_name ?: 'N/A' }}</span>
                         </div>
                         <div>
-                            <span class="text-slate-400 block text-xs">Email</span>
+                            <span class="text-slate-400 block text-xs">Tax ID / GSTIN</span>
+                            <span class="font-medium text-slate-800">{{ $hotel->tax_id ?: 'N/A' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-xs">Company Reg Number</span>
+                            <span class="font-medium text-slate-800">{{ $hotel->company_reg_number ?: 'N/A' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-xs">Owner / Authorized Representative</span>
+                            <span class="font-medium text-slate-800">{{ $hotel->owner_name ?: 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact & Location Record -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 border-b pb-3 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-location-dot text-indigo-600"></i> Contact & Address Details
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-slate-400 block text-xs">Work Email</span>
                             <span class="font-medium text-slate-800">{{ $hotel->email }}</span>
                         </div>
                         <div>
-                            <span class="text-slate-400 block text-xs">Phone</span>
-                            <span class="font-medium text-slate-800">{{ $hotel->phone }}</span>
+                            <span class="text-slate-400 block text-xs">Phone Number</span>
+                            <span class="font-medium text-slate-800">{{ $hotel->phone ?: 'N/A' }}</span>
                         </div>
                         <div>
-                            <span class="text-slate-400 block text-xs">Property Type & Rooms</span>
-                            <span class="font-medium text-slate-800">{{ $hotel->property_type ?: 'Hotel' }} ({{ $hotel->rooms_count ?: 0 }} Rooms)</span>
+                            <span class="text-slate-400 block text-xs">WhatsApp Number</span>
+                            <span class="font-medium text-slate-800">{{ $hotel->whatsapp ?: 'N/A' }}</span>
                         </div>
                         <div>
-                            <span class="text-slate-400 block text-xs">City & Country</span>
-                            <span class="font-medium text-slate-800">{{ $hotel->city }}, {{ $hotel->country }}</span>
+                            <span class="text-slate-400 block text-xs">Property Website</span>
+                            <span class="font-medium text-slate-800">
+                                @if($hotel->website)
+                                    <a href="{{ $hotel->website }}" target="_blank" class="text-indigo-600 hover:underline">{{ $hotel->website }}</a>
+                                @else
+                                    N/A
+                                @endif
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-xs">City & State</span>
+                            <span class="font-medium text-slate-800">{{ implode(', ', array_filter([$hotel->city, $hotel->state])) ?: 'N/A' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-xs">Country & Postal Code</span>
+                            <span class="font-medium text-slate-800">{{ implode(', ', array_filter([$hotel->country, $hotel->postal_code])) ?: 'N/A' }}</span>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <span class="text-slate-400 block text-xs">Street Address</span>
+                            <span class="font-medium text-slate-800">{{ $hotel->address ?: 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Specifications -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 border-b pb-3 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-hotel text-indigo-600"></i> Property Specifications & PMS
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                        <div>
+                            <span class="text-slate-400 block text-xs">Property Type</span>
+                            <span class="font-medium text-slate-800">{{ $hotel->property_type ?: 'Hotel' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-xs">Category / Star Rating</span>
+                            <span class="font-medium text-slate-800">{{ $hotel->category ?: 'Standard' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-xs">Total Rooms / Units</span>
+                            <span class="font-bold text-indigo-600">{{ $hotel->rooms_count ?: 10 }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-xs">Current PMS System</span>
+                            <span class="font-medium text-slate-800">{{ $hotel->current_pms ?: 'None' }}</span>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-xs">Registration Date</span>
@@ -115,7 +196,9 @@
 
                 <!-- Subscription Invoices History -->
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <h3 class="font-bold text-slate-800 border-b pb-3 text-base">Subscription Invoices & Payment History</h3>
+                    <h3 class="font-bold text-slate-800 border-b pb-3 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-indigo-600"></i> Subscription Invoices & Payment History
+                    </h3>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
@@ -169,9 +252,11 @@
             <!-- Column 3: Audit Trail -->
             <div class="space-y-6">
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <h3 class="font-bold text-slate-800 border-b pb-3 text-base">Audit Trail Log</h3>
+                    <h3 class="font-bold text-slate-800 border-b pb-3 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Audit Trail Log
+                    </h3>
 
-                    <div class="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+                    <div class="space-y-4 max-h-[550px] overflow-y-auto pr-1">
                         @forelse($auditLogs as $log)
                             <div class="border-l-2 border-indigo-500 pl-3 py-1 space-y-1">
                                 <div class="flex justify-between items-center text-xs">
