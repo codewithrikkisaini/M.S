@@ -38,7 +38,7 @@ class Room extends Model
         $storPath = storage_path('app/public/' . $clean);
 
         if (file_exists($pubPath) || file_exists($storPath)) {
-            return asset('storage/' . $clean);
+            return '/storage/' . $clean;
         }
 
         return '';
