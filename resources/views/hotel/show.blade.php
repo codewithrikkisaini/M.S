@@ -313,9 +313,20 @@
                                                     </span>
                                                 @endif
                                             </div>
-                                            <p class="text-xs text-slate-500 mt-1">Bed Type: {{ ucfirst($room->bed_type ?? 'King / Queen Bed') }} | Max Capacity: {{ $room->capacity ?? 2 }} Guests</p>
+                                            <p class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-2">
+                                                <span>Bed Type: {{ ucfirst($room->bed_type ?? 'King / Queen Bed') }}</span>
+                                                <span>|</span>
+                                                <span>Max Capacity: {{ $room->capacity ?? 2 }} Guests</span>
+                                            </p>
                                             
-                                            <div class="mt-4 flex flex-wrap gap-2">
+                                            <div class="mt-3 flex flex-wrap gap-1.5">
+                                                @if($room->room_option)
+                                                    @foreach(explode(',', $room->room_option) as $opt)
+                                                        <span class="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100/80 px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-2xs">
+                                                            <i class="fas fa-check-circle text-indigo-500 text-[9px]"></i> {{ trim($opt) }}
+                                                        </span>
+                                                    @endforeach
+                                                @endif
                                                 <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-wifi mr-1 text-blue-500"></i> Free Wi-Fi</span>
                                                 <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-snowflake mr-1 text-blue-500"></i> AC</span>
                                                 <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-tv mr-1 text-blue-500"></i> Flat TV</span>
@@ -340,18 +351,21 @@
                                                     images: {!! json_encode($room->images) !!},
                                                     description: {!! json_encode($room->description ?: "Experience ultimate comfort in Room " . $room->room_number . ". Designed with modern luxury aesthetics, premium mattresses, soundproof acoustic windows, complimentary high-speed Wi-Fi, 24/7 room service, and private en-suite bathroom.") !!},
                                                     bed_type: {!! json_encode(ucfirst($room->bed_type ?? "King / Queen Bed")) !!},
+                                                    room_option: {!! json_encode($room->room_option ?? "") !!},
                                                     capacity: {!! json_encode(($room->capacity ?? 2) . ' Guests') !!}
                                                 }; modalImgIdx = 0; showModal = true" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
                                                     <i class="fas fa-eye text-slate-500"></i> View Details
                                                 </button>
 
-                                                <button @click="selectedRoomForBooking = { id: '{{ $room->id }}', name: {!! json_encode($roomTypeName) !!}, number: {!! json_encode($room->room_number) !!}, price: '₹{{ number_format($roomPrice) }}', rawPrice: {{ $roomPrice }}, image: {!! json_encode($room->image_url) !!} }; showBookingModal = true" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
-                                                    <i class="fas fa-bolt text-xs"></i> Book Now
-                                                </button>
-
-                                                <a href="{{ route('hotel.reserve', ['slug' => $hotel->slug ?: $hotel->id, 'room' => $room->id]) }}" class="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer" title="Open Full Page Booking Form">
-                                                    <i class="fas fa-external-link-alt text-[10px]"></i>
-                                                </a>
+                                                @if($isAvail)
+                                                    <a href="{{ route('hotel.reserve', ['slug' => $hotel->slug ?: $hotel->id, 'room' => $room->id]) }}" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer">
+                                                        <i class="fas fa-calendar-check text-xs"></i> Book Now
+                                                    </a>
+                                                @else
+                                                    <button type="button" onclick="alert('Bro, ye room already booked hai! Please choose another room.')" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-600 text-xs font-bold rounded-xl border border-slate-300 transition-all flex items-center gap-2 cursor-pointer shadow-2xs" title="Room is Occupied / Not Available">
+                                                        <i class="fas fa-ban text-xs text-rose-500"></i> Already Booked
+                                                    </button>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -504,9 +518,26 @@
                     </div>
                 </div>
 
-                <div class="border-t border-b border-slate-100 py-4">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Description</h4>
-                    <p class="text-xs text-slate-600 leading-relaxed" x-text="selectedRoom?.description"></p>
+                <div class="border-t border-b border-slate-100 py-4 space-y-3">
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Description</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed" x-text="selectedRoom?.description"></p>
+                    </div>
+
+                    <template x-if="selectedRoom?.room_option">
+                        <div>
+                            <h4 class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                <i class="fas fa-star text-amber-500"></i> Selected Room Option(s) / Features
+                            </h4>
+                            <div class="flex flex-wrap gap-1.5">
+                                <template x-for="opt in selectedRoom.room_option.split(',')" :key="opt">
+                                    <span class="text-xs font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-2xs">
+                                        <i class="fas fa-check-circle text-indigo-500 text-xs"></i> <span x-text="opt.trim()"></span>
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 <div>

@@ -10,7 +10,7 @@ class Room extends Model
 {
     use HasFactory, BelongsToTenant;
 
-    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'description', 'hotel_id', 'image_path'];
+    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'bed_type', 'room_option', 'description', 'hotel_id', 'image_path'];
 
     public function getImagesAttribute(): array
     {
@@ -40,7 +40,7 @@ class Room extends Model
             'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1000&q=80'
         ];
 
-        $offset = abs(crc32($this->room_number ?? (string)$this->id));
+        $offset = abs(crc32($this->room_number ?? (string) $this->id));
         return [
             $fallbacks[$offset % count($fallbacks)],
             $fallbacks[($offset + 1) % count($fallbacks)],

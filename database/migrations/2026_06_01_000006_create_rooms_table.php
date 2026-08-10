@@ -19,6 +19,9 @@ return new class extends Migration {
 
                 $table->decimal('price', 10, 2);
 
+                $table->string('floor')->default('1');
+                $table->text('description')->nullable();
+                $table->text('image_path')->nullable();
                 $table->enum('status', [
                     'Available',
                     'Occupied',
