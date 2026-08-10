@@ -52,20 +52,18 @@
                         <input type="number" wire:model="price" class="pms-input text-xs" placeholder="0.00" min="0" step="0.01">
                         @error('price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                    {{-- Bed Type & Room Option (Skipped per user request) --}}
+                    {{--
                     <div>
-                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Bed Type</label>
                         <select wire:model.live="bed_type" class="pms-select text-xs font-semibold">
                             <option value="King Bed">King Bed</option>
                             <option value="Double Bed">Double Bed</option>
                         </select>
-                        @error('bed_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="sm:col-span-2">
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider mb-0">Room Option / Feature <span class="text-red-500">*</span></label>
-                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100/80">
-                                <i class="fas fa-check-double text-[9px] mr-1"></i> Multiple Select ({{ count($room_option) }} selected)
-                            </span>
+                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider mb-0">Room Option / Feature</label>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
@@ -76,9 +74,8 @@
                                 </label>
                             @endforeach
                         </div>
-                        @error('room_option') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                        @error('room_option.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                    --}}
                     <div class="sm:col-span-2">
                         <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Status <span class="text-red-500">*</span></label>
                         <select wire:model="status" class="pms-select text-xs">

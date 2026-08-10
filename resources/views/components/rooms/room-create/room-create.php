@@ -160,9 +160,8 @@ new class extends Component
         $this->validate([
             'room_number'    => 'required|string',
             'floor'          => 'required|string|max:50',
-            'bed_type'       => 'required|in:King Bed,Double Bed',
-            'room_option'    => 'required|array|min:1',
-            'room_option.*'  => ['string', Rule::in($allowedOptions)],
+            'bed_type'       => 'nullable|string',
+            'room_option'    => 'nullable|array',
             'room_type_name' => 'required|string|max:100',
             'daily_rate'     => 'required|numeric|min:0',
             'weekly_rate'    => 'required|numeric|min:0',
@@ -172,10 +171,6 @@ new class extends Component
             'description'    => 'nullable|string',
             'image_path'     => 'nullable|string',
             'photos.*'       => 'nullable|image|max:4096',
-        ], [
-            'room_option.required' => 'Please select at least one Room Option / Feature.',
-            'room_option.min'      => 'Please select at least one Room Option / Feature.',
-            'room_option.*.in'     => "Selected Room Option is invalid for {$this->bed_type}."
         ]);
 
         $formattedRoomOption = is_array($this->room_option) ? implode(', ', $this->room_option) : $this->room_option;

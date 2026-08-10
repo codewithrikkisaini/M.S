@@ -51,23 +51,20 @@
                 </div>
             </div>
 
-            {{-- Row 1.5: Bed Type & Room Option --}}
+            {{-- Row 1.5: Bed Type & Room Option (Skipped per user request) --}}
+            {{--
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
                 <div>
-                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
+                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type</label>
                     <select wire:model.live="bed_type" class="pms-input text-sm font-bold text-slate-800">
                         <option value="King Bed">King Bed</option>
                         <option value="Double Bed">Double Bed</option>
                     </select>
-                    @error('bed_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
-                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-0">Room Option / Feature <span class="text-red-500">*</span></label>
-                        <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100/80">
-                            <i class="fas fa-check-double text-[9px] mr-1"></i> Multiple Select ({{ count($room_option) }} selected)
-                        </span>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-0">Room Option / Feature</label>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
@@ -78,10 +75,9 @@
                             </label>
                         @endforeach
                     </div>
-                    @error('room_option') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    @error('room_option.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
+            --}}
 
             {{-- Room Description Section --}}
             <div class="pt-4 border-t border-slate-100 space-y-2">
