@@ -68,16 +68,22 @@
                         </td>
                         <td>
                             <span class="font-bold text-slate-800 text-sm block">{{ $room->roomType->name ?? '—' }}</span>
+                            @if(!empty($room->bed_type) || !empty($room->room_option))
                             <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                                <span class="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">{{ $room->bed_type ?: 'King Bed' }}</span>
-                                @if($room->room_option)
+                                @if(!empty($room->bed_type))
+                                    <span class="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">{{ $room->bed_type }}</span>
+                                @endif
+                                @if(!empty($room->room_option))
                                     @foreach(explode(',', $room->room_option) as $opt)
-                                        <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/80">
-                                            <i class="fas fa-check-circle text-[9px] mr-1 text-indigo-500"></i>{{ trim($opt) }}
-                                        </span>
+                                        @if(trim($opt))
+                                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/80">
+                                                <i class="fas fa-check-circle text-[9px] mr-1 text-indigo-500"></i>{{ trim($opt) }}
+                                            </span>
+                                        @endif
                                     @endforeach
                                 @endif
                             </div>
+                            @endif
                         </td>
                         <td>
                             <span class="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-150 px-2 py-1 rounded-md">{{ $room->floor ?? '—' }}</span>
