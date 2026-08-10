@@ -9,7 +9,7 @@ class Invoice extends Model
 {
     use BelongsToTenant;
 
-    protected $fillable = ['invoice_number', 'checkout_id', 'hotel_id'];
+    protected $fillable = ['invoice_number', 'checkout_id', 'hotel_id', 'total', 'total_amount', 'status'];
 
     public function checkout()
     {
