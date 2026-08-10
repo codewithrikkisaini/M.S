@@ -132,7 +132,7 @@
                                     $u = trim($u);
                                     if ($u !== '') {
                                         $existingImages[] = [
-                                            'src' => filter_var($u, FILTER_VALIDATE_URL) ? $u : asset('storage/' . $u),
+                                            'src' => \App\Models\Room::formatUrl($u),
                                             'path' => $u
                                         ];
                                     }

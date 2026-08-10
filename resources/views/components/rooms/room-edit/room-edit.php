@@ -161,7 +161,7 @@ new class extends Component
             }
         }
 
-        $finalImagePath = count($paths) > 0 ? (count($paths) === 1 ? $paths[0] : json_encode(array_values($paths))) : null;
+        $finalImagePath = count($paths) > 0 ? json_encode(array_values($paths)) : null;
 
         try {
             $updateData = [
@@ -176,10 +176,6 @@ new class extends Component
 
             if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'floor')) {
                 $updateData['floor'] = $this->floor;
-            }
-
-            if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'description')) {
-                $updateData['description'] = $this->room->description ?? null;
             }
 
             if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'image_path')) {

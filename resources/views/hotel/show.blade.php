@@ -292,7 +292,7 @@
                                 @endphp
                                 <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row gap-6 hover:shadow-md transition-all">
                                     <div class="w-full sm:w-1/3 aspect-video sm:aspect-auto rounded-xl bg-slate-100 overflow-hidden shrink-0 relative">
-                                        <img src="{{ $room->image_url }}" class="w-full h-full object-cover">
+                                        <img src="{{ $room->image_url }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';" class="w-full h-full object-cover">
                                         @if(count($room->images) > 1)
                                             <span class="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-sm border border-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
                                                 <i class="fas fa-images text-blue-400"></i> {{ count($room->images) }} Photos
