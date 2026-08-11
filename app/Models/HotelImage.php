@@ -28,6 +28,7 @@ class HotelImage extends Model
             return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
         }
 
-        return Room::formatUrl($this->image_path);
+        $url = Room::formatUrl($this->image_path);
+        return !empty($url) ? $url : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
     }
 }

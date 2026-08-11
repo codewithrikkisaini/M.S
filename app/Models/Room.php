@@ -34,14 +34,7 @@ class Room extends Model
             return '';
         }
 
-        $pubPath = public_path('storage/' . $clean);
-        $storPath = storage_path('app/public/' . $clean);
-
-        if (file_exists($pubPath) || file_exists($storPath)) {
-            return '/storage/' . $clean;
-        }
-
-        return '';
+        return '/storage/' . $clean;
     }
 
     public function getImagesAttribute(): array

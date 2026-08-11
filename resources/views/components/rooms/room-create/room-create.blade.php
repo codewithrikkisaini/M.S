@@ -51,20 +51,26 @@
                 </div>
             </div>
 
-            {{-- Row 1.5: Bed Type & Room Option (Skipped per user request) --}}
-            {{--
+            {{-- Row 1.5: Bed Type & Room Option --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
                 <div>
-                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type</label>
+                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
                     <select wire:model.live="bed_type" class="pms-input text-sm font-bold text-slate-800">
                         <option value="King Bed">King Bed</option>
-                        <option value="Double Bed">Double Bed</option>
+                        <option value="2 Twin/ Queen Beds">2 Twin/ Queen Beds</option>
+                        <option value="Junior Suite with Sofa and jacuzzi">Junior Suite with Sofa and jacuzzi</option>
+                        <option value="King Bed with Rolling Bed">King Bed with Rolling Bed</option>
                     </select>
                 </div>
 
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
                         <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-0">Room Option / Feature</label>
+                        @if(!empty($room_option) && count($room_option) > 0)
+                        <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
+                            <i class="fas fa-check-circle text-indigo-500"></i> Multiple Select ({{ count($room_option) }} selected)
+                        </span>
+                        @endif
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
@@ -77,7 +83,6 @@
                     </div>
                 </div>
             </div>
-            --}}
 
             {{-- Room Description Section --}}
             <div class="pt-4 border-t border-slate-100 space-y-2">
@@ -289,7 +294,7 @@
                     <tr wire:key="room-row-{{ $r->id }}" class="hover:bg-slate-50/40 transition-colors">
                         <td>
                             <div class="flex items-center gap-1.5">
-                                <img src="{{ $r->image_url }}" alt="Room {{ $r->room_number }}" class="w-12 h-9 object-cover rounded-lg border border-slate-200 shadow-sm shrink-0">
+                                <img src="{{ $r->image_url }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80';" alt="Room {{ $r->room_number }}" class="w-12 h-9 object-cover rounded-lg border border-slate-200 shadow-sm shrink-0">
                                 @php $imgs = $r->images; @endphp
                                 @if(count($imgs) > 1)
                                 <span class="px-1.5 py-0.5 text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-md shrink-0" title="{{ count($imgs) }} total photos">
