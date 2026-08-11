@@ -16,10 +16,10 @@
             <p style="margin-top: 0; font-size: 16px; color: #1e293b;">Dear <strong>{{ $reservation->guest->name ?? 'Guest' }}</strong>,</p>
             
             <p style="font-size: 15px; color: #047857; font-weight: 600; line-height: 1.6;">
-                Congratulations! Aapki room booking successfully confirm ho gayi hai.
+                Congratulations! Your room booking successfully Confirmed.
             </p>
             <p style="font-size: 14px; color: #334155; line-height: 1.6;">
-                <strong>{{ $reservation->hotel->name ?? 'Hotel' }}</strong> aapka welcome karta hai. We look forward to welcoming you!
+                <strong>{{ $reservation->hotel->name ?? 'Hotel' }}</strong> . We look forward to welcoming you!
             </p>
 
             <div style="background-color: #f8fafc; padding: 18px; border-radius: 10px; margin: 20px 0; border: 1px solid #e2e8f0;">

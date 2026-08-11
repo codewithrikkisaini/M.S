@@ -13,7 +13,7 @@ class DailyCashSheetController extends Controller
     {
         $date = $request->query('date', now()->toDateString());
         $sheets = [$service->build($date)];
-        $hotelName = Setting::get('hotel_name', 'Merahkie PMS Lite');
+        $hotelName = Setting::get('hotel_name', 'Lodgiko PMS Lite');
 
         $pdf = Pdf::loadView('reports.daily-cash-sheet-pdf', compact('sheets', 'hotelName'));
 
@@ -28,7 +28,7 @@ class DailyCashSheetController extends Controller
         ]);
 
         $sheets = $service->buildRange($request->query('from'), $request->query('to'));
-        $hotelName = Setting::get('hotel_name', 'Merahkie PMS Lite');
+        $hotelName = Setting::get('hotel_name', 'Lodgiko PMS Lite');
 
         $pdf = Pdf::loadView('reports.daily-cash-sheet-pdf', compact('sheets', 'hotelName'));
 

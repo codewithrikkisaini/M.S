@@ -107,14 +107,14 @@
     <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm" x-data="{ mobileMenu: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <!-- Brand Logo -->
-            <a href="/" class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-paper-plane text-white text-lg"></i>
-                </div>
-                <div class="flex flex-col">
+              <a href="/" class="flex items-center gap-2">
+                 <img src="{{ asset('images/lodgiko.png') }}"
+                    alt="Merahkie Logo"
+                    class="h-12 w-auto">
+                <!-- <div class="flex flex-col">
                     <span class="text-xl font-black tracking-tight text-slate-900 leading-none">MERAHKIE</span>
                     <span class="text-[10px] font-bold tracking-widest text-blue-600 uppercase mt-1">Bookings</span>
-                </div>
+                </div> -->
             </a>
 
             <!-- Navigation Links (Home, Hotels, About, FAQ) -->
