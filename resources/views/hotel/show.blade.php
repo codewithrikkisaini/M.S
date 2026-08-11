@@ -314,9 +314,9 @@
                                                 @endif
                                             </div>
                                             <p class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-2">
-                                                <span>Bed Type: {{ ucfirst($room->bed_type ?? 'King / Queen Bed') }}</span>
+                                                <span><i class="fas fa-bed text-blue-500 mr-1"></i> Bed Type: <strong class="text-slate-800 font-bold">{{ $room->bed_type ?: 'King Bed' }}</strong></span>
                                                 <span>|</span>
-                                                <span>Max Capacity: {{ $room->capacity ?? 2 }} Guests</span>
+                                                <span><i class="fas fa-users text-blue-500 mr-1"></i> Max Capacity: <strong class="text-slate-800 font-bold">{{ $room->capacity ?? 2 }} Guests</strong></span>
                                             </p>
                                             
                                             <div class="mt-3 flex flex-wrap gap-1.5">

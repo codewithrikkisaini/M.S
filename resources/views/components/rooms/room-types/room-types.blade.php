@@ -152,7 +152,7 @@
                     <tr wire:key="room-row-{{ $r->id }}" class="hover:bg-slate-50/40 transition-colors">
                         <td>
                             <div class="flex items-center gap-1.5">
-                                <img src="{{ $r->image_url }}" alt="Room {{ $r->room_number }}" class="w-12 h-9 object-cover rounded-lg border border-slate-200 shadow-sm shrink-0">
+                                <img src="{{ $r->image_url }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80';" alt="Room {{ $r->room_number }}" class="w-12 h-9 object-cover rounded-lg border border-slate-200 shadow-sm shrink-0">
                                 @php $imgs = $r->images; @endphp
                                 @if(count($imgs) > 1)
                                 <span class="px-1.5 py-0.5 text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-md shrink-0" title="{{ count($imgs) }} total photos">

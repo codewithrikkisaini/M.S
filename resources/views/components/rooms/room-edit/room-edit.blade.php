@@ -52,18 +52,24 @@
                         <input type="number" wire:model="price" class="pms-input text-xs" placeholder="0.00" min="0" step="0.01">
                         @error('price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-                    {{-- Bed Type & Room Option (Skipped per user request) --}}
-                    {{--
+                    {{-- Bed Type & Room Option --}}
                     <div>
-                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Bed Type</label>
-                        <select wire:model.live="bed_type" class="pms-select text-xs font-semibold">
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
+                        <select wire:model.live="bed_type" class="pms-select text-xs font-bold text-slate-800">
                             <option value="King Bed">King Bed</option>
-                            <option value="Double Bed">Double Bed</option>
+                            <option value="2 Twin/ Queen Beds">2 Twin/ Queen Beds</option>
+                            <option value="Junior Suite with Sofa and jacuzzi">Junior Suite with Sofa and jacuzzi</option>
+                            <option value="King Bed with Rolling Bed">King Bed with Rolling Bed</option>
                         </select>
                     </div>
                     <div class="sm:col-span-2">
                         <div class="flex items-center justify-between mb-1.5">
                             <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider mb-0">Room Option / Feature</label>
+                            @if(!empty($room_option) && count($room_option) > 0)
+                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
+                                <i class="fas fa-check-circle text-indigo-500"></i> Multiple Select ({{ count($room_option) }} selected)
+                            </span>
+                            @endif
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
@@ -75,7 +81,6 @@
                             @endforeach
                         </div>
                     </div>
-                    --}}
                     <div class="sm:col-span-2">
                         <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Status <span class="text-red-500">*</span></label>
                         <select wire:model="status" class="pms-select text-xs">

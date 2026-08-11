@@ -30,22 +30,14 @@ new class extends Component
 
     public function getAvailableOptionsProperty(): array
     {
-        if ($this->bed_type === 'King Bed') {
-            return [
-                'Smoking',
-                'Non-Smoking',
-                'Handicap Non-Smoking',
-                'Suites with Jacuzzi Hot Tub',
-                'Suite with Hot Tub',
-                'King Bed and Rolling Bed for Extra Guest',
-            ];
-        } elseif ($this->bed_type === 'Double Bed') {
-            return [
-                'Smoking',
-                'Non-Smoking',
-            ];
-        }
-        return [];
+        return [
+            'Smoking',
+            'Non-Smoking',
+            'Handicap Non-Smoking',
+            'Suites with Jacuzzi Hot Tub',
+            'Suite with Hot Tub',
+            'King Bed and Rolling Bed for Extra Guest',
+        ];
     }
 
     public function mount(): void
