@@ -67,7 +67,7 @@ new class extends Component
 
     public function delete(int $id): void
     {
-        if (Auth::user()->hasRole('admin')) {
+        if (Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist')) {
             $rec = Housekeeping::findOrFail($id);
             $roomId = $rec->room_id;
             $rec->delete();

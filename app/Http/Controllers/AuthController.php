@@ -73,68 +73,7 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
-    public function showReceptionistLoginForm()
-    {
-        if (Auth::check()) {
-            $user = Auth::user();
-            if ($user->role?->slug === 'superadmin') {
-                return redirect()->route('superadmin.dashboard');
-            }
-            return redirect()->route('dashboard');
-        }
 
-        $hotelName = \App\Models\Setting::where('key', 'hotel_name')->value('value') ?? 'Lodgiko PMS';
-        return view('auth.receptionist-login', compact('hotelName'));
-    }
-
-    public function receptionistLogin(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
-
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-
-            if ($user->hotel_id) {
-                $hotel = \App\Models\Hotel::find($user->hotel_id);
-                if ($hotel && $hotel->status === 'pending') {
-                    Auth::logout();
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
-                    return back()->withErrors([
-                        'email' => 'Your hotel is waiting for Super Admin approval. Please wait until your hotel is approved.',
-                    ])->onlyInput('email');
-                } elseif ($hotel && $hotel->status === 'rejected') {
-                    Auth::logout();
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
-                    return back()->withErrors([
-                        'email' => '❌ Your hotel registration ("' . $hotel->name . '") was rejected. Please contact support.',
-                    ])->onlyInput('email');
-                }
-            }
-
-            if ($user->status !== 'active') {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                return back()->withErrors([
-                    'email' => 'Your account is currently inactive or pending approval.',
-                ])->onlyInput('email');
-            }
-
-            $request->session()->regenerate();
-
-            $hotelName = $user->hotel?->name ?? 'Hotel';
-            return redirect()->intended(route('dashboard'))->with('status', 'Logged into ' . $hotelName . ' Reception Dashboard successfully!');
-        }
-
-        return back()->withErrors([
-            'email' => 'The provided receptionist credentials do not match our records.',
-        ])->onlyInput('email');
-    }
 
     public function logout(Request $request)
     {

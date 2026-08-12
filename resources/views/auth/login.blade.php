@@ -192,14 +192,7 @@
                     </p>
                 </div>
 
-                {{-- Reception Staff Dedicated Login Button --}}
-                <div class="mt-4 pt-3 border-t border-slate-100 text-center">
-                    <a href="{{ route('receptionist.login') }}"
-                       class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 font-bold py-3 px-4 rounded-xl shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 text-xs group">
-                        <i class="fas fa-user-tie text-emerald-600 group-hover:scale-110 transition-transform"></i>
-                        <span>Reception Staff Dashboard Login</span>
-                    </a>
-                </div>
+
             </form>
 
             <p class="mt-6 text-center text-xs text-slate-400">

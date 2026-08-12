@@ -14,7 +14,7 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || (!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('superadmin'))) {
+        if (!Auth::check() || (!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('superadmin') && !Auth::user()->hasRole('receptionist'))) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthorized action.'], 403);
             }

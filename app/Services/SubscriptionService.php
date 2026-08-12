@@ -30,6 +30,11 @@ class SubscriptionService
                 'approved_by' => auth()->id(),
             ]);
 
+            // Activate associated users for this hotel
+            \App\Models\User::withoutGlobalScope('tenant')
+                ->where('hotel_id', $hotel->id)
+                ->update(['status' => 'active']);
+
             $plan = \App\Models\SubscriptionPlan::firstOrCreate(
                 ['slug' => 'trial'],
                 ['name' => 'Free Trial Plan', 'price' => 0.00, 'billing_cycle' => 'trial', 'trial_days' => 15, 'status' => 'active']
@@ -56,9 +61,23 @@ class SubscriptionService
                 $notes ?: 'Approved 7-day free trial'
             );
 
-            // Dispatch email notification
+            NotificationService::notifyHotel(
+                $hotel->id,
+                'Hotel Approved & 7-Day Trial Activated',
+                "Congratulations! Your hotel '{$hotel->name}' has been approved with a 7-Day Free Trial.",
+                '/dashboard'
+            );
+
+            // Dispatch email notifications
             try {
-                Mail::to($hotel->email)->send(new TrialActivatedMail($hotel, 7, $subscription->trial_ends_at));
+                $adminUser = \App\Models\User::withoutGlobalScope('tenant')
+                    ->where('hotel_id', $hotel->id)
+                    ->first();
+
+                $recipientEmail = $adminUser?->email ?: $hotel->email;
+
+                Mail::to($recipientEmail)->send(new TrialActivatedMail($hotel, 7, $subscription->trial_ends_at));
+                Mail::to($recipientEmail)->send(new \App\Mail\HotelApproved($hotel, $adminUser));
             } catch (\Exception $e) {
                 logger()->error('Failed to send Trial 7 Days email: ' . $e->getMessage());
             }
@@ -81,6 +100,11 @@ class SubscriptionService
                 'approved_at' => Carbon::now(),
                 'approved_by' => auth()->id(),
             ]);
+
+            // Activate associated users for this hotel
+            \App\Models\User::withoutGlobalScope('tenant')
+                ->where('hotel_id', $hotel->id)
+                ->update(['status' => 'active']);
 
             $plan = \App\Models\SubscriptionPlan::firstOrCreate(
                 ['slug' => 'trial'],
@@ -108,9 +132,23 @@ class SubscriptionService
                 $notes ?: 'Approved 15-day free trial'
             );
 
-            // Dispatch email notification
+            NotificationService::notifyHotel(
+                $hotel->id,
+                'Hotel Approved & 15-Day Trial Activated',
+                "Congratulations! Your hotel '{$hotel->name}' has been approved with a 15-Day Free Trial.",
+                '/dashboard'
+            );
+
+            // Dispatch email notifications
             try {
-                Mail::to($hotel->email)->send(new TrialActivatedMail($hotel, 15, $subscription->trial_ends_at));
+                $adminUser = \App\Models\User::withoutGlobalScope('tenant')
+                    ->where('hotel_id', $hotel->id)
+                    ->first();
+
+                $recipientEmail = $adminUser?->email ?: $hotel->email;
+
+                Mail::to($recipientEmail)->send(new TrialActivatedMail($hotel, 15, $subscription->trial_ends_at));
+                Mail::to($recipientEmail)->send(new \App\Mail\HotelApproved($hotel, $adminUser));
             } catch (\Exception $e) {
                 logger()->error('Failed to send Trial 15 Days email: ' . $e->getMessage());
             }

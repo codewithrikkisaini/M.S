@@ -41,6 +41,18 @@ class HotelRegistrationController extends Controller
             'rooms_count' => ['nullable', 'integer', 'min:1'],
             'current_pms' => ['nullable', 'string', 'max:100'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ], [
+            'hotel_name.required' => 'Hotel display name is required.',
+            'owner_name.required' => 'Owner name is required.',
+            'email.required' => 'Work email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email address is already registered. Please use another email or log in.',
+            'phone.required' => 'Phone number is required.',
+            'country.required' => 'Country is required.',
+            'city.required' => 'City is required.',
+            'password.required' => 'Password is required.',
+            'password.min' => 'Password must be at least 6 characters.',
+            'password.confirmed' => 'Password confirmation does not match.',
         ]);
 
         return DB::transaction(function () use ($validated, $request) {

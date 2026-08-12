@@ -17,8 +17,8 @@ Route::get('/hotel/{slug}/reserve/{room?}', [PublicHotelController::class, 'rese
 Route::post('/hotel/book-instant', [PublicHotelController::class, 'bookInstant'])->name('hotel.book-instant');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::get('/receptionist/login', [AuthController::class, 'showReceptionistLoginForm'])->name('receptionist.login');
-Route::post('/receptionist/login', [AuthController::class, 'receptionistLogin'])->name('receptionist.login.post');
+Route::get('/receptionist/login', function () { return redirect()->route('login'); })->name('receptionist.login');
+Route::post('/receptionist/login', function () { return redirect()->route('login'); });
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/git-check', function () {
@@ -113,8 +113,20 @@ Route::get('/setup-project', function () {
         $output[] = "Default Hotel 'Grand Plaza Hotel' seeded/verified.";
 
         // 5. Seed Users
-        // Super Admin
-        $superadmin = \App\Models\User::updateOrCreate(
+        // Super Admin 1
+        \App\Models\User::updateOrCreate(
+            ['email' => 'superadmin@merahkie.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => \Illuminate\Support\Facades\Hash::make('123456'),
+                'role_id' => $superadminRole->id,
+                'status' => 'active',
+                'hotel_id' => null
+            ]
+        );
+
+        // Super Admin 2
+        \App\Models\User::updateOrCreate(
             ['email' => 'rikkisaini4455@gmail.com'],
             [
                 'name' => 'Super Admin (Rikki)',
@@ -124,7 +136,7 @@ Route::get('/setup-project', function () {
                 'hotel_id' => null
             ]
         );
-        $output[] = "Super Admin user (rikkisaini4455@gmail.com) seeded/verified.";
+        $output[] = "Super Admin users seeded/verified.";
 
         // Hotel Admin
         $adminUser = \App\Models\User::updateOrCreate(
