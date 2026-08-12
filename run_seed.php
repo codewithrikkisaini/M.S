@@ -18,7 +18,7 @@ try {
     $output .= "- Roles seeded.\n";
 
     // 2. Seed Hotels
-    $hotel = \App\Models\Hotel::updateOrCreate(
+    $hotel1 = \App\Models\Hotel::updateOrCreate(
         ['email' => 'grandplaza@merahkie.com'],
         [
             'name' => 'Grand Plaza Hotel',
@@ -27,7 +27,29 @@ try {
             'status' => 'approved'
         ]
     );
-    $output .= "- Hotel seeded: ID " . $hotel->id . "\n";
+    $output .= "- Hotel 1 seeded: ID " . $hotel1->id . " (" . $hotel1->name . ")\n";
+
+    $hotel2 = \App\Models\Hotel::updateOrCreate(
+        ['email' => 'contact@sunsetbeach.com'],
+        [
+            'name' => 'Sunset Beach Resort',
+            'phone' => '+1987654321',
+            'address' => '456 Ocean Boulevard',
+            'status' => 'approved'
+        ]
+    );
+    $output .= "- Hotel 2 seeded: ID " . $hotel2->id . " (" . $hotel2->name . ")\n";
+
+    $hotel3 = \App\Models\Hotel::updateOrCreate(
+        ['email' => 'contact@royalcrown.com'],
+        [
+            'name' => 'Royal Crown Hotel',
+            'phone' => '+1555444333',
+            'address' => '789 Crown Street',
+            'status' => 'approved'
+        ]
+    );
+    $output .= "- Hotel 3 seeded: ID " . $hotel3->id . " (" . $hotel3->name . ")\n";
 
     // 3. Seed Users
     $superadmin = \App\Models\User::updateOrCreate(
@@ -49,22 +71,49 @@ try {
             'password' => \Illuminate\Support\Facades\Hash::make('123456'),
             'role_id' => $adminRole->id,
             'status' => 'active',
-            'hotel_id' => $hotel->id
+            'hotel_id' => $hotel1->id
         ]
     );
     $output .= "- Hotel Admin seeded: " . $adminUser->email . "\n";
 
-    $receptionistUser = \App\Models\User::updateOrCreate(
+    // Receptionist for Hotel 1 (Grand Plaza Hotel)
+    $receptionistUser1 = \App\Models\User::updateOrCreate(
         ['email' => 'receptionist@merahkie.com'],
         [
             'name' => 'Grand Plaza Reception',
             'password' => \Illuminate\Support\Facades\Hash::make('123456'),
             'role_id' => $receptionistRole->id,
             'status' => 'active',
-            'hotel_id' => $hotel->id
+            'hotel_id' => $hotel1->id
         ]
     );
-    $output .= "- Receptionist seeded: " . $receptionistUser->email . "\n";
+    $output .= "- Receptionist 1 (Grand Plaza) seeded: " . $receptionistUser1->email . "\n";
+
+    // Receptionist for Hotel 2 (Sunset Beach Resort)
+    $receptionistUser2 = \App\Models\User::updateOrCreate(
+        ['email' => 'receptionist2@sunsetbeach.com'],
+        [
+            'name' => 'Sunset Beach Reception',
+            'password' => \Illuminate\Support\Facades\Hash::make('123456'),
+            'role_id' => $receptionistRole->id,
+            'status' => 'active',
+            'hotel_id' => $hotel2->id
+        ]
+    );
+    $output .= "- Receptionist 2 (Sunset Beach) seeded: " . $receptionistUser2->email . "\n";
+
+    // Receptionist for Hotel 3 (Royal Crown Hotel)
+    $receptionistUser3 = \App\Models\User::updateOrCreate(
+        ['email' => 'receptionist3@royalcrown.com'],
+        [
+            'name' => 'Royal Crown Reception',
+            'password' => \Illuminate\Support\Facades\Hash::make('123456'),
+            'role_id' => $receptionistRole->id,
+            'status' => 'active',
+            'hotel_id' => $hotel3->id
+        ]
+    );
+    $output .= "- Receptionist 3 (Royal Crown) seeded: " . $receptionistUser3->email . "\n";
 
     // 4. Seed Settings
     $defaults = [
@@ -86,11 +135,19 @@ try {
 
     foreach ($defaults as $row) {
         \App\Models\Setting::updateOrCreate(
-            ['key' => $row['key'], 'hotel_id' => $hotel->id],
+            ['key' => $row['key'], 'hotel_id' => $hotel1->id],
             ['value' => $row['value']]
         );
+        \App\Models\Setting::updateOrCreate(
+            ['key' => $row['key'], 'hotel_id' => $hotel2->id],
+            ['value' => $row['key'] === 'hotel_name' ? 'Sunset Beach Resort' : $row['value']]
+        );
+        \App\Models\Setting::updateOrCreate(
+            ['key' => $row['key'], 'hotel_id' => $hotel3->id],
+            ['value' => $row['key'] === 'hotel_name' ? 'Royal Crown Hotel' : $row['value']]
+        );
     }
-    $output .= "- Settings seeded.\n";
+    $output .= "- Settings seeded for all hotels.\n";
 
     // 5. Seed Subscription Plans
     $plans = [
@@ -149,34 +206,23 @@ try {
     }
     $output .= "- Subscription plans seeded.\n";
 
-    // 6. Subscription & Invoice
+    // 6. Subscription & Invoice for all hotels
     $trialPlan = $seededPlans['trial'];
     $now = now();
-    $subscription = \App\Models\Subscription::updateOrCreate(
-        ['hotel_id' => $hotel->id],
-        [
-            'subscription_plan_id' => $trialPlan->id,
-            'status' => 'trialing',
-            'starts_at' => $now,
-            'ends_at' => $now->copy()->addDays($trialPlan->trial_days),
-            'trial_ends_at' => $now->copy()->addDays($trialPlan->trial_days),
-        ]
-    );
-    $output .= "- Subscription seeded.\n";
 
-    \App\Models\SubscriptionInvoice::updateOrCreate(
-        ['invoice_number' => 'SUB-2026-0001', 'hotel_id' => $hotel->id],
-        [
-            'subscription_plan_id' => $trialPlan->id,
-            'amount' => 0.00,
-            'status' => 'paid',
-            'billing_date' => $now->copy()->subDays(2)->format('Y-m-d'),
-            'due_date' => $now->copy()->subDays(2)->format('Y-m-d'),
-            'paid_at' => $now->copy()->subDays(2),
-            'payment_method' => 'Free',
-        ]
-    );
-    $output .= "- Subscription invoice seeded.\n";
+    foreach ([$hotel1, $hotel2, $hotel3] as $h) {
+        \App\Models\Subscription::updateOrCreate(
+            ['hotel_id' => $h->id],
+            [
+                'subscription_plan_id' => $trialPlan->id,
+                'status' => 'trialing',
+                'starts_at' => $now,
+                'ends_at' => $now->copy()->addDays($trialPlan->trial_days),
+                'trial_ends_at' => $now->copy()->addDays($trialPlan->trial_days),
+            ]
+        );
+    }
+    $output .= "- Subscriptions seeded for all hotels.\n";
     $output .= "=== SUCCESS ===\n";
 
 } catch (\Exception $e) {

@@ -17,6 +17,8 @@ Route::get('/hotel/{slug}/reserve/{room?}', [PublicHotelController::class, 'rese
 Route::post('/hotel/book-instant', [PublicHotelController::class, 'bookInstant'])->name('hotel.book-instant');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/receptionist/login', [AuthController::class, 'showReceptionistLoginForm'])->name('receptionist.login');
+Route::post('/receptionist/login', [AuthController::class, 'receptionistLogin'])->name('receptionist.login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/git-check', function () {

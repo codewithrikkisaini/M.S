@@ -20,7 +20,13 @@ class PublicHotelController extends Controller
         $hotel = Hotel::where('slug', $slug)
             ->orWhere('id', $slug)
             ->with(['images', 'rooms' => function ($q) {
-                $q->withoutGlobalScope('tenant')->with('roomType');
+                $q->withoutGlobalScope('tenant')
+                  ->where('status', '!=', 'Maintenance')
+                  ->whereDoesntHave('activeMaintenanceTickets')
+                  ->whereDoesntHave('housekeeping', function ($hk) {
+                      $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
+                  })
+                  ->with('roomType');
             }])
             ->first();
 
@@ -32,7 +38,13 @@ class PublicHotelController extends Controller
             if (is_numeric($lastPart)) {
                 $hotel = Hotel::where('id', $lastPart)
                     ->with(['images', 'rooms' => function ($q) {
-                        $q->withoutGlobalScope('tenant')->with('roomType');
+                        $q->withoutGlobalScope('tenant')
+                          ->where('status', '!=', 'Maintenance')
+                          ->whereDoesntHave('activeMaintenanceTickets')
+                          ->whereDoesntHave('housekeeping', function ($hk) {
+                              $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
+                          })
+                          ->with('roomType');
                     }])
                     ->first();
             }
@@ -43,7 +55,13 @@ class PublicHotelController extends Controller
             $cleanName = str_replace('-', ' ', (string)$slug);
             $hotel = Hotel::where('name', 'LIKE', '%' . $cleanName . '%')
                 ->with(['images', 'rooms' => function ($q) {
-                    $q->withoutGlobalScope('tenant')->with('roomType');
+                    $q->withoutGlobalScope('tenant')
+                      ->where('status', '!=', 'Maintenance')
+                      ->whereDoesntHave('activeMaintenanceTickets')
+                      ->whereDoesntHave('housekeeping', function ($hk) {
+                          $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
+                      })
+                      ->with('roomType');
                 }])
                 ->first();
         }
@@ -60,7 +78,13 @@ class PublicHotelController extends Controller
         $hotel = Hotel::where('slug', $slug)
             ->orWhere('id', $slug)
             ->with(['images', 'rooms' => function ($q) {
-                $q->withoutGlobalScope('tenant')->with('roomType');
+                $q->withoutGlobalScope('tenant')
+                  ->where('status', '!=', 'Maintenance')
+                  ->whereDoesntHave('activeMaintenanceTickets')
+                  ->whereDoesntHave('housekeeping', function ($hk) {
+                      $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
+                  })
+                  ->with('roomType');
             }])
             ->first();
 
@@ -71,7 +95,13 @@ class PublicHotelController extends Controller
             if (is_numeric($lastPart)) {
                 $hotel = Hotel::where('id', $lastPart)
                     ->with(['images', 'rooms' => function ($q) {
-                        $q->withoutGlobalScope('tenant')->with('roomType');
+                        $q->withoutGlobalScope('tenant')
+                          ->where('status', '!=', 'Maintenance')
+                          ->whereDoesntHave('activeMaintenanceTickets')
+                          ->whereDoesntHave('housekeeping', function ($hk) {
+                              $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
+                          })
+                          ->with('roomType');
                     }])
                     ->first();
             }
@@ -81,7 +111,13 @@ class PublicHotelController extends Controller
             $cleanName = str_replace('-', ' ', (string)$slug);
             $hotel = Hotel::where('name', 'LIKE', '%' . $cleanName . '%')
                 ->with(['images', 'rooms' => function ($q) {
-                    $q->withoutGlobalScope('tenant')->with('roomType');
+                    $q->withoutGlobalScope('tenant')
+                      ->where('status', '!=', 'Maintenance')
+                      ->whereDoesntHave('activeMaintenanceTickets')
+                      ->whereDoesntHave('housekeeping', function ($hk) {
+                          $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
+                      })
+                      ->with('roomType');
                 }])
                 ->first();
         }
@@ -103,6 +139,11 @@ class PublicHotelController extends Controller
         if (!$selectedRoom) {
             $selectedRoom = Room::withoutGlobalScope('tenant')
                 ->where('hotel_id', $hotel->id)
+                ->where('status', '!=', 'Maintenance')
+                ->whereDoesntHave('activeMaintenanceTickets')
+                ->whereDoesntHave('housekeeping', function ($hk) {
+                    $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
+                })
                 ->with('roomType')
                 ->first();
         }
@@ -143,8 +184,12 @@ class PublicHotelController extends Controller
             return response()->json(['success' => false, 'message' => 'Invalid Hotel or Room selection.'], 422);
         }
 
-        if ($room->status !== 'Available') {
-            return response()->json(['success' => false, 'message' => 'Bro, ye room already booked / occupied hai! Please choose an available room.'], 422);
+        $isUnderWork = $room->status === 'Maintenance' 
+            || $room->activeMaintenanceTickets()->exists() 
+            || $room->housekeeping()->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance'])->exists();
+
+        if ($isUnderWork || $room->status !== 'Available') {
+            return response()->json(['success' => false, 'message' => 'Ye room abhi Maintenance ya Housekeeping process me hai! Kripya kisi clean/available room ko select karein.'], 422);
         }
 
         if ($hotel->account_status === 'suspended' || ($hotel->status !== 'approved' && $hotel->account_status !== 'active')) {

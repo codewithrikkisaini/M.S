@@ -390,7 +390,7 @@
                     <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 text-white rounded-3xl overflow-hidden shadow-2xl border border-slate-800" x-data="{ activeImgIdx: 0 }">
                         <!-- Image Header with Carousel Controls -->
                         <div class="relative aspect-video bg-slate-800 group">
-                            <img :src="selectedRoom.images && selectedRoom.images.length > 0 ? selectedRoom.images[activeImgIdx] : selectedRoom.image" class="w-full h-full object-cover transition-all duration-300">
+                            <img :src="selectedRoom.images && selectedRoom.images.length > 0 ? selectedRoom.images[activeImgIdx] : selectedRoom.image" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1000&q=80';" class="w-full h-full object-cover transition-all duration-300">
                             
                             <!-- Next / Previous Controls -->
                             <template x-if="selectedRoom.images && selectedRoom.images.length > 1">
@@ -422,7 +422,7 @@
                             <div class="flex gap-2 p-2.5 bg-slate-950/80 border-b border-slate-800 overflow-x-auto">
                                 <template x-for="(img, idx) in selectedRoom.images" :key="idx">
                                     <button type="button" @click="activeImgIdx = idx" class="w-14 h-10 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer" :class="activeImgIdx === idx ? 'border-blue-500 scale-105 shadow-md' : 'border-slate-800 opacity-50 hover:opacity-100'">
-                                        <img :src="img" class="w-full h-full object-cover">
+                                        <img :src="img" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=600&q=80';" class="w-full h-full object-cover">
                                     </button>
                                 </template>
                             </div>

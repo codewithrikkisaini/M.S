@@ -51,6 +51,8 @@ new class extends Component
             'status'   => 'required|in:Open,In Progress,Completed,Cancelled',
         ]);
 
+        $room = Room::findOrFail($this->room_id);
+
         $data = [
             'room_id'     => $this->room_id,
             'issue'       => $this->issue,
@@ -58,6 +60,7 @@ new class extends Component
             'assigned_to' => $this->assigned_to ?: null,
             'status'      => $this->status,
             'notes'       => $this->notes ?: null,
+            'hotel_id'    => $room->hotel_id ?? Auth::user()?->hotel_id,
             'updated_at'  => now(),
         ];
 
@@ -72,8 +75,6 @@ new class extends Component
         }
 
         // Automatic Room & Housekeeping Sync Loop
-        $room = Room::findOrFail($this->room_id);
-        
         if (in_array($this->status, ['Open', 'In Progress']) && in_array($this->priority, ['High', 'Critical'])) {
             // Put room under maintenance
             $room->update(['status' => 'Maintenance']);
@@ -84,6 +85,7 @@ new class extends Component
                 [
                     'status' => 'Maintenance', 
                     'updated_by' => Auth::id(), 
+                    'hotel_id' => $room->hotel_id ?? Auth::user()?->hotel_id,
                     'notes' => "Auto-assigned under maintenance via Ticket #{$this->ticketId}: {$this->issue}"
                 ]
             );
@@ -106,6 +108,7 @@ new class extends Component
                     [
                         'status' => 'Inspecting', 
                         'updated_by' => Auth::id(), 
+                        'hotel_id' => $room->hotel_id ?? Auth::user()?->hotel_id,
                         'notes' => "Maintenance Ticket #{$this->ticketId} resolved. Pending inspection."
                     ]
                 );

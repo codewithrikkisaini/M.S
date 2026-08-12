@@ -120,6 +120,10 @@ class Room extends Model
     public function scopeAvailableBetween($query, $checkIn, $checkOut, $excludeReservationId = null)
     {
         return $query->where('rooms.status', '!=', 'Maintenance')
+            ->whereDoesntHave('activeMaintenanceTickets')
+            ->whereDoesntHave('housekeeping', function ($q) {
+                $q->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
+            })
             ->whereDoesntHave('reservations', function ($q) use ($checkIn, $checkOut, $excludeReservationId) {
                 $q->whereIn('reservations.status', ['Confirmed', 'Checked-In'])
                     ->where('reservations.check_in_date', '<', $checkOut)

@@ -2,8 +2,19 @@
     {{-- Page Header --}}
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-black text-gray-900 tracking-tight">Dashboard</h1>
-            <p class="text-sm text-gray-500 mt-0.5">{{ now()->format('l, d F Y') }} &mdash; Welcome back, admin</p>
+            <div class="flex items-center gap-2.5">
+                <h1 class="text-2xl font-black text-gray-900 tracking-tight">
+                    {{ Auth::user()?->hotel?->name ?? $hotelName }} &mdash; {{ Auth::check() && Auth::user()->hasRole('receptionist') ? 'Reception Staff Dashboard' : 'Dashboard' }}
+                </h1>
+                @if(Auth::check() && Auth::user()->hasRole('receptionist'))
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                        <i class="fas fa-user-tie text-[10px]"></i> Reception Staff
+                    </span>
+                @endif
+            </div>
+            <p class="text-sm text-gray-500 mt-1">
+                {{ now()->format('l, d F Y') }} &mdash; Welcome back, <strong class="text-slate-800">{{ Auth::user()?->name }}</strong>
+            </p>
         </div>
         <div class="flex gap-2.5">
             <a href="{{ route('reservations.index') }}" class="btn-primary btn-sm rounded-lg shadow-sm">
@@ -14,6 +25,34 @@
             </a>
         </div>
     </div>
+
+    @if(Auth::check() && Auth::user()->hasRole('receptionist'))
+    {{-- Dedicated Reception Staff Welcome Banner --}}
+    <div class="mb-6 bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-emerald-500/30">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
+                <i class="fas fa-concierge-bell text-2xl text-white"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-xl font-extrabold text-white tracking-tight">{{ Auth::user()?->hotel?->name ?? 'Hotel' }}</h2>
+                    <span class="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-white/20">Front Desk Desk</span>
+                </div>
+                <p class="text-emerald-100 text-xs mt-1">
+                    Welcome to <strong>{{ Auth::user()?->hotel?->name ?? 'your hotel' }}</strong> Reception Staff Dashboard. Front-desk operations are isolated for your hotel.
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
+            <a href="{{ route('checkin.index') }}" class="bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2">
+                <i class="fas fa-sign-in-alt"></i> Guest Check-In
+            </a>
+            <a href="{{ route('checkout.index') }}" class="bg-emerald-900/60 hover:bg-emerald-900 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 border border-white/20">
+                <i class="fas fa-sign-out-alt"></i> Guest Check-Out
+            </a>
+        </div>
+    </div>
+    @endif
 
     {{-- Stats Grid --}}
     <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
