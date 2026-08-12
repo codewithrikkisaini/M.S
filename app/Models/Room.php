@@ -10,26 +10,59 @@ class Room extends Model
 {
     use HasFactory, BelongsToTenant;
 
-    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'description', 'hotel_id', 'image_path'];
+    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'bed_type', 'room_option', 'description', 'hotel_id', 'image_path'];
+
+    public static function formatUrl(string $img): string
+    {
+        $img = trim($img);
+        if (empty($img)) {
+            return '';
+        }
+
+        if (filter_var($img, FILTER_VALIDATE_URL) || \Illuminate\Support\Str::startsWith($img, ['http://', 'https://'])) {
+            if (preg_match('/https?:\/\/localhost(:\d+)?\/(storage\/)?(.*)/i', $img, $matches)) {
+                $img = ltrim($matches[3], '/');
+            } else {
+                return $img;
+            }
+        }
+
+        $clean = preg_replace('/^\/?(storage\/|public\/)+/', '', $img);
+        $clean = ltrim($clean, '/');
+
+        if (empty($clean)) {
+            return '';
+        }
+
+        return '/storage/' . $clean;
+    }
 
     public function getImagesAttribute(): array
     {
         if (!empty($this->image_path)) {
-            $decoded = json_decode($this->image_path, true);
+            $raw = $this->image_path;
+            $items = [];
+
+            $decoded = json_decode($raw, true);
             if (is_array($decoded) && count($decoded) > 0) {
-                return array_map(function ($img) {
-                    return filter_var($img, FILTER_VALIDATE_URL) ? $img : asset('storage/' . $img);
-                }, $decoded);
+                $items = $decoded;
+            } elseif (str_contains($raw, ',')) {
+                $items = array_filter(array_map('trim', explode(',', $raw)));
+            } else {
+                $items = [$raw];
             }
 
-            if (str_contains($this->image_path, ',')) {
-                $items = array_filter(array_map('trim', explode(',', $this->image_path)));
-                return array_map(function ($img) {
-                    return filter_var($img, FILTER_VALIDATE_URL) ? $img : asset('storage/' . $img);
-                }, array_values($items));
+            $formatted = [];
+            foreach ($items as $img) {
+                $u = self::formatUrl((string) $img);
+                if (!empty($u)) {
+                    $formatted[] = $u;
+                }
             }
 
-            return [filter_var($this->image_path, FILTER_VALIDATE_URL) ? $this->image_path : asset('storage/' . $this->image_path)];
+            if (count($formatted) > 0) {
+                return array_values($formatted);
+            }
         }
 
         $fallbacks = [
@@ -40,7 +73,7 @@ class Room extends Model
             'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1000&q=80'
         ];
 
-        $offset = abs(crc32($this->room_number ?? (string)$this->id));
+        $offset = abs(crc32($this->room_number ?? (string) $this->id));
         return [
             $fallbacks[$offset % count($fallbacks)],
             $fallbacks[($offset + 1) % count($fallbacks)],

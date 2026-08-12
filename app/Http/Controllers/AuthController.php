@@ -11,11 +11,12 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             $user = Auth::user();
-            if ($user->hasRole('superadmin')) {
+            if ($user->role?->slug === 'superadmin') {
                 return redirect()->route('superadmin.dashboard');
             }
             return redirect()->route('dashboard');
         }
+
         $hotelName = \App\Models\Setting::where('key', 'hotel_name')->value('value') ?? 'Lodgiko PMS';
         return view('auth.login', compact('hotelName'));
     }
@@ -59,10 +60,12 @@ class AuthController extends Controller
             }
 
             $request->session()->regenerate();
-            if ($user->hasRole('superadmin')) {
-                return redirect()->route('superadmin.dashboard');
+
+            if ($user->role?->slug === 'superadmin') {
+                return redirect()->route('superadmin.dashboard')->with('status', 'Welcome back, Super Admin!');
             }
-            return redirect()->route('dashboard');
+
+            return redirect()->intended(route('dashboard'))->with('status', 'Logged in successfully!');
         }
 
         return back()->withErrors([
@@ -75,6 +78,6 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return redirect()->route('login');
     }
 }

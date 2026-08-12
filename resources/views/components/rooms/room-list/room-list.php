@@ -14,7 +14,7 @@ new class extends Component
 
     public function boot(): void
     {
-        if (!Auth::check() || !Auth::user()->hasRole('admin')) {
+        if (!Auth::check() || (!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('superadmin'))) {
             abort(403, 'Unauthorized action.');
         }
     }

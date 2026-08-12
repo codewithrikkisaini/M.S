@@ -18,12 +18,27 @@ new class extends Component
     public string $price = '';
     public string $status = 'Available';
     public string $floor = '';
+    public string $bed_type = 'King Bed';
+    public array $room_option = [];
+    public string $description = '';
     public string $image_path = '';
     public $photos = [];
 
+    public function getAvailableOptionsProperty(): array
+    {
+        return [
+            'Smoking',
+            'Non-Smoking',
+            'Handicap Non-Smoking',
+            'Suites with Jacuzzi Hot Tub',
+            'Suite with Hot Tub',
+            'King Bed and Rolling Bed for Extra Guest',
+        ];
+    }
+
     public function boot(): void
     {
-        if (!Auth::check() || !Auth::user()->hasRole('admin')) {
+        if (!Auth::check() || (!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('superadmin'))) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -49,6 +64,30 @@ new class extends Component
         $this->price = (string) $room->price;
         $this->status = $room->status;
         $this->floor = (string) ($room->floor ?? '');
+        $this->bed_type = $room->bed_type ?: 'King Bed';
+        
+        $rawOption = $room->room_option ?? '';
+        if (!empty($rawOption)) {
+            if (is_array(json_decode($rawOption, true))) {
+                $this->room_option = json_decode($rawOption, true);
+            } else {
+                $this->room_option = array_values(array_filter(array_map('trim', explode(',', $rawOption))));
+            }
+        } else {
+            $this->room_option = [];
+        }
+
+        $this->description = (string) ($room->description ?? '');
+    }
+
+    public function updatedBedType($val): void
+    {
+        $allowed = $this->getAvailableOptionsProperty();
+        if (is_array($this->room_option)) {
+            $this->room_option = array_values(array_intersect($this->room_option, $allowed));
+        } else {
+            $this->room_option = [];
+        }
     }
 
     public function updatedRoomNumber(string $value): void
@@ -71,6 +110,7 @@ new class extends Component
     public function save(): void
     {
         $hotel_id = Auth::user()->hotel_id ?? $this->room->hotel_id;
+        $allowedOptions = $this->getAvailableOptionsProperty();
 
         $this->validate([
             'room_number'  => [
@@ -82,12 +122,17 @@ new class extends Component
                 })->ignore($this->room->id),
             ],
             'room_type_id' => 'required|exists:room_types,id',
+            'bed_type'     => 'nullable|string',
+            'room_option'   => 'nullable|array',
             'price'        => 'required|numeric|min:0',
             'status'       => 'required|in:Available,Occupied,Reserved,Maintenance',
             'floor'        => 'required|string|max:50',
+            'description'  => 'nullable|string',
             'image_path'   => 'nullable|string',
             'photos.*'     => 'image|max:4096',
         ]);
+
+        $formattedRoomOption = is_array($this->room_option) ? implode(', ', $this->room_option) : $this->room_option;
 
         $paths = [];
         if (!empty($this->image_path)) {
@@ -108,7 +153,7 @@ new class extends Component
             }
         }
 
-        $finalImagePath = count($paths) > 0 ? (count($paths) === 1 ? $paths[0] : json_encode(array_values($paths))) : null;
+        $finalImagePath = count($paths) > 0 ? json_encode(array_values($paths)) : null;
 
         try {
             $updateData = [
@@ -116,8 +161,14 @@ new class extends Component
                 'room_type_id' => $this->room_type_id,
                 'price'        => $this->price,
                 'status'       => $this->status,
-                'floor'        => $this->floor,
+                'bed_type'     => $this->bed_type,
+                'room_option'  => $formattedRoomOption,
+                'description'  => $this->description,
             ];
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'floor')) {
+                $updateData['floor'] = $this->floor;
+            }
 
             if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'image_path')) {
                 $updateData['image_path'] = $finalImagePath;

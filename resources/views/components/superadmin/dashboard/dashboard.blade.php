@@ -29,109 +29,109 @@
         <h3 class="text-xs font-extrabold text-indigo-650 uppercase tracking-widest mb-4 flex items-center gap-2">
             <i class="fas fa-building text-xs"></i> Hotel Tenant Statuses
         </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl hover:shadow-md transition-all duration-200">
-                <div class="stat-icon bg-slate-50 text-slate-500 border border-slate-100 p-2.5 rounded-lg w-10 h-10 flex items-center justify-center mb-3"><i class="fas fa-hotel text-sm"></i></div>
-                <div>
-                    <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ $totalHotels }}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Total Hotels</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+            <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                <div class="stat-icon bg-slate-50 text-slate-500 border border-slate-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-hotel text-xs"></i></div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xl font-black text-slate-800 tracking-tight leading-none">{{ $totalHotels }}</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-1 truncate">Total Hotels</p>
                 </div>
             </div>
-            <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl hover:shadow-md transition-all duration-200">
-                <div class="stat-icon bg-emerald-50 text-emerald-600 border border-emerald-100 p-2.5 rounded-lg w-10 h-10 flex items-center justify-center mb-3"><i class="fas fa-check-circle text-sm"></i></div>
-                <div>
-                    <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ $approvedHotels }}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Active Hotels</p>
+            <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                <div class="stat-icon bg-emerald-50 text-emerald-600 border border-emerald-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-check-circle text-xs"></i></div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xl font-black text-slate-800 tracking-tight leading-none">{{ $approvedHotels }}</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-1 truncate">Active Hotels</p>
                 </div>
             </div>
-            <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl hover:shadow-md transition-all duration-200">
-                <div class="stat-icon bg-amber-50 text-amber-600 border border-amber-100 p-2.5 rounded-lg w-10 h-10 flex items-center justify-center mb-3"><i class="fas fa-clock text-sm"></i></div>
-                <div>
-                    <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ $pendingHotels }}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Pending Approval</p>
+            <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                <div class="stat-icon bg-amber-50 text-amber-600 border border-amber-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-clock text-xs"></i></div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xl font-black text-slate-800 tracking-tight leading-none">{{ $pendingHotels }}</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-1 truncate">Pending Approval</p>
                 </div>
             </div>
-            <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl hover:shadow-md transition-all duration-200">
-                <div class="stat-icon bg-slate-100 text-slate-650 border border-slate-200 p-2.5 rounded-lg w-10 h-10 flex items-center justify-center mb-3"><i class="fas fa-ban text-sm"></i></div>
-                <div>
-                    <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ $suspendedHotels }}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Suspended</p>
+            <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                <div class="stat-icon bg-slate-100 text-slate-650 border border-slate-200 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-ban text-xs"></i></div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xl font-black text-slate-800 tracking-tight leading-none">{{ $suspendedHotels }}</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-1 truncate">Suspended</p>
                 </div>
             </div>
-            <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl hover:shadow-md transition-all duration-200">
-                <div class="stat-icon bg-rose-50 text-rose-600 border border-rose-100 p-2.5 rounded-lg w-10 h-10 flex items-center justify-center mb-3"><i class="fas fa-times-circle text-sm"></i></div>
-                <div>
-                    <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ $rejectedHotels }}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Rejected</p>
+            <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                <div class="stat-icon bg-rose-50 text-rose-600 border border-rose-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-times-circle text-xs"></i></div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xl font-black text-slate-800 tracking-tight leading-none">{{ $rejectedHotels }}</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-1 truncate">Rejected</p>
                 </div>
             </div>
         </div>
     </div>
 
     {{-- SECTION 2: SaaS Revenue & Hotel statistics --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
         {{-- Revenue Panel --}}
-        <div>
+        <div class="xl:col-span-5">
             <h3 class="text-xs font-extrabold text-indigo-650 uppercase tracking-widest mb-4 flex items-center gap-2">
                 <i class="fas fa-wallet text-xs"></i> SaaS Platform Revenue
             </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-                    <div class="stat-icon bg-indigo-50 text-indigo-600 border border-indigo-100 p-2.5 rounded-lg w-10 h-10 flex items-center justify-center mb-3"><i class="fas fa-chart-line text-sm"></i></div>
-                    <div>
-                        <p class="text-xl font-extrabold text-slate-800 tracking-tight">${{ number_format($totalRevenue, 2) }}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Total Revenue</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                    <div class="stat-icon bg-indigo-50 text-indigo-600 border border-indigo-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-chart-line text-xs"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-base font-black text-slate-800 tracking-tight whitespace-nowrap">${{ number_format($totalRevenue, 2) }}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-0.5 truncate">Total Revenue</p>
                     </div>
                 </div>
-                <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-                    <div class="stat-icon bg-indigo-50 text-indigo-600 border border-indigo-100 p-2.5 rounded-lg w-10 h-10 flex items-center justify-center mb-3"><i class="fas fa-calendar-check text-sm"></i></div>
-                    <div>
-                        <p class="text-xl font-extrabold text-slate-800 tracking-tight">${{ number_format($monthlyRevenue, 2) }}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Monthly Revenue</p>
+                <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                    <div class="stat-icon bg-indigo-50 text-indigo-600 border border-indigo-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-calendar-check text-xs"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-base font-black text-slate-800 tracking-tight whitespace-nowrap">${{ number_format($monthlyRevenue, 2) }}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-0.5 truncate">Monthly Revenue</p>
                     </div>
                 </div>
-                <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-                    <div class="stat-icon bg-indigo-50 text-indigo-600 border border-indigo-100 p-2.5 rounded-lg w-10 h-10 flex items-center justify-center mb-3"><i class="fas fa-receipt text-sm"></i></div>
-                    <div>
-                        <p class="text-xl font-extrabold text-slate-800 tracking-tight">${{ number_format($subscriptionRevenue, 2) }}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Sub Revenue</p>
+                <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                    <div class="stat-icon bg-indigo-50 text-indigo-600 border border-indigo-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-receipt text-xs"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-base font-black text-slate-800 tracking-tight whitespace-nowrap">${{ number_format($subscriptionRevenue, 2) }}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-0.5 truncate">Sub Revenue</p>
                     </div>
                 </div>
             </div>
         </div>
 
         {{-- Hotel Capacity Stats --}}
-        <div>
+        <div class="xl:col-span-7">
             <h3 class="text-xs font-extrabold text-indigo-650 uppercase tracking-widest mb-4 flex items-center gap-2">
                 <i class="fas fa-chart-pie text-xs"></i> Global Hotel Capacity Statistics
             </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-                    <div class="stat-icon bg-blue-50 text-blue-600 border border-blue-100 p-2 rounded-lg w-8 h-8 flex items-center justify-center mb-3"><i class="fas fa-bed text-xs"></i></div>
-                    <div>
-                        <p class="text-lg font-extrabold text-slate-800 tracking-tight">{{ $totalRooms }}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Total Rooms</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                    <div class="stat-icon bg-blue-50 text-blue-600 border border-blue-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-bed text-xs"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-base font-black text-slate-800 tracking-tight leading-none">{{ $totalRooms }}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-1 truncate">Total Rooms</p>
                     </div>
                 </div>
-                <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-                    <div class="stat-icon bg-red-50 text-red-600 border border-red-100 p-2 rounded-lg w-8 h-8 flex items-center justify-center mb-3"><i class="fas fa-door-closed text-xs"></i></div>
-                    <div>
-                        <p class="text-lg font-extrabold text-slate-800 tracking-tight">{{ $occupiedRooms }}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Occupied Rooms</p>
+                <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                    <div class="stat-icon bg-red-50 text-red-600 border border-red-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-door-closed text-xs"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-base font-black text-slate-800 tracking-tight leading-none">{{ $occupiedRooms }}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-1 truncate">Occupied Rooms</p>
                     </div>
                 </div>
-                <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-                    <div class="stat-icon bg-emerald-50 text-emerald-600 border border-emerald-100 p-2 rounded-lg w-8 h-8 flex items-center justify-center mb-3"><i class="fas fa-door-open text-xs"></i></div>
-                    <div>
-                        <p class="text-lg font-extrabold text-slate-800 tracking-tight">{{ $vacantRooms }}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Vacant Rooms</p>
+                <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                    <div class="stat-icon bg-emerald-50 text-emerald-600 border border-emerald-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-door-open text-xs"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-base font-black text-slate-800 tracking-tight leading-none">{{ $vacantRooms }}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-1 truncate">Vacant Rooms</p>
                     </div>
                 </div>
-                <div class="stat-card border border-slate-100 bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-                    <div class="stat-icon bg-purple-50 text-purple-650 border border-purple-100 p-2 rounded-lg w-8 h-8 flex items-center justify-center mb-3"><i class="fas fa-calendar-check text-xs"></i></div>
-                    <div>
-                        <p class="text-lg font-extrabold text-slate-800 tracking-tight">{{ $totalReservations }}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Reservations</p>
+                <div class="stat-card border border-slate-100 bg-white p-3.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+                    <div class="stat-icon bg-purple-50 text-purple-650 border border-purple-100 p-2 rounded-lg w-9 h-9 flex items-center justify-center shrink-0"><i class="fas fa-calendar-check text-xs"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-base font-black text-slate-800 tracking-tight leading-none">{{ $totalReservations }}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight mt-1 truncate">Reservations</p>
                     </div>
                 </div>
             </div>

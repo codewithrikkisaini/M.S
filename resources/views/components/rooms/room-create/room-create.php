@@ -14,6 +14,8 @@ new class extends Component
 
     public string $room_number = '';
     public string $floor = '1';
+    public string $bed_type = 'King Bed';
+    public array $room_option = [];
     public string $room_type_select = 'Single';
     public string $room_type_name = 'Single';
     public string $daily_rate = '59.95';
@@ -26,9 +28,31 @@ new class extends Component
     public $photos = [];
     public bool $is_custom_type = false;
 
+    public function getAvailableOptionsProperty(): array
+    {
+        return [
+            'Smoking',
+            'Non-Smoking',
+            'Handicap Non-Smoking',
+            'Suites with Jacuzzi Hot Tub',
+            'Suite with Hot Tub',
+            'King Bed and Rolling Bed for Extra Guest',
+        ];
+    }
+
     public function mount(): void
     {
         $this->applyPreset('Single');
+    }
+
+    public function updatedBedType($val): void
+    {
+        $allowed = $this->getAvailableOptionsProperty();
+        if (is_array($this->room_option)) {
+            $this->room_option = array_values(array_intersect($this->room_option, $allowed));
+        } else {
+            $this->room_option = [];
+        }
     }
 
     public function updatedRoomNumber($val): void
@@ -123,9 +147,13 @@ new class extends Component
             return;
         }
 
+        $allowedOptions = $this->getAvailableOptionsProperty();
+
         $this->validate([
             'room_number'    => 'required|string',
             'floor'          => 'required|string|max:50',
+            'bed_type'       => 'nullable|string',
+            'room_option'    => 'nullable|array',
             'room_type_name' => 'required|string|max:100',
             'daily_rate'     => 'required|numeric|min:0',
             'weekly_rate'    => 'required|numeric|min:0',
@@ -136,6 +164,8 @@ new class extends Component
             'image_path'     => 'nullable|string',
             'photos.*'       => 'nullable|image|max:4096',
         ]);
+
+        $formattedRoomOption = is_array($this->room_option) ? implode(', ', $this->room_option) : $this->room_option;
 
         $roomNumbers = $this->parseRoomNumbers($this->room_number);
         if (empty($roomNumbers)) {
@@ -207,11 +237,19 @@ new class extends Component
                     'room_number'  => $num,
                     'room_type_id' => $roomType->id,
                     'price'        => $this->daily_rate,
-                    'floor'        => $floorToUse,
-                    'description'  => $this->description,
                     'status'       => $this->status,
                     'hotel_id'     => $hotel_id,
+                    'bed_type'     => $this->bed_type,
+                    'room_option'  => $formattedRoomOption,
                 ];
+
+                if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'floor')) {
+                    $roomData['floor'] = $floorToUse;
+                }
+
+                if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'description')) {
+                    $roomData['description'] = $this->description;
+                }
 
                 if (\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'image_path')) {
                     $roomData['image_path'] = $finalImagePath;
@@ -226,6 +264,7 @@ new class extends Component
             $addedStr = implode(', ', $roomNumbers);
             $msg = "Room(s) {$addedStr} saved successfully under {$roomType->name}!";
             $this->reset(['room_number', 'description', 'image_path', 'photos']);
+            $this->room_option = [];
             $this->dispatch('toast', message: $msg, type: 'success');
         } catch (UniqueConstraintViolationException $e) {
             try {

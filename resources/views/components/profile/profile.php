@@ -175,7 +175,12 @@ new class extends Component
                 // Calculate performance metrics
                 $this->stats_checkins_today = CheckIn::where('hotel_id', $hotel->id)->whereDate('created_at', today())->count();
                 $this->stats_checkouts_today = CheckOut::where('hotel_id', $hotel->id)->whereDate('created_at', today())->count();
-                $this->stats_guests_staying = CheckIn::where('hotel_id', $hotel->id)->whereNull('checked_out_at')->count(); // Assuming active checkins
+                
+                $checkedOutIds = CheckOut::where('hotel_id', $hotel->id)->pluck('reservation_id');
+                $this->stats_guests_staying = CheckIn::where('hotel_id', $hotel->id)
+                    ->whereNull('checked_out_at')
+                    ->whereNotIn('reservation_id', $checkedOutIds)
+                    ->count();
                 if ($this->stats_guests_staying == 0) {
                     $this->stats_guests_staying = 40; // Mock default if empty
                 }

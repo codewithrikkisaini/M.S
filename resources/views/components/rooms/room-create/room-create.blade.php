@@ -51,6 +51,49 @@
                 </div>
             </div>
 
+            {{-- Row 1.5: Bed Type & Room Option --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
+                <div>
+                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
+                    <select wire:model.live="bed_type" class="pms-input text-sm font-bold text-slate-800">
+                        <option value="King Bed">King Bed</option>
+                        <option value="2 Twin/ Queen Beds">2 Twin/ Queen Beds</option>
+                        <option value="Junior Suite with Sofa and jacuzzi">Junior Suite with Sofa and jacuzzi</option>
+                        <option value="King Bed with Rolling Bed">King Bed with Rolling Bed</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-0">Room Option / Feature</label>
+                        @if(!empty($room_option) && count($room_option) > 0)
+                        <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
+                            <i class="fas fa-check-circle text-indigo-500"></i> Multiple Select ({{ count($room_option) }} selected)
+                        </span>
+                        @endif
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
+                        @foreach($this->availableOptions as $opt)
+                            <label class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer transition-all shadow-2xs group">
+                                <input type="checkbox" wire:model.live="room_option" value="{{ $opt }}" class="w-4 h-4 text-indigo-600 rounded-md border-slate-300 focus:ring-indigo-500 focus:ring-offset-0 transition-colors">
+                                <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-900 transition-colors leading-tight">{{ $opt }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Room Description Section --}}
+            <div class="pt-4 border-t border-slate-100 space-y-2">
+                <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                    <i class="fas fa-align-left mr-1 text-indigo-500"></i> Room Description
+                </label>
+                <textarea wire:model="description" rows="2" class="pms-input text-sm font-medium" placeholder="Enter detailed room description, features, amenities, or notes..."></textarea>
+                <p class="text-[10px] text-slate-400">Provide any additional description or details for this room.</p>
+                @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+
             {{-- Room Multiple Images Section --}}
             <div class="pt-4 border-t border-slate-100 space-y-3">
                 <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider block">
@@ -236,6 +279,7 @@
                         <th class="font-bold">Photo</th>
                         <th class="font-bold">Room No.</th>
                         <th class="font-bold">Room Type</th>
+                        <th class="font-bold">Bed & Option</th>
                         <th class="font-bold">Daily Rate</th>
                         <th class="font-bold">Weekly Rate</th>
                         <th class="font-bold">Monthly Rate</th>
@@ -250,7 +294,7 @@
                     <tr wire:key="room-row-{{ $r->id }}" class="hover:bg-slate-50/40 transition-colors">
                         <td>
                             <div class="flex items-center gap-1.5">
-                                <img src="{{ $r->image_url }}" alt="Room {{ $r->room_number }}" class="w-12 h-9 object-cover rounded-lg border border-slate-200 shadow-sm shrink-0">
+                                <img src="{{ $r->image_url }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80';" alt="Room {{ $r->room_number }}" class="w-12 h-9 object-cover rounded-lg border border-slate-200 shadow-sm shrink-0">
                                 @php $imgs = $r->images; @endphp
                                 @if(count($imgs) > 1)
                                 <span class="px-1.5 py-0.5 text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-md shrink-0" title="{{ count($imgs) }} total photos">
@@ -264,6 +308,12 @@
                         </td>
                         <td>
                             <span class="font-bold text-slate-800 text-xs">{{ $r->roomType->name ?? '—' }}</span>
+                        </td>
+                        <td>
+                            <div class="text-xs">
+                                <span class="font-bold text-indigo-700 block">{{ $r->bed_type ?: 'King Bed' }}</span>
+                                <span class="text-[11px] text-slate-500 font-medium">{{ $r->room_option ?: '—' }}</span>
+                            </div>
                         </td>
                         <td class="font-bold text-slate-700 text-xs">
                             ${{ number_format($r->roomType->daily_rate ?? $r->price, 2) }}

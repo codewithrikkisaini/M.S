@@ -112,7 +112,16 @@
                 <p class="mt-1.5 text-sm text-slate-550">Sign in to your admin panel</p>
             </div>
 
-            @if($errors->any())
+            @if(session('status'))
+            <div class="mb-5 rounded-xl bg-emerald-50 border border-emerald-100 p-3.5 shadow-sm">
+                <div class="flex gap-2.5">
+                    <i class="fas fa-check-circle text-emerald-600 mt-0.5 shrink-0"></i>
+                    <div class="text-sm text-emerald-700 font-medium">{{ session('status') }}</div>
+                </div>
+            </div>
+            @endif
+
+            @if(isset($errors) && $errors->any())
             <div class="mb-5 rounded-xl bg-red-50 border border-red-100 p-3.5 shadow-sm">
                 <div class="flex gap-2.5">
                     <i class="fas fa-exclamation-circle text-red-650 mt-0.5 shrink-0"></i>
@@ -174,10 +183,6 @@
                     <i class="fas fa-sign-in-alt text-sm"></i>
                     Sign In to Dashboard
                 </button>
-
-
-
-
 
                 {{-- Public Hotel Registration Link --}}
                 <div class="mt-5 text-center">

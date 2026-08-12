@@ -52,6 +52,35 @@
                         <input type="number" wire:model="price" class="pms-input text-xs" placeholder="0.00" min="0" step="0.01">
                         @error('price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                    {{-- Bed Type & Room Option --}}
+                    <div>
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
+                        <select wire:model.live="bed_type" class="pms-select text-xs font-bold text-slate-800">
+                            <option value="King Bed">King Bed</option>
+                            <option value="2 Twin/ Queen Beds">2 Twin/ Queen Beds</option>
+                            <option value="Junior Suite with Sofa and jacuzzi">Junior Suite with Sofa and jacuzzi</option>
+                            <option value="King Bed with Rolling Bed">King Bed with Rolling Bed</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider mb-0">Room Option / Feature</label>
+                            @if(!empty($room_option) && count($room_option) > 0)
+                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
+                                <i class="fas fa-check-circle text-indigo-500"></i> Multiple Select ({{ count($room_option) }} selected)
+                            </span>
+                            @endif
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
+                            @foreach($this->availableOptions as $opt)
+                                <label class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer transition-all shadow-2xs group">
+                                    <input type="checkbox" wire:model.live="room_option" value="{{ $opt }}" class="w-4 h-4 text-indigo-600 rounded-md border-slate-300 focus:ring-indigo-500 focus:ring-offset-0 transition-colors">
+                                    <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-900 transition-colors leading-tight">{{ $opt }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
                     <div class="sm:col-span-2">
                         <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Status <span class="text-red-500">*</span></label>
                         <select wire:model="status" class="pms-select text-xs">
@@ -61,6 +90,12 @@
                             <option value="Maintenance">Maintenance</option>
                         </select>
                         @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="sm:col-span-2 pt-2">
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Room Description</label>
+                        <textarea wire:model="description" rows="2" class="pms-input text-xs font-medium" placeholder="Enter room description, special features, or notes..."></textarea>
+                        @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="sm:col-span-2 pt-4 border-t border-slate-100 space-y-3">
@@ -102,7 +137,7 @@
                                     $u = trim($u);
                                     if ($u !== '') {
                                         $existingImages[] = [
-                                            'src' => filter_var($u, FILTER_VALIDATE_URL) ? $u : asset('storage/' . $u),
+                                            'src' => \App\Models\Room::formatUrl($u),
                                             'path' => $u
                                         ];
                                     }
