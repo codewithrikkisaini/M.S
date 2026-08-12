@@ -464,6 +464,19 @@ new class extends Component
                     \App\Models\ActivityLog::where('hotel_id', $hotel->id)->delete();
                 }
 
+                // Delete document files and records
+                if (class_exists(\App\Models\HotelDocument::class)) {
+                    $docs = \App\Models\HotelDocument::where('hotel_id', $hotel->id)->get();
+                    foreach ($docs as $doc) {
+                        $path = $doc->storage_path . '/' . $doc->stored_filename;
+                        if (\Illuminate\Support\Facades\Storage::disk($doc->disk)->exists($path)) {
+                            \Illuminate\Support\Facades\Storage::disk($doc->disk)->delete($path);
+                        }
+                    }
+                    \App\Models\DocumentAuditLog::where('hotel_id', $hotel->id)->delete();
+                    \App\Models\HotelDocument::where('hotel_id', $hotel->id)->delete();
+                }
+
                 $hotel->delete();
             });
 

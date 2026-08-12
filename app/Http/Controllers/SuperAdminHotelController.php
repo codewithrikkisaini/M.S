@@ -161,7 +161,18 @@ class SuperAdminHotelController extends Controller
             $code = $hotel->hotel_code;
 
             \Illuminate\Support\Facades\DB::transaction(function () use ($hotel) {
-                // Delete associated relations if dependent
+                // Delete document files from storage
+                $documents = \App\Models\HotelDocument::where('hotel_id', $hotel->id)->get();
+                foreach ($documents as $doc) {
+                    $path = $doc->storage_path . '/' . $doc->stored_filename;
+                    if (\Illuminate\Support\Facades\Storage::disk($doc->disk)->exists($path)) {
+                        \Illuminate\Support\Facades\Storage::disk($doc->disk)->delete($path);
+                    }
+                }
+
+                // Delete associated relations
+                \App\Models\DocumentAuditLog::where('hotel_id', $hotel->id)->delete();
+                $hotel->documents()->delete();
                 $hotel->subscriptions()->delete();
                 $hotel->subscriptionInvoices()->delete();
                 ActivityLog::where('hotel_id', $hotel->id)->delete();

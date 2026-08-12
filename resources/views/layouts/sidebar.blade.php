@@ -74,6 +74,13 @@
                 <span x-show="sidebarOpen" x-transition>Global Settings</span>
             </a>
 
+            <a href="{{ route('superadmin.documents.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('superadmin.documents.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-file-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Documents</span>
+            </a>
+
             <a href="{{ route('settings') }}" wire:navigate
                class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
@@ -147,6 +154,7 @@
                 <i class="fas fa-bed nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Rooms</span>
             </a>
+
             @endif
 
             <a href="{{ route('reservations.index') }}" wire:navigate
@@ -246,6 +254,12 @@
                 <i class="fas fa-wallet nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Billing & Plans</span>
             </a>
+             <a href="{{ route('hotel-documents.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('hotel-documents.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-file-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Documents</span>
+            </a>
 
 
 
@@ -329,6 +343,11 @@
                 <i class="fas fa-sliders-h nav-icon"></i><span>Global Settings</span>
             </a>
 
+            <a href="{{ route('superadmin.documents.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('superadmin.documents.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-file-alt nav-icon"></i><span>Documents</span>
+            </a>
+
             <a href="{{ route('settings') }}" wire:navigate @click="mobileSidebarOpen = false"
                class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('settings') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
                 <i class="fas fa-cog nav-icon"></i><span>System Settings</span>
@@ -372,6 +391,11 @@
             <a href="{{ route('rooms.index') }}" wire:navigate @click="mobileSidebarOpen = false"
                class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('rooms.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
                 <i class="fas fa-bed nav-icon"></i><span>Rooms</span>
+            </a>
+
+            <a href="{{ route('hotel-documents.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('hotel-documents.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-file-alt nav-icon"></i><span>Documents</span>
             </a>
             @endif
             

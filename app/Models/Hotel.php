@@ -135,4 +135,9 @@ class Hotel extends Model
     {
         return $this->hasMany(SubscriptionInvoice::class);
     }
+
+    public function documents()
+    {
+        return $this->hasMany(HotelDocument::class);
+    }
 }
