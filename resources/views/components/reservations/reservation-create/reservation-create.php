@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use App\Models\Guest;
 use App\Models\Room;
 use App\Models\Reservation;
@@ -9,6 +10,7 @@ use App\Services\ReservationService;
 
 new class extends Component
 {
+    use WithFileUploads;
     public string $guest_id = '', $check_in_date = '', $check_out_date = '';
     public array $room_ids = [];
     public int $adults = 1, $children = 0;
@@ -17,10 +19,22 @@ new class extends Component
     public string $tax_rate = '18';
 
     public string $payment_type = 'Cash', $payment_amount = '';
-
-    // New guest fields
     public bool $is_new_guest = false;
-    public string $new_guest_name = '', $new_guest_email = '', $new_guest_phone = '';
+
+    public string $new_guest_name = '';
+    public string $new_guest_email = '';
+    public string $new_guest_phone = '';
+
+    public string $id_type = '';
+    public string $guest_id_number = '';
+
+    public $guest_id_photo;
+
+    public string $booking_type = '';
+
+    // // New guest fields
+    // public bool $is_new_guest = false;
+    // public string $new_guest_name = '', $new_guest_email = '', $new_guest_phone = '';
 
     public function mount(): void
     {
@@ -60,12 +74,16 @@ new class extends Component
             'tax_rate'        => 'required|numeric|min:0|max:100',
             'payment_type'    => 'required|in:Cash,Card,UPI',
             'payment_amount'  => 'nullable|numeric|min:0',
+            'booking_type' => 'required|in:Walk in,Direct website,OTA,Phone,Other',
         ];
 
         if ($this->is_new_guest) {
             $rules['new_guest_name'] = 'required|string|max:255';
             $rules['new_guest_email'] = 'nullable|email|unique:guests,email';
             $rules['new_guest_phone'] = 'nullable|string|max:20';
+            $rules['id_type'] = 'nullable|in:Driving License,Aadhaar Card,Passport,Voter ID,Other';
+            $rules['guest_id_number'] = 'nullable|string|max:100';
+            $rules['guest_id_photo'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096';
         } else {
             $rules['guest_id'] = 'required|exists:guests,id';
         }
@@ -77,11 +95,19 @@ new class extends Component
             while (Guest::where('guest_id', $guest_id_str)->exists()) {
                 $guest_id_str = 'G-' . str_pad(rand(1000, 99999), 5, '0', STR_PAD_LEFT);
             }
+            $photoPath = null;
+
+            if ($this->guest_id_photo) {
+                $photoPath = $this->guest_id_photo->store('guest-ids', 'public');
+            }
             $guest = Guest::create([
                 'guest_id' => $guest_id_str,
                 'name'     => $this->new_guest_name,
                 'email'    => $this->new_guest_email ?: null,
                 'phone'    => $this->new_guest_phone ?: null,
+                'id_type'  => $this->id_type ?: null,
+                'id_number'=> $this->guest_id_number ?: null,
+                'id_photo' => $photoPath,
             ]);
             $this->guest_id = (string)$guest->id;
         }
@@ -109,6 +135,7 @@ new class extends Component
             'discount_value' => $this->discount_value !== '' ? $this->discount_value : 0,
             'tax_rate'       => $this->tax_rate !== '' ? $this->tax_rate : 18,
             'special_notes'  => $this->special_notes,
+            'booking_type' => $this->booking_type,
             'status'         => 'Confirmed',
         ], false);
 

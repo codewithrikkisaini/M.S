@@ -57,6 +57,134 @@
                             </div>
                         @endif
                     </div>
+                   {{-- Guest ID --}} 
+                                <div>
+                    <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        ID Type
+                    </label>
+
+                    <select wire:model="id_type" class="pms-select text-xs">
+                        <option value="">Select ID...</option>
+                        <option value="Driving License">Driving License</option>
+                        <option value="Aadhaar Card">Aadhaar Card</option>
+                        <option value="Passport">Passport</option>
+                        <option value="Voter ID">Voter ID</option>
+                        <option value="Other">Other</option>
+                    </select>
+
+                    @error('id_type')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        ID Number
+                    </label>
+
+                    <input type="text"
+                        wire:model="guest_id_number"
+                        class="pms-input text-xs"
+                        placeholder="Enter ID number">
+
+                    @error('guest_id_number')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                    
+                    
+                    {{-- Booking Type --}} 
+                    <div> 
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider"> Booking Type </label> 
+                        <select wire:model="booking_type" class="pms-select text-xs"> 
+                            <option value="">Select type...</option> <option value="Walk in">Walk in</option> 
+                            <option value="Direct website">Direct website</option> 
+                            <option value="OTA">OTA</option> <option value="Phone">Phone</option> 
+                            <option value="Other">Other</option> 
+                        </select> 
+                        @error('booking_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror </div>
+
+                    {{-- Guest ID Photo --}}
+                    <div class="col-span-2">
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                            Guest ID Photo
+                        </label>
+
+                        <div class="mt-2 flex items-center gap-3">
+
+                            <!-- {{-- Camera Button --}}
+                            <label class="inline-flex items-center gap-2 px-4 py-2.5
+                                        bg-indigo-600 text-white rounded-lg
+                                        text-xs font-bold cursor-pointer
+                                        hover:bg-indigo-700 transition-colors">
+
+                                <i class="fas fa-camera"></i>
+                                Take Photo
+
+                                <input type="file"
+                                    wire:model="guest_id_photo"
+                                    accept="image/*"
+                                    capture="environment"
+                                    class="hidden">
+                            </label> -->
+
+                            {{-- Upload From Device --}}
+                            <label class="inline-flex items-center gap-2 px-4 py-2.5
+                                        bg-slate-100 text-slate-700 rounded-lg
+                                        text-xs font-bold cursor-pointer
+                                        hover:bg-slate-200 transition-colors">
+
+                                <i class="fas fa-upload"></i>
+                                Upload
+
+                                <input type="file"
+                                    wire:model="guest_id_photo"
+                                    accept="image/*"
+                                    class="hidden">
+                            </label>
+
+                        </div>
+
+                        {{-- Uploading --}}
+                        <div wire:loading wire:target="guest_id_photo"
+                            class="text-xs text-indigo-600 mt-2">
+                            <i class="fas fa-spinner fa-spin mr-1"></i>
+                            Uploading photo...
+                        </div>
+
+                        {{-- Preview --}}
+                        @if ($guest_id_photo)
+                            <div class="mt-3">
+                                <div class="relative inline-block">
+
+                                    <img src="{{ $guest_id_photo->temporaryUrl() }}"
+                                        class="w-40 h-28 object-cover rounded-lg border border-slate-200 shadow-sm">
+
+                                    <button type="button"
+                                            wire:click="$set('guest_id_photo', null)"
+                                            class="absolute -top-2 -right-2 w-6 h-6
+                                                bg-red-500 text-white rounded-full
+                                                flex items-center justify-center
+                                                hover:bg-red-600">
+
+                                        <i class="fas fa-times text-[10px]"></i>
+                                    </button>
+
+                                </div>
+
+                                <p class="text-[10px] text-emerald-600 font-semibold mt-1">
+                                    <i class="fas fa-check-circle"></i>
+                                    Photo ready
+                                </p>
+                            </div>
+                        @endif
+
+                        @error('guest_id_photo')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+
                     
                     <div>
                         <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Adults</label>

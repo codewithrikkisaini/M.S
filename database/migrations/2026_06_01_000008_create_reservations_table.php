@@ -17,6 +17,8 @@ return new class extends Migration
                 $table->date('check_out_date');
                 $table->integer('adults')->default(1);
                 $table->integer('children')->default(0);
+                 // Guest ID photo
+                $table->string('id_photo')->nullable();
                 $table->text('special_notes')->nullable();
                 $table->enum('status', ['Confirmed', 'Checked-In', 'Checked-Out', 'Cancelled'])->default('Confirmed');
                 $table->timestamps();
