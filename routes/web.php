@@ -348,6 +348,11 @@ Route::middleware('auth')->group(function () {
         Route::livewire('/superadmin/saas-billing', 'superadmin.saas-billing')->name('superadmin.saas-billing.index');
         Route::livewire('/superadmin/saas-invoices', 'superadmin.saas-invoices')->name('superadmin.saas-invoices.index');
         Route::livewire('/superadmin/global-settings', 'superadmin.global-settings')->name('superadmin.global-settings');
+
+        // Document Management
+        Route::livewire('/superadmin/documents', 'superadmin.documents')->name('superadmin.documents.index');
+        Route::get('/superadmin/documents/{document}/preview', [\App\Http\Controllers\SuperAdminDocumentController::class, 'preview'])->name('superadmin.document.preview');
+        Route::get('/superadmin/documents/{document}/download', [\App\Http\Controllers\SuperAdminDocumentController::class, 'download'])->name('superadmin.document.download');
     });
 
     // Admin-only Routes
@@ -363,6 +368,11 @@ Route::middleware('auth')->group(function () {
         Route::livewire('/settings', 'settings')->name('settings');
         Route::livewire('/profile', 'profile')->name('profile');
         Route::livewire('/billing', 'billing')->name('billing.index');
+
+        // Hotel Documents
+        Route::livewire('/hotel-documents', 'hotel-documents')->name('hotel-documents.index');
+        Route::get('/hotel-documents/{document}/preview', [\App\Http\Controllers\DocumentController::class, 'preview'])->name('document.preview');
+        Route::get('/hotel-documents/{document}/download', [\App\Http\Controllers\DocumentController::class, 'download'])->name('document.download');
 
         // Integrations & Enterprise Features
         Route::livewire('/integrations/channels', 'integrations.channel-manager')->name('integrations.channels');
