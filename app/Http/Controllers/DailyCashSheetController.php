@@ -12,14 +12,9 @@ class DailyCashSheetController extends Controller
     public function download(Request $request, DailyCashSheetService $service)
     {
         $date = $request->query('date', now()->toDateString());
-<<<<<<< HEAD
-        $sheets = [$service->build($date)];
-        $hotelName = Setting::get('hotel_name', 'Lodgiko PMS Lite');
-=======
         $sheet = $service->build($date);
         $sheets = [$sheet];
-        $hotelName = $sheet['hotel_name'];
->>>>>>> 778cef2fa38fae58f56eb158ee6abf9a801ce96e
+        $hotelName = $sheet['hotel_name'] ?? Setting::get('hotel_name', 'Lodgiko PMS Lite');
 
         $pdf = Pdf::loadView('reports.daily-cash-sheet-pdf', compact('sheets', 'sheet', 'hotelName'))
             ->setPaper('a4', 'portrait');
@@ -39,11 +34,7 @@ class DailyCashSheetController extends Controller
         ]);
 
         $sheets = $service->buildRange($request->query('from'), $request->query('to'));
-<<<<<<< HEAD
         $hotelName = Setting::get('hotel_name', 'Lodgiko PMS Lite');
-=======
-        $hotelName = Setting::get('hotel_name', 'Merahkie Hotel & Resort');
->>>>>>> 778cef2fa38fae58f56eb158ee6abf9a801ce96e
 
         $pdf = Pdf::loadView('reports.daily-cash-sheet-pdf', compact('sheets', 'hotelName'))
             ->setPaper('a4', 'portrait');

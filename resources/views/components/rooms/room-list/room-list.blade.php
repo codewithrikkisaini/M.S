@@ -110,30 +110,41 @@
                             @php
                                 $hk = optional($room->latestHousekeeping)->status ?? 'Clean';
                                 $hkClass = match($hk) {
-                                    'Clean' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
-                                    'Dirty' => 'bg-orange-50 text-orange-700 border-orange-100',
-                                    'Inspecting' => 'bg-amber-50 text-amber-700 border-amber-100',
-                                    default => 'bg-slate-50 text-slate-600 border-slate-100',
+                                    'Clean' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                    'Dirty' => 'bg-orange-50 text-orange-700 border-orange-200',
+                                    'Inspecting' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                    default => 'bg-slate-100 text-slate-700 border-slate-200',
                                 };
                             @endphp
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $hkClass }}">
-                                {{ $hk }}
-                            </span>
+                            <select wire:change="updateHousekeepingStatus({{ $room->id }}, $event.target.value)"
+                                    class="inline-flex items-center text-xs font-bold rounded-full border px-2.5 py-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-xs {{ $hkClass }}">
+                                <option value="Clean" {{ $hk === 'Clean' ? 'selected' : '' }} class="bg-white text-emerald-700 font-bold">🟢 Clean</option>
+                                <option value="Dirty" {{ $hk === 'Dirty' ? 'selected' : '' }} class="bg-white text-orange-700 font-bold">🟠 Dirty</option>
+                                <option value="Inspecting" {{ $hk === 'Inspecting' ? 'selected' : '' }} class="bg-white text-amber-700 font-bold">🟡 Inspecting</option>
+                                <option value="Maintenance" {{ $hk === 'Maintenance' ? 'selected' : '' }} class="bg-white text-slate-700 font-bold">🔧 Maintenance</option>
+                            </select>
                         </td>
                         <td>
                             @php
                                 $ticketsCount = $room->activeMaintenanceTickets->count();
                             @endphp
-                            @if($ticketsCount > 0)
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-100 animate-pulse">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                    {{ $ticketsCount }} Ticket{{ $ticketsCount > 1 ? 's' : '' }}
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-400 border border-slate-150">
-                                    None
-                                </span>
-                            @endif
+                            <div class="flex items-center gap-1.5">
+                                @if($ticketsCount > 0)
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-100 animate-pulse">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        {{ $ticketsCount }} Ticket{{ $ticketsCount > 1 ? 's' : '' }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-50 text-slate-400 border border-slate-150">
+                                        None
+                                    </span>
+                                @endif
+                                <button wire:click="openMaintenanceModal({{ $room->id }})"
+                                        class="px-2 py-1 text-[11px] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                                        title="Report Maintenance Issue">
+                                    <i class="fas fa-wrench text-[9px] text-slate-500"></i> + Ticket
+                                </button>
+                            </div>
                         </td>
                         <td class="text-right">
                             <div class="flex items-center justify-end gap-1.5">
@@ -166,4 +177,65 @@
         </div>
         @endif
     </div>
+
+    {{-- Quick Maintenance Ticket Modal --}}
+    @if($showTicketModal)
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm border border-amber-100">
+                        <i class="fas fa-wrench"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">New Maintenance Ticket</h3>
+                        <p class="text-xs text-slate-500">Room <span class="font-bold text-indigo-600">#{{ $selectedRoomNumber }}</span></p>
+                    </div>
+                </div>
+                <button wire:click="closeMaintenanceModal" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form wire:submit.prevent="saveMaintenanceTicket" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Issue Description <span class="text-rose-500">*</span></label>
+                    <textarea wire:model="ticketIssue" required rows="3" placeholder="Describe the maintenance or repair issue..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20"></textarea>
+                    @error('ticketIssue') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Priority</label>
+                        <select wire:model="ticketPriority" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:bg-white focus:outline-none focus:border-indigo-600">
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Initial Status</label>
+                        <select wire:model="ticketStatus" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:bg-white focus:outline-none focus:border-indigo-600">
+                            <option value="Open">Open</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Notes (Optional)</label>
+                    <input type="text" wire:model="ticketNotes" placeholder="Additional notes or technician instructions..." class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-indigo-600">
+                </div>
+
+                <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 mt-6">
+                    <button type="button" wire:click="closeMaintenanceModal" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20">Submit Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 </div>

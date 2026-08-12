@@ -161,7 +161,7 @@
                 @endif
 
                 <!-- Multi-Step Form -->
-                <form action="{{ route('register-hotel.post') }}" method="POST" id="registerHotelForm">
+                <form action="{{ route('register-hotel.post') }}" method="POST" id="registerHotelForm" onsubmit="return validateAllSteps();">
                     @csrf
 
                     <!-- STEP 1: BUSINESS & TAX DETAILS -->
@@ -453,7 +453,7 @@
                 }
             });
 
-            // Specific validations
+            // Step 2 Validation (Email & Phone)
             if (tabNum === 2) {
                 const emailInput = document.getElementById("email");
                 if (emailInput && emailInput.value.trim()) {
@@ -467,6 +467,7 @@
                 }
             }
 
+            // Step 5 Validation (Password)
             if (tabNum === 5) {
                 const pwd = document.getElementById("password");
                 const pwdConfirm = document.getElementById("password_confirmation");
@@ -488,6 +489,35 @@
 
             return valid;
         }
+
+        function validateAllSteps() {
+            for (let step = 1; step <= 5; step++) {
+                if (!validateForm(step)) {
+                    currentTab = step;
+                    showTab(currentTab);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Real-time input listener to clear error highlight
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('#registerHotelForm input, #registerHotelForm select');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    if (input.value.trim()) {
+                        input.classList.remove('border-rose-500', 'focus:ring-rose-500/20');
+                        input.classList.add('border-slate-200');
+                        const errorMsg = input.nextElementSibling;
+                        if (errorMsg && errorMsg.classList.contains('error-msg')) {
+                            errorMsg.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+        });
 
         function updateStepperUI(activeStep) {
             const indicators = document.querySelectorAll(".step-indicator");

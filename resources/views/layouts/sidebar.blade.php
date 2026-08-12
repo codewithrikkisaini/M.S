@@ -140,7 +140,7 @@
                 <span x-show="sidebarOpen" x-transition>Dashboard</span>
             </a>
 
-            @if(Auth::check() && Auth::user()->hasRole('admin'))
+            @if(Auth::check() && (Auth::user()->hasRole('admin') || Auth::user()->hasRole('receptionist') || Auth::user()->hasRole('superadmin')))
             <a href="{{ route('rooms.index') }}" wire:navigate
                class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('rooms.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
@@ -368,7 +368,7 @@
                 <i class="fas fa-tachometer-alt nav-icon"></i><span>Dashboard</span>
             </a>
             
-            @if(Auth::check() && Auth::user()->hasRole('admin'))
+            @if(Auth::check() && (Auth::user()->hasRole('admin') || Auth::user()->hasRole('receptionist') || Auth::user()->hasRole('superadmin')))
             <a href="{{ route('rooms.index') }}" wire:navigate @click="mobileSidebarOpen = false"
                class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('rooms.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
                 <i class="fas fa-bed nav-icon"></i><span>Rooms</span>
