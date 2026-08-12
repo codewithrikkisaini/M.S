@@ -43,15 +43,17 @@ new class extends Component
             'status'  => 'required|in:Clean,Dirty,Inspecting,Maintenance',
         ]);
 
+        $room = Room::findOrFail($this->room_id);
+
         Housekeeping::updateOrCreate(['id' => $this->housekeepingId], [
             'room_id'    => $this->room_id,
             'status'     => $this->status,
             'updated_by' => Auth::id(),
             'notes'      => $this->notes ?: null,
+            'hotel_id'   => $room->hotel_id ?? Auth::user()?->hotel_id,
         ]);
 
         // Sync with Room status
-        $room = Room::findOrFail($this->room_id);
         if ($this->status === 'Maintenance') {
             $room->update(['status' => 'Maintenance']);
         } elseif ($room->status === 'Maintenance') {

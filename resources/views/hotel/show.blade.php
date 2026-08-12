@@ -459,7 +459,7 @@
         <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden relative transform transition-all" @click.away="showModal = false">
             <!-- Modal Header / Image Carousel -->
             <div class="relative aspect-video bg-slate-100 group">
-                <img :src="selectedRoom?.images && selectedRoom?.images.length > 0 ? selectedRoom?.images[modalImgIdx] : selectedRoom?.image" class="w-full h-full object-cover transition-all duration-300">
+                <img :src="selectedRoom?.images && selectedRoom?.images.length > 0 ? selectedRoom?.images[modalImgIdx] : selectedRoom?.image" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1000&q=80';" class="w-full h-full object-cover transition-all duration-300">
                 
                 <!-- Next / Previous Controls -->
                 <template x-if="selectedRoom?.images && selectedRoom?.images.length > 1">
@@ -496,7 +496,7 @@
                 <div class="flex gap-2 p-2.5 bg-slate-50 border-b border-slate-200 overflow-x-auto">
                     <template x-for="(img, idx) in selectedRoom.images" :key="idx">
                         <button type="button" @click="modalImgIdx = idx" class="w-14 h-10 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer" :class="modalImgIdx === idx ? 'border-blue-500 scale-105 shadow-md' : 'border-slate-200 opacity-60 hover:opacity-100'">
-                            <img :src="img" class="w-full h-full object-cover">
+                            <img :src="img" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=600&q=80';" class="w-full h-full object-cover">
                         </button>
                     </template>
                 </div>

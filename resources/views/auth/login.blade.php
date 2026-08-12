@@ -185,15 +185,24 @@
                 </button>
 
                 {{-- Public Hotel Registration Link --}}
-                <div class="mt-5 text-center">
+                <div class="mt-4 text-center">
                     <p class="text-xs text-slate-500">
                         Want to list your property? 
-                        <a href="/register-hotel" class="text-indigo-650 hover:text-indigo-700 font-semibold hover:underline transition-colors">Register your Hotel here</a>
+                        <a href="/register-hotel" class="text-indigo-600 hover:text-indigo-700 font-semibold hover:underline transition-colors">Register your Hotel here</a>
                     </p>
+                </div>
+
+                {{-- Reception Staff Dedicated Login Button --}}
+                <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+                    <a href="{{ route('receptionist.login') }}"
+                       class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 font-bold py-3 px-4 rounded-xl shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 text-xs group">
+                        <i class="fas fa-user-tie text-emerald-600 group-hover:scale-110 transition-transform"></i>
+                        <span>Reception Staff Dashboard Login</span>
+                    </a>
                 </div>
             </form>
 
-            <p class="mt-8 text-center text-xs text-slate-400">
+            <p class="mt-6 text-center text-xs text-slate-400">
                 &copy; {{ date('Y') }} {{ $hotelName ?? 'Lodgiko PMS' }}. All rights reserved.
             </p>
         </div>

@@ -285,13 +285,6 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Total Rooms / Units (Optional)</label>
-                                <input type="number" name="rooms_count" id="rooms_count" value="{{ old('rooms_count', 15) }}" min="1" class="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Star Rating / Category</label>
                                 <select name="category" id="category" class="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition">
                                     <option value="3 Star">3 Star Hotel</option>
@@ -301,11 +294,11 @@
                                     <option value="Budget">Budget / Standard</option>
                                 </select>
                             </div>
+                        </div>
 
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Current PMS System (Optional)</label>
-                                <input type="text" name="current_pms" id="current_pms" value="{{ old('current_pms') }}" placeholder="e.g. Opera, Cloudbeds, None" class="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition">
-                            </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Current PMS System (Optional)</label>
+                            <input type="text" name="current_pms" id="current_pms" value="{{ old('current_pms') }}" placeholder="e.g. Opera, Cloudbeds, None" class="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition">
                         </div>
                     </div>
 
