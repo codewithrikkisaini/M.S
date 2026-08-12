@@ -31,7 +31,7 @@
         </p>
 
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0 16px 0;">
-        <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">Merahkie Hotel Management System &bull; All rights reserved</p>
+        <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">LODGIKO Hotel Management System &bull; All rights reserved</p>
     </div>
 </body>
 </html>

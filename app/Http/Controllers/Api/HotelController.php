@@ -15,12 +15,13 @@ class HotelController extends Controller
     
     public function index()
     {
-      
-            $hotels = Hotel::all();
+        $hotels = Hotel::orderBy('id', 'asc')->get();
 
-        return response()->json($hotels);
-      
-  
+        return response()->json([
+            'success' => true,
+            'count' => $hotels->count(),
+            'data' => $hotels
+        ], 200);
     }
 
 
@@ -36,8 +37,20 @@ class HotelController extends Controller
      * Display the specified resource.
      */
     public function show(string $id)
-    {
-        //
+        {
+        $hotel = Hotel::find($id);
+
+        if (!$hotel) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hotel not found.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $hotel
+        ], 200);
     }
 
     /**
