@@ -92,6 +92,7 @@ new class extends Component
         $user = User::updateOrCreate(['id' => $this->userId], $data);
 
         $this->resetFields();
+        $this->resetPage();
         $this->showDrawer = false;
         $this->dispatch('toast', message: 'User saved successfully!', type: 'success');
     }

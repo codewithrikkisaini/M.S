@@ -149,7 +149,7 @@ new class extends Component
         if ($hotel_id) {
             $roomsQuery->where('hotel_id', $hotel_id);
         }
-        $rooms = $roomsQuery->orderBy('room_number')->get();
+        $rooms = $roomsQuery->orderByRaw('CAST(room_number AS UNSIGNED) ASC, room_number ASC')->get();
 
         return $this->view(compact('roomTypes', 'rooms'));
     }
