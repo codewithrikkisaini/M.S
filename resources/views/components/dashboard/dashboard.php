@@ -10,6 +10,13 @@ use Carbon\Carbon;
 
 new class extends Component
 {
+    public function mount()
+    {
+        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->hasRole('receptionist') && request()->routeIs('dashboard')) {
+            return redirect()->route('receptionist.dashboard');
+        }
+    }
+
     public function render(): mixed
     {
         $totalRooms       = Room::count();

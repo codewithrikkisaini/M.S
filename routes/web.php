@@ -342,6 +342,7 @@ Route::middleware('auth')->group(function () {
 
     // Dashboard
     Route::livewire('/dashboard', 'dashboard')->name('dashboard');
+    Route::livewire('/receptionist/dashboard', 'dashboard')->name('receptionist.dashboard');
     Route::livewire('/onboarding', 'public.onboarding')->name('onboarding');
 
     // Super Admin Routes

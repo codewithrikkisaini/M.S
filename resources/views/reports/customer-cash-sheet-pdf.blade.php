@@ -126,9 +126,9 @@
         <div style="float: left; width: 45%; padding-top: 15px;">
             @if($customer['due_amount'] <= 0)
                 <div class="stamp stamp-paid">✓ FULLY PAID</div>
-            @else
+            <!-- @else
                 <div class="stamp stamp-due">⚠ BALANCE DUE</div>
-            @endif
+            @endif -->
             <div style="margin-top: 10px; font-size: 10px; color: #64748b; font-weight: bold;">
                 Payment Method: <span style="color: #0f172a;">{{ $customer['payment_method'] }}</span>
             </div>

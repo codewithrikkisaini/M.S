@@ -55,30 +55,38 @@
                         <td class="text-slate-400 text-xs font-semibold">#{{ $res->id }}</td>
                         <td>
                             <div class="flex items-center gap-3">
-                                @if(optional($res->guest)->guest_photo)
-                                    <img src="{{ asset('storage/' . $res->guest->guest_photo) }}" class="w-8 h-8 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200">
-                                @else
-                                    @php
-                                        $initials = strtoupper(substr($res->guest->name ?? 'G', 0, 1));
-                                        $gradients = [
-                                            'A' => 'from-indigo-400 to-indigo-600', 'B' => 'from-emerald-400 to-emerald-600',
-                                            'C' => 'from-blue-400 to-blue-600', 'D' => 'from-rose-400 to-rose-600',
-                                            'E' => 'from-amber-400 to-amber-600', 'F' => 'from-orange-400 to-orange-600',
-                                            'G' => 'from-teal-400 to-teal-600', 'H' => 'from-purple-400 to-purple-600',
-                                            'I' => 'from-pink-400 to-pink-600', 'J' => 'from-cyan-400 to-cyan-600',
-                                        ];
-                                        $gradient = $gradients[$initials] ?? 'from-slate-400 to-slate-600';
-                                    @endphp
-                                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br {{ $gradient }} flex items-center justify-center shrink-0 shadow-sm border border-white">
-                                        <span class="text-xs font-black text-white">{{ $initials }}</span>
-                                    </div>
+                                @if(optional($res->guest)->id)
+                                    <button wire:click="openIdModal({{ $res->guest->id }})" class="shrink-0 cursor-pointer" title="View Guest Verification Documents">
+                                        @if($res->guest->guest_photo)
+                                            <img src="{{ asset('storage/' . $res->guest->guest_photo) }}" class="w-9 h-9 rounded-xl object-cover shadow-sm border border-indigo-200 hover:scale-105 transition-all">
+                                        @else
+                                            @php
+                                                $initials = strtoupper(substr($res->guest->name ?? 'G', 0, 1));
+                                                $gradients = [
+                                                    'A' => 'from-indigo-400 to-indigo-600', 'B' => 'from-emerald-400 to-emerald-600',
+                                                    'C' => 'from-blue-400 to-blue-600', 'D' => 'from-rose-400 to-rose-600',
+                                                    'E' => 'from-amber-400 to-amber-600', 'F' => 'from-orange-400 to-orange-600',
+                                                    'G' => 'from-teal-400 to-teal-600', 'H' => 'from-purple-400 to-purple-600',
+                                                    'I' => 'from-pink-400 to-pink-600', 'J' => 'from-cyan-400 to-cyan-600',
+                                                ];
+                                                $gradient = $gradients[$initials] ?? 'from-slate-400 to-slate-600';
+                                            @endphp
+                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br {{ $gradient }} flex items-center justify-center shadow-sm border border-white hover:scale-105 transition-all">
+                                                <span class="text-xs font-black text-white">{{ $initials }}</span>
+                                            </div>
+                                        @endif
+                                    </button>
                                 @endif
                                 <div>
                                     <span class="font-bold text-slate-800 text-sm block leading-none mb-1">{{ $res->guest->name ?? 'N/A' }}</span>
-                                    <div class="flex items-center gap-1">
+                                    <div class="flex items-center gap-1.5">
                                         <span class="text-[10px] text-slate-400 block">{{ $res->guest->email ?? '' }}</span>
-                                        @if(optional($res->guest)->id_card_front || optional($res->guest)->id_card_back)
-                                            <span class="text-[9px] bg-indigo-50 text-indigo-700 px-1 py-0.2 rounded font-bold" title="ID Scanned"><i class="fas fa-id-card"></i> Verified</span>
+                                        @if(optional($res->guest)->id_card_front || optional($res->guest)->id_card_back || optional($res->guest)->guest_photo)
+                                            <button wire:click="openIdModal({{ $res->guest->id }})"
+                                                    class="text-[9px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 px-1.5 py-0.5 rounded font-bold transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs"
+                                                    title="Click to view Guest Photo & ID Scans">
+                                                <i class="fas fa-id-card text-indigo-500"></i> View Documents
+                                            </button>
                                         @endif
                                     </div>
                                 </div>
@@ -180,7 +188,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="py-12 text-center text-slate-400">
+                        <td colspan="9" class="py-12 text-center text-slate-400">
                             <i class="fas fa-calendar-times text-4xl text-slate-200 mb-3 block"></i>
                             <p class="text-sm font-medium text-slate-400">No reservations found.</p>
                         </td>
@@ -193,4 +201,94 @@
         <div class="px-5 py-4 border-t border-slate-100">{{ $reservations->links() }}</div>
         @endif
     </div>
+
+    {{-- Guest ID Verification Modal Popup --}}
+    @if($showIdModal && $selectedGuest)
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                <div class="flex items-center gap-3">
+                    @if($selectedGuest->guest_photo)
+                        <img src="{{ asset('storage/' . $selectedGuest->guest_photo) }}" class="w-11 h-11 rounded-xl object-cover border border-indigo-200 shadow-sm">
+                    @else
+                        <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-base border border-indigo-100">
+                            <i class="fas fa-user font-black"></i>
+                        </div>
+                    @endif
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">{{ $selectedGuest->name }}</h3>
+                        <p class="text-xs text-slate-500">{{ $selectedGuest->phone ?? 'No phone' }} • {{ $selectedGuest->email ?? 'No email' }}</p>
+                    </div>
+                </div>
+                <button wire:click="closeIdModal" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 cursor-pointer">
+                    <i class="fas fa-times text-base"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-150">
+                    <span class="text-xs font-bold text-slate-700">Verification Documents Status:</span>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        <i class="fas fa-shield-alt text-xs"></i> Verified Guest Profile
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {{-- Guest Photo --}}
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider">Live Photo</label>
+                        @if($selectedGuest->guest_photo)
+                            <a href="{{ asset('storage/' . $selectedGuest->guest_photo) }}" target="_blank" class="block group relative">
+                                <img src="{{ asset('storage/' . $selectedGuest->guest_photo) }}" class="w-full h-36 object-cover rounded-xl border border-slate-200 shadow-sm group-hover:opacity-90">
+                                <span class="absolute inset-0 bg-black/40 text-white text-xs font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-xl transition-all"><i class="fas fa-external-link-alt mr-1"></i> Open Full</span>
+                            </a>
+                        @else
+                            <div class="w-full h-36 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 p-3 text-center">
+                                <i class="fas fa-camera text-2xl mb-1 text-slate-300"></i>
+                                <span class="text-xs font-semibold">No Live Photo</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- ID Card Front --}}
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider">ID Front Scan</label>
+                        @if($selectedGuest->id_card_front)
+                            <a href="{{ asset('storage/' . $selectedGuest->id_card_front) }}" target="_blank" class="block group relative">
+                                <img src="{{ asset('storage/' . $selectedGuest->id_card_front) }}" class="w-full h-36 object-cover rounded-xl border border-slate-200 shadow-sm group-hover:opacity-90">
+                                <span class="absolute inset-0 bg-black/40 text-white text-xs font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-xl transition-all"><i class="fas fa-external-link-alt mr-1"></i> Open Full</span>
+                            </a>
+                        @else
+                            <div class="w-full h-36 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 p-3 text-center">
+                                <i class="fas fa-id-card text-2xl mb-1 text-slate-300"></i>
+                                <span class="text-xs font-semibold">No Front Scan</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- ID Card Back --}}
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-wider">ID Back Scan</label>
+                        @if($selectedGuest->id_card_back)
+                            <a href="{{ asset('storage/' . $selectedGuest->id_card_back) }}" target="_blank" class="block group relative">
+                                <img src="{{ asset('storage/' . $selectedGuest->id_card_back) }}" class="w-full h-36 object-cover rounded-xl border border-slate-200 shadow-sm group-hover:opacity-90">
+                                <span class="absolute inset-0 bg-black/40 text-white text-xs font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-xl transition-all"><i class="fas fa-external-link-alt mr-1"></i> Open Full</span>
+                            </a>
+                        @else
+                            <div class="w-full h-36 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 p-3 text-center">
+                                <i class="fas fa-id-card text-2xl mb-1 text-slate-300"></i>
+                                <span class="text-xs font-semibold">No Back Scan</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 flex items-center justify-end border-t border-slate-100 mt-6">
+                <button type="button" wire:click="closeIdModal" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md cursor-pointer">Done</button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
+
