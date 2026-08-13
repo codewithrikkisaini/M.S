@@ -101,15 +101,6 @@ new class extends Component
 
         if (in_array($this->ticketStatus, ['Open', 'In Progress']) && in_array($this->ticketPriority, ['High', 'Critical'])) {
             $room->update(['status' => 'Maintenance']);
-            Housekeeping::updateOrCreate(
-                ['room_id' => $this->selectedRoomId],
-                [
-                    'status' => 'Maintenance',
-                    'updated_by' => Auth::id(),
-                    'hotel_id' => $room->hotel_id ?? Auth::user()?->hotel_id,
-                    'notes' => "Auto Maintenance via Ticket #{$ticket->id}: {$this->ticketIssue}"
-                ]
-            );
         }
 
         $this->showTicketModal = false;

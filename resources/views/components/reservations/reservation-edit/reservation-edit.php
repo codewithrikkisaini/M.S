@@ -17,6 +17,7 @@ new class extends Component
     public string $special_notes = '', $status = 'Confirmed';
     public string $discount_type = 'Fixed', $discount_value = '0';
     public string $tax_rate = '18';
+    public string $booking_type = 'Walk in';
 
     public string $payment_type = 'Cash', $payment_amount = '';
 
@@ -36,6 +37,7 @@ new class extends Component
         $this->tax_rate       = (string) $reservation->tax_rate;
         $this->special_notes  = $reservation->special_notes ?? '';
         $this->status         = $reservation->status;
+        $this->booking_type   = $reservation->booking_type ?? 'Walk in';
     }
 
     public function updatedCheckInDate(): void { $this->room_ids = []; }
@@ -56,6 +58,7 @@ new class extends Component
             'discount_type'   => 'required|in:Fixed,Percentage',
             'discount_value'  => 'nullable|numeric|min:0',
             'tax_rate'        => 'required|numeric|min:0|max:100',
+            'booking_type'    => 'required|in:Walk in,Direct website,OTA,Phone,Other',
         ]);
 
         foreach ($this->room_ids as $roomId) {
@@ -97,6 +100,7 @@ new class extends Component
             'tax_rate'       => $this->tax_rate !== '' ? $this->tax_rate : 18,
             'special_notes'  => $this->special_notes,
             'status'         => $this->status,
+            'booking_type'   => $this->booking_type,
         ], true);
 
         session()->flash('toast', ['message' => 'Reservation updated successfully!', 'type' => 'success']);

@@ -95,93 +95,180 @@
                     
                     {{-- Booking Type --}} 
                     <div> 
-                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider"> Booking Type </label> 
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider"> Booking Type <span class="text-red-500">*</span></label> 
                         <select wire:model="booking_type" class="pms-select text-xs"> 
-                            <option value="">Select type...</option> <option value="Walk in">Walk in</option> 
-                            <option value="Direct website">Direct website</option> 
-                            <option value="OTA">OTA</option> <option value="Phone">Phone</option> 
-                            <option value="Other">Other</option> 
+                            <option value="Walk in">🚶 Walk in</option> 
+                            <option value="Direct website">🌐 Direct website</option> 
+                            <option value="OTA">🏨 OTA (Booking.com/MMT/Agoda)</option> 
+                            <option value="Phone">📞 Phone</option> 
+                            <option value="Other">📌 Other</option> 
                         </select> 
-                        @error('booking_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror </div>
+                        @error('booking_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror 
+                    </div>
 
-                    {{-- Guest ID Photo --}}
-                    <div class="col-span-2">
-                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                            Guest ID Photo
-                        </label>
+                    {{-- ID & Guest Photo Attachments Section --}}
+                    <div class="col-span-2 bg-slate-50/70 p-4 rounded-xl border border-slate-200 mt-2"
+                         x-data="{
+                            showCamera: false,
+                            targetField: '',
+                            stream: null,
+                            startCamera(field) {
+                                this.targetField = field;
+                                this.showCamera = true;
+                                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                                    .then(s => {
+                                        this.stream = s;
+                                        this.$refs.videoElem.srcObject = s;
+                                    })
+                                    .catch(err => {
+                                        alert('Camera error: ' + err.message);
+                                        this.showCamera = false;
+                                    });
+                            },
+                            stopCamera() {
+                                if (this.stream) {
+                                    this.stream.getTracks().forEach(t => t.stop());
+                                    this.stream = null;
+                                }
+                                this.showCamera = false;
+                            },
+                            capture() {
+                                const video = this.$refs.videoElem;
+                                const canvas = document.createElement('canvas');
+                                canvas.width = video.videoWidth || 640;
+                                canvas.height = video.videoHeight || 480;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                                if (this.targetField === 'front') {
+                                    $wire.set('id_card_front_base64', dataUrl);
+                                } else if (this.targetField === 'back') {
+                                    $wire.set('id_card_back_base64', dataUrl);
+                                } else if (this.targetField === 'guest') {
+                                    $wire.set('guest_photo_base64', dataUrl);
+                                }
+                                this.stopCamera();
+                            }
+                         }">
+                        
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <i class="fas fa-id-card text-indigo-500"></i> Guest Photo & ID Document Verification (Front & Back)
+                        </h4>
 
-                        <div class="mt-2 flex items-center gap-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {{-- 1. ID Card Front --}}
+                            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs flex flex-col justify-between">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">ID Scan - Front</label>
+                                    <p class="text-[10px] text-slate-400 mb-2">Front side of Aadhaar / License / Passport</p>
+                                </div>
+                                
+                                @if($id_card_front_base64)
+                                    <div class="relative mb-2">
+                                        <img src="{{ $id_card_front_base64 }}" class="w-full h-24 object-cover rounded-md border">
+                                        <button type="button" wire:click="$set('id_card_front_base64', '')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @elseif($id_card_front)
+                                    <div class="relative mb-2">
+                                        <img src="{{ $id_card_front->temporaryUrl() }}" class="w-full h-24 object-cover rounded-md border">
+                                        <button type="button" wire:click="$set('id_card_front', null)" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @endif
 
-                            <!-- {{-- Camera Button --}}
-                            <label class="inline-flex items-center gap-2 px-4 py-2.5
-                                        bg-indigo-600 text-white rounded-lg
-                                        text-xs font-bold cursor-pointer
-                                        hover:bg-indigo-700 transition-colors">
-
-                                <i class="fas fa-camera"></i>
-                                Take Photo
-
-                                <input type="file"
-                                    wire:model="guest_id_photo"
-                                    accept="image/*"
-                                    capture="environment"
-                                    class="hidden">
-                            </label> -->
-
-                            {{-- Upload From Device --}}
-                            <label class="inline-flex items-center gap-2 px-4 py-2.5
-                                        bg-slate-100 text-slate-700 rounded-lg
-                                        text-xs font-bold cursor-pointer
-                                        hover:bg-slate-200 transition-colors">
-
-                                <i class="fas fa-upload"></i>
-                                Upload
-
-                                <input type="file"
-                                    wire:model="guest_id_photo"
-                                    accept="image/*"
-                                    class="hidden">
-                            </label>
-
-                        </div>
-
-                        {{-- Uploading --}}
-                        <div wire:loading wire:target="guest_id_photo"
-                            class="text-xs text-indigo-600 mt-2">
-                            <i class="fas fa-spinner fa-spin mr-1"></i>
-                            Uploading photo...
-                        </div>
-
-                        {{-- Preview --}}
-                        @if ($guest_id_photo)
-                            <div class="mt-3">
-                                <div class="relative inline-block">
-
-                                    <img src="{{ $guest_id_photo->temporaryUrl() }}"
-                                        class="w-40 h-28 object-cover rounded-lg border border-slate-200 shadow-sm">
-
-                                    <button type="button"
-                                            wire:click="$set('guest_id_photo', null)"
-                                            class="absolute -top-2 -right-2 w-6 h-6
-                                                bg-red-500 text-white rounded-full
-                                                flex items-center justify-center
-                                                hover:bg-red-600">
-
-                                        <i class="fas fa-times text-[10px]"></i>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="startCamera('front')" class="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded flex items-center justify-center gap-1">
+                                        <i class="fas fa-camera"></i> Camera
                                     </button>
+                                    <label class="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded flex items-center justify-center gap-1 cursor-pointer">
+                                        <i class="fas fa-upload"></i> Upload
+                                        <input type="file" wire:model="id_card_front" accept="image/*" class="hidden">
+                                    </label>
+                                </div>
+                                @error('id_card_front') <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                            </div>
 
+                            {{-- 2. ID Card Back --}}
+                            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs flex flex-col justify-between">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">ID Scan - Back</label>
+                                    <p class="text-[10px] text-slate-400 mb-2">Back side of Aadhaar / License</p>
                                 </div>
 
-                                <p class="text-[10px] text-emerald-600 font-semibold mt-1">
-                                    <i class="fas fa-check-circle"></i>
-                                    Photo ready
-                                </p>
-                            </div>
-                        @endif
+                                @if($id_card_back_base64)
+                                    <div class="relative mb-2">
+                                        <img src="{{ $id_card_back_base64 }}" class="w-full h-24 object-cover rounded-md border">
+                                        <button type="button" wire:click="$set('id_card_back_base64', '')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @elseif($id_card_back)
+                                    <div class="relative mb-2">
+                                        <img src="{{ $id_card_back->temporaryUrl() }}" class="w-full h-24 object-cover rounded-md border">
+                                        <button type="button" wire:click="$set('id_card_back', null)" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @endif
 
-                        @error('guest_id_photo')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="startCamera('back')" class="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded flex items-center justify-center gap-1">
+                                        <i class="fas fa-camera"></i> Camera
+                                    </button>
+                                    <label class="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded flex items-center justify-center gap-1 cursor-pointer">
+                                        <i class="fas fa-upload"></i> Upload
+                                        <input type="file" wire:model="id_card_back" accept="image/*" class="hidden">
+                                    </label>
+                                </div>
+                                @error('id_card_back') <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- 3. Guest Photo --}}
+                            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs flex flex-col justify-between">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Guest Live Photo</label>
+                                    <p class="text-[10px] text-slate-400 mb-2">Guest portrait photo at check-in</p>
+                                </div>
+
+                                @if($guest_photo_base64)
+                                    <div class="relative mb-2">
+                                        <img src="{{ $guest_photo_base64 }}" class="w-full h-24 object-cover rounded-md border">
+                                        <button type="button" wire:click="$set('guest_photo_base64', '')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @elseif($guest_photo)
+                                    <div class="relative mb-2">
+                                        <img src="{{ $guest_photo->temporaryUrl() }}" class="w-full h-24 object-cover rounded-md border">
+                                        <button type="button" wire:click="$set('guest_photo', null)" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @endif
+
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="startCamera('guest')" class="flex-1 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded flex items-center justify-center gap-1">
+                                        <i class="fas fa-camera"></i> Camera
+                                    </button>
+                                    <label class="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded flex items-center justify-center gap-1 cursor-pointer">
+                                        <i class="fas fa-upload"></i> Upload
+                                        <input type="file" wire:model="guest_photo" accept="image/*" class="hidden">
+                                    </label>
+                                </div>
+                                @error('guest_photo') <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        {{-- WebCam Live Capture Modal --}}
+                        <div x-show="showCamera" style="display: none;" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div class="bg-white rounded-2xl p-5 max-w-md w-full shadow-2xl border border-slate-200 text-center">
+                                <h3 class="text-sm font-extrabold text-slate-800 mb-3 flex items-center justify-center gap-2">
+                                    <i class="fas fa-camera text-indigo-600"></i> Capture Photo via Camera
+                                </h3>
+                                <div class="bg-slate-900 rounded-xl overflow-hidden aspect-video relative mb-4">
+                                    <video x-ref="videoElem" autoplay playsinline class="w-full h-full object-cover"></video>
+                                </div>
+                                <div class="flex items-center justify-center gap-3">
+                                    <button type="button" @click="capture()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2">
+                                        <i class="fas fa-camera"></i> Take Snapshot
+                                    </button>
+                                    <button type="button" @click="stopCamera()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
 

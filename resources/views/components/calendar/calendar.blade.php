@@ -80,7 +80,7 @@
                     </div>
                 @endif
 
-                <div class="flex items-center gap-4 text-xs font-semibold text-slate-600 bg-slate-50/80 border border-slate-100 px-3 py-1.5 rounded-xl">
+                <div class="flex items-center gap-3 text-xs font-semibold text-slate-600 bg-slate-50/80 border border-slate-100 px-3 py-1.5 rounded-xl flex-wrap">
                     <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Legend:</span>
                     <span class="flex items-center gap-1.5">
                         <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 shadow-sm shadow-indigo-200"></span>
@@ -91,8 +91,12 @@
                         Checked-In
                     </span>
                     <span class="flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-50 shadow-sm shadow-amber-200"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-200"></span>
                         Reserved
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-200"></span>
+                        Maintenance / Housekeeping Work
                     </span>
                     <span class="flex items-center gap-1.5">
                         <span class="w-2.5 h-2.5 rounded-full bg-slate-400 shadow-sm shadow-slate-200"></span>
@@ -122,15 +126,35 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-slate-150">
                             @foreach($rooms as $room)
+                                @php
+                                    $rNum = (string) ($room->room_number ?? '');
+                                    $displayRoomNum = \Illuminate\Support\Str::startsWith(strtolower($rNum), 'room') ? $rNum : 'Room ' . $rNum;
+                                    $typeName = $room->roomType->name ?? 'Standard';
+
+                                    $isMaintenance = ($room->status === 'Maintenance' || ($room->activeMaintenanceTickets && $room->activeMaintenanceTickets->count() > 0));
+                                    $hkStatus = $room->latestHousekeeping?->status ?? 'Clean';
+                                    $isDirty = ($hkStatus === 'Dirty');
+                                    $isInspecting = ($hkStatus === 'Inspecting');
+
+                                    // Sidebar highlights
+                                    $sidebarBg = 'bg-white';
+                                    $badgeMarkup = '';
+                                    if ($isMaintenance) {
+                                        $sidebarBg = 'bg-rose-50/80 border-l-4 border-l-rose-600';
+                                        $badgeMarkup = '<span class="text-[9px] font-black text-rose-600 uppercase tracking-wider block mt-0.5"><i class="fas fa-tools text-[8px] mr-1"></i>Maintenance</span>';
+                                    } elseif ($isDirty) {
+                                        $sidebarBg = 'bg-rose-50/80 border-l-4 border-l-rose-600';
+                                        $badgeMarkup = '<span class="text-[9px] font-black text-rose-600 uppercase tracking-wider block mt-0.5"><i class="fas fa-broom text-[8px] mr-1"></i>Dirty</span>';
+                                    } elseif ($isInspecting) {
+                                        $sidebarBg = 'bg-amber-50/80 border-l-4 border-l-amber-600';
+                                        $badgeMarkup = '<span class="text-[9px] font-black text-amber-700 uppercase tracking-wider block mt-0.5"><i class="fas fa-search text-[8px] mr-1"></i>Inspecting</span>';
+                                    }
+                                @endphp
                                 <tr class="hover:bg-slate-50/20 transition-colors">
-                                    <td class="sticky-column left-0 z-10 bg-white font-semibold text-slate-700 text-xs px-3 py-2 border-r border-slate-200 flex flex-col justify-center h-16 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] overflow-hidden max-w-[176px]">
-                                        @php
-                                            $rNum = (string) ($room->room_number ?? '');
-                                            $displayRoomNum = \Illuminate\Support\Str::startsWith(strtolower($rNum), 'room') ? $rNum : 'Room ' . $rNum;
-                                            $typeName = $room->roomType->name ?? 'Standard';
-                                        @endphp
+                                    <td class="sticky-column left-0 z-10 {{ $sidebarBg }} font-semibold text-slate-700 text-xs px-3 py-2 border-r border-slate-200 flex flex-col justify-center h-16 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] overflow-hidden max-w-[176px]">
                                         <span class="font-extrabold text-slate-800 text-xs truncate leading-tight" title="{{ $displayRoomNum }}">{{ $displayRoomNum }}</span>
                                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate leading-tight mt-0.5" title="{{ $typeName }}">{{ $typeName }}</span>
+                                        {!! $badgeMarkup !!}
                                     </td>
                                     @foreach($days as $idx => $day)
                                         @php
@@ -165,6 +189,18 @@
                                                         <span class="truncate block max-w-full" title="{{ $booking['guest_name'] }}">{{ $booking['guest_name'] }}</span>
                                                     @endif
                                                 </a>
+                                            @elseif($isMaintenance)
+                                                <div class="w-full h-10 rounded-lg bg-rose-500 text-white flex items-center justify-center text-[10px] font-black tracking-tight px-1 shadow-sm" title="Room under Maintenance">
+                                                    <i class="fas fa-tools mr-1 text-[9px]"></i> Maintenance
+                                                </div>
+                                            @elseif($isDirty)
+                                                <div class="w-full h-10 rounded-lg bg-rose-500 text-white flex items-center justify-center text-[10px] font-black tracking-tight px-1 shadow-sm" title="Housekeeping Required (Dirty)">
+                                                    <i class="fas fa-broom mr-1 text-[9px]"></i> Dirty
+                                                </div>
+                                            @elseif($isInspecting)
+                                                <div class="w-full h-10 rounded-lg bg-amber-500 text-white flex items-center justify-center text-[10px] font-black tracking-tight px-1 shadow-sm" title="Housekeeping Inspecting">
+                                                    <i class="fas fa-search mr-1 text-[9px]"></i> Inspecting
+                                                </div>
                                             @else
                                                 <button type="button" 
                                                         wire:click="openBookingModal({{ $room->id }}, '{{ $dateStr }}')"

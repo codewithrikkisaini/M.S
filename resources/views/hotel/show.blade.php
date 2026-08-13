@@ -288,8 +288,23 @@
                                     $roomTypeName = $room->roomType->name ?? 'Standard Room';
                                     $roomPrice = $room->price ?: ($room->roomType->base_price ?? 2500);
                                     $bookUrl = route('booking-engine.hotel', ['slug' => $hotel->slug ? $hotel->slug . '-' . $hotel->id : $hotel->id]) . '?room_type_id=' . $room->room_type_id . '&room_id=' . $room->id;
-                                    $isAvail = $room->status === 'Available';
+                                    
+                                    $isMaintenance = ($room->status === 'Maintenance' || ($room->activeMaintenanceTickets && $room->activeMaintenanceTickets->count() > 0));
+                                    $hkStatus = $room->latestHousekeeping?->status ?? 'Clean';
+                                    $isDirty = in_array($hkStatus, ['Dirty', 'Inspecting']);
+                                    $isOccupied = ($room->status === 'Occupied');
+                                    
+                                    $hasActiveReservation = $room->reservations 
+                                        ? $room->reservations->whereIn('status', ['Confirmed', 'Checked-In', 'Pending'])
+                                                             ->where('check_out_date', '>=', date('Y-m-d'))
+                                                             ->count() > 0 
+                                        : false;
+
+                                    $isAvail = ($room->status === 'Available') && !$isMaintenance && !$isDirty && !$isOccupied && !$hasActiveReservation;
                                 @endphp
+                                @if(!$isAvail)
+                                    @continue
+                                @endif
                                 <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row gap-6 hover:shadow-md transition-all">
                                     <div class="w-full sm:w-1/3 aspect-video sm:aspect-auto rounded-xl bg-slate-100 overflow-hidden shrink-0 relative">
                                         <img src="{{ $room->image_url }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';" class="w-full h-full object-cover">

@@ -185,7 +185,7 @@ new class extends Component {
         $end_str = $start->copy()->addDays(13)->format('Y-m-d');
         $start_str = $this->startDate;
 
-        $rooms = Room::with(['roomType'])->orderBy('room_number')->get();
+        $rooms = Room::with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets'])->orderBy('room_number')->get();
 
         // Get reservations overlapping with timeline range
         $reservations = Reservation::with(['guest', 'rooms'])
@@ -247,4 +247,4 @@ new class extends Component {
             'events' => $events,
         ]);
     }
-}
+};

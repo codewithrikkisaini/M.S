@@ -121,7 +121,6 @@
                                 <option value="Clean" {{ $hk === 'Clean' ? 'selected' : '' }} class="bg-white text-emerald-700 font-bold">🟢 Clean</option>
                                 <option value="Dirty" {{ $hk === 'Dirty' ? 'selected' : '' }} class="bg-white text-orange-700 font-bold">🟠 Dirty</option>
                                 <option value="Inspecting" {{ $hk === 'Inspecting' ? 'selected' : '' }} class="bg-white text-amber-700 font-bold">🟡 Inspecting</option>
-                                <option value="Maintenance" {{ $hk === 'Maintenance' ? 'selected' : '' }} class="bg-white text-slate-700 font-bold">🔧 Maintenance</option>
                             </select>
                         </td>
                         <td>
