@@ -114,7 +114,7 @@ new class extends Component
                 $q->where('room_number', 'like', "%{$this->search}%")
                   ->orWhere('status', 'like', "%{$this->search}%");
             })
-            ->latest()
+            ->orderByRaw('CAST(room_number AS UNSIGNED) ASC, room_number ASC')
             ->paginate(10);
 
         return $this->view([
