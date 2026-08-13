@@ -43,6 +43,8 @@
                         <th class="font-bold">Photo</th>
                         <th class="font-bold">Room No.</th>
                         <th class="font-bold">Room Type</th>
+                        <th class="font-bold">Bed Type</th>
+                        <th class="font-bold">Room Option / Feature</th>
                         <th class="font-bold">Floor</th>
                         <th class="font-bold">Price / Night</th>
                         <th class="font-bold">Status</th>
@@ -70,12 +72,13 @@
                         </td>
                         <td>
                             <span class="font-bold text-slate-800 text-sm block">{{ $room->roomType->name ?? '—' }}</span>
-                            @if(!empty($room->bed_type) || !empty($room->room_option))
-                            <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                                @if(!empty($room->bed_type))
-                                    <span class="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">{{ $room->bed_type }}</span>
-                                @endif
-                                @if(!empty($room->room_option))
+                        </td>
+                        <td>
+                            <span class="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs whitespace-nowrap">{{ $room->bed_type ?: 'King Bed' }}</span>
+                        </td>
+                        <td>
+                            @if(!empty($room->room_option))
+                                <div class="flex flex-wrap items-center gap-1 max-w-xs">
                                     @foreach(explode(',', $room->room_option) as $opt)
                                         @if(trim($opt))
                                             <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/80">
@@ -83,8 +86,9 @@
                                             </span>
                                         @endif
                                     @endforeach
-                                @endif
-                            </div>
+                                </div>
+                            @else
+                                <span class="text-xs text-slate-400 font-medium">—</span>
                             @endif
                         </td>
                         <td>

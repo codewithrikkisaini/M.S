@@ -273,7 +273,8 @@
                         <th class="font-bold">Photo</th>
                         <th class="font-bold">Room No.</th>
                         <th class="font-bold">Room Type</th>
-                        <th class="font-bold">Bed & Option</th>
+                        <th class="font-bold">Bed Type</th>
+                        <th class="font-bold">Room Option / Feature</th>
                         <th class="font-bold">Daily Rate</th>
                         <th class="font-bold">Weekly Rate</th>
                         <th class="font-bold">Monthly Rate</th>
@@ -304,10 +305,22 @@
                             <span class="font-bold text-slate-800 text-xs">{{ $r->roomType->name ?? '—' }}</span>
                         </td>
                         <td>
-                            <div class="text-xs">
-                                <span class="font-bold text-indigo-700 block">{{ $r->bed_type ?: 'King Bed' }}</span>
-                                <span class="text-[11px] text-slate-500 font-medium">{{ $r->room_option ?: '—' }}</span>
-                            </div>
+                            <span class="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs whitespace-nowrap">{{ $r->bed_type ?: 'King Bed' }}</span>
+                        </td>
+                        <td>
+                            @if(!empty($r->room_option))
+                                <div class="flex flex-wrap items-center gap-1 max-w-xs">
+                                    @foreach(explode(',', $r->room_option) as $opt)
+                                        @if(trim($opt))
+                                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/80">
+                                                <i class="fas fa-check-circle text-[9px] mr-1 text-indigo-500"></i>{{ trim($opt) }}
+                                            </span>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @else
+                                <span class="text-xs text-slate-400 font-medium">—</span>
+                            @endif
                         </td>
                         <td class="font-bold text-slate-700 text-xs">
                             ${{ number_format($r->roomType->daily_rate ?? $r->price, 2) }}
