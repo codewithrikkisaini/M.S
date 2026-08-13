@@ -18,10 +18,25 @@ use Illuminate\Support\Facades\Log;
 
 new class extends Component
 {
-    public $hotelsList;
     public $showCreateModal = false;
     public $showViewModal = false;
+    public $showEditModal = false;
+    public $editHotelId = null;
     public $viewHotel = null;
+
+    // Edit Modal Fields
+    public $edit_name;
+    public $edit_email;
+    public $edit_phone;
+    public $edit_address;
+    public $edit_city;
+    public $edit_state;
+    public $edit_country;
+    public $edit_postal_code;
+    public $edit_status;
+    public $edit_tax_id;
+    public $edit_rooms_count;
+    public $edit_password;
     
     // Wizard step tracking
     public int $currentStep = 1;
@@ -97,6 +112,85 @@ new class extends Component
     {
         $this->showViewModal = false;
         $this->viewHotel = null;
+    }
+
+    public function openEditModal($id): void
+    {
+        $hotel = Hotel::findOrFail($id);
+        $this->editHotelId = $hotel->id;
+        $this->edit_name = $hotel->name;
+        $this->edit_email = $hotel->email;
+        $this->edit_phone = $hotel->phone;
+        $this->edit_address = $hotel->address;
+        $this->edit_city = $hotel->city;
+        $this->edit_state = $hotel->state;
+        $this->edit_country = $hotel->country;
+        $this->edit_postal_code = $hotel->postal_code;
+        $this->edit_status = $hotel->status;
+        $this->edit_tax_id = $hotel->tax_id;
+        $this->edit_rooms_count = $hotel->rooms_count ?? 10;
+        $this->edit_password = '';
+        $this->showEditModal = true;
+    }
+
+    public function closeEditModal(): void
+    {
+        $this->showEditModal = false;
+        $this->editHotelId = null;
+    }
+
+    public function saveEditHotel(): void
+    {
+        $this->validate([
+            'edit_name' => 'required|string|max:255',
+            'edit_email' => 'required|email|unique:hotels,email,' . $this->editHotelId,
+            'edit_phone' => 'nullable|string|max:30',
+            'edit_address' => 'required|string|max:500',
+            'edit_city' => 'nullable|string|max:100',
+            'edit_state' => 'nullable|string|max:100',
+            'edit_country' => 'nullable|string|max:100',
+            'edit_postal_code' => 'nullable|string|max:20',
+            'edit_status' => 'required|string|in:pending,approved,suspended,rejected',
+            'edit_tax_id' => 'nullable|string|max:100',
+            'edit_rooms_count' => 'nullable|integer|min:1',
+        ]);
+
+        $hotel = Hotel::findOrFail($this->editHotelId);
+        $hotel->update([
+            'name' => $this->edit_name,
+            'email' => $this->edit_email,
+            'phone' => $this->edit_phone,
+            'address' => $this->edit_address,
+            'city' => $this->edit_city,
+            'state' => $this->edit_state,
+            'country' => $this->edit_country,
+            'postal_code' => $this->edit_postal_code,
+            'status' => $this->edit_status,
+            'tax_id' => $this->edit_tax_id,
+            'rooms_count' => $this->edit_rooms_count,
+        ]);
+
+        if (!empty($this->edit_password)) {
+            $this->validate([
+                'edit_password' => 'min:6',
+            ]);
+            $hashed = \Illuminate\Support\Facades\Hash::make($this->edit_password);
+            User::withoutGlobalScope('tenant')->where('hotel_id', $hotel->id)->update(['password' => $hashed]);
+        }
+
+        if ($this->edit_status === 'suspended') {
+            User::withoutGlobalScope('tenant')->where('hotel_id', $hotel->id)->update(['status' => 'inactive']);
+        } elseif ($this->edit_status === 'approved') {
+            User::withoutGlobalScope('tenant')->where('hotel_id', $hotel->id)->update(['status' => 'active']);
+        }
+
+        $this->closeEditModal();
+        $this->loadHotels();
+
+        $this->dispatch('toast', [
+            'type' => 'success',
+            'message' => "Hotel '{$hotel->name}' updated successfully!"
+        ]);
     }
 
     public function resetForm(): void

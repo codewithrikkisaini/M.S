@@ -349,6 +349,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('superadmin')->group(function () {
         Route::livewire('/superadmin/dashboard', 'superadmin.dashboard')->name('superadmin.dashboard');
         Route::get('/superadmin/hotels', [\App\Http\Controllers\SuperAdminHotelController::class, 'index'])->name('superadmin.hotels.index');
+        Route::put('/superadmin/hotels/{hotel}', [\App\Http\Controllers\SuperAdminHotelController::class, 'update'])->name('superadmin.hotels.update');
         Route::get('/superadmin/hotels/{hotel}', [\App\Http\Controllers\SuperAdminHotelController::class, 'show'])->name('superadmin.hotels.show');
         Route::post('/superadmin/hotels/{hotel}/approve-7day', [\App\Http\Controllers\SuperAdminHotelController::class, 'approve7DayTrial'])->name('superadmin.hotels.approve-7day');
         Route::post('/superadmin/hotels/{hotel}/approve-15day', [\App\Http\Controllers\SuperAdminHotelController::class, 'approve15DayTrial'])->name('superadmin.hotels.approve-15day');
