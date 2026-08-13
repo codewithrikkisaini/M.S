@@ -75,6 +75,11 @@
                                 <i class="far fa-eye mr-0.5"></i> View
                             </button>
 
+                            <button wire:click="openEditModal({{ $h->id }})" 
+                                    class="text-amber-600 hover:text-amber-800 font-bold mr-3 cursor-pointer">
+                                <i class="far fa-edit mr-0.5"></i> Edit
+                            </button>
+
                             @if($h->status === 'pending')
                                 <button onclick="confirm('Approve this registration request?') || event.stopImmediatePropagation()"
                                         wire:click="approveHotel({{ $h->id }})" 
@@ -781,6 +786,100 @@
 
                 <button wire:click="closeViewModal" class="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
                     Close Total View
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- Edit Hotel Modal for SuperAdmin --}}
+    @if($showEditModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-slate-100 animate-fadeIn duration-200">
+            <div class="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-900 text-white rounded-t-2xl">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white font-bold text-sm">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-white">Edit Hotel Details</h3>
+                        <p class="text-[11px] text-slate-400">SuperAdmin Direct Tenant Control</p>
+                    </div>
+                </div>
+                <button wire:click="closeEditModal" class="text-slate-400 hover:text-white p-1.5 rounded-lg transition-colors cursor-pointer">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Hotel Name *</label>
+                        <input type="text" wire:model="edit_name" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                        @error('edit_name') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Email Address *</label>
+                        <input type="email" wire:model="edit_email" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                        @error('edit_email') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Phone Number</label>
+                        <input type="text" wire:model="edit_phone" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                        @error('edit_phone') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Account Status *</label>
+                        <select wire:model="edit_status" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 font-bold">
+                            <option value="approved">Approved / Active</option>
+                            <option value="pending">Pending Approval</option>
+                            <option value="suspended">Suspended</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        @error('edit_status') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Street Address *</label>
+                        <input type="text" wire:model="edit_address" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                        @error('edit_address') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">City</label>
+                        <input type="text" wire:model="edit_city" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                        @error('edit_city') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Country</label>
+                        <input type="text" wire:model="edit_country" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                        @error('edit_country') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Tax ID / GSTIN</label>
+                        <input type="text" wire:model="edit_tax_id" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                        @error('edit_tax_id') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Total Rooms Count Limit</label>
+                        <input type="number" wire:model="edit_rooms_count" class="w-full text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" min="1">
+                        @error('edit_rooms_count') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="md:col-span-2 bg-amber-50/60 p-3 rounded-xl border border-amber-200/80">
+                        <label class="block text-xs font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+                            <i class="fas fa-key text-amber-600"></i> Change / Reset Account Password
+                            <span class="text-[10px] text-amber-700 font-normal ml-auto">(Leave blank to keep current password)</span>
+                        </label>
+                        <input type="password" wire:model="edit_password" placeholder="Enter new password (min 6 characters)" class="w-full text-slate-800 border border-amber-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-indigo-500">
+                        @error('edit_password') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 p-5 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+                <button wire:click="closeEditModal" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button wire:click="saveEditHotel" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5">
+                    <i class="fas fa-check"></i> Save Hotel Changes
                 </button>
             </div>
         </div>

@@ -5,10 +5,12 @@
         paidModal: false, 
         extendModal: false, 
         viewModal: false, 
+        editModal: false,
         selectedHotelId: null, 
         selectedHotelName: '', 
         selectedHotelCode: '',
-        activeHotel: {}
+        activeHotel: {},
+        editHotel: {}
     }">
         
         <!-- Header -->
@@ -165,6 +167,10 @@
                                 <td class="py-4 px-4 text-right space-x-1 whitespace-nowrap">
                                     <button type="button" @click="activeHotel = {{ $hotelJson }}; viewModal = true;" class="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-bold transition shadow-sm" title="Quick View Full Record">
                                         <i class="fa-solid fa-eye mr-1.5 text-indigo-500"></i> Review
+                                    </button>
+
+                                    <button type="button" @click="editHotel = JSON.parse(JSON.stringify({{ $hotelJson }})); editModal = true;" class="inline-flex items-center px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-xs font-bold transition shadow-sm" title="Edit Hotel Record">
+                                        <i class="fa-solid fa-pen-to-square mr-1.5 text-amber-600"></i> Edit
                                     </button>
 
                                     @if($hotel->account_status === 'pending_approval' || $hotel->status === 'pending')
@@ -338,6 +344,109 @@
                         Close Record
                     </button>
                 </div>
+
+            </div>
+        </div>
+
+        <!-- SuperAdmin Direct Edit Hotel Modal -->
+        <div x-show="editModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" style="display: none;">
+            <div class="bg-white rounded-3xl border border-slate-200 max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+                
+                <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-extrabold text-slate-900">Edit Hotel Record</h3>
+                            <p class="text-xs text-slate-500">SuperAdmin Direct Tenant Profile & Status Editing</p>
+                        </div>
+                    </div>
+                    <button @click="editModal = false" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-base">&times;</button>
+                </div>
+
+                <form :action="'/superadmin/hotels/' + editHotel.id" method="POST" class="space-y-4">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Hotel Trade Name *</label>
+                            <input type="text" name="name" x-model="editHotel.name" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Owner / Proprietor Name</label>
+                            <input type="text" name="owner_name" x-model="editHotel.owner_name" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Registered Hotel Email *</label>
+                            <input type="email" name="email" x-model="editHotel.email" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Phone</label>
+                            <input type="text" name="phone" x-model="editHotel.phone" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Legal Business Name</label>
+                            <input type="text" name="business_name" x-model="editHotel.business_name" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Tax ID / GSTIN</label>
+                            <input type="text" name="tax_id" x-model="editHotel.tax_id" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Account Status *</label>
+                            <select name="account_status" x-model="editHotel.account_status" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500">
+                                <option value="pending_approval">Pending Approval</option>
+                                <option value="active">Active</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Total Rooms Limit</label>
+                            <input type="number" name="rooms_count" x-model="editHotel.rooms_count" min="1" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Street Address *</label>
+                            <input type="text" name="address" x-model="editHotel.address" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">City</label>
+                            <input type="text" name="city" x-model="editHotel.city" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Country</label>
+                            <input type="text" name="country" x-model="editHotel.country" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div class="sm:col-span-2 bg-amber-50/60 p-3 rounded-xl border border-amber-200/80">
+                            <label class="block text-xs font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-key text-amber-600"></i> Change / Reset Account Password
+                                <span class="text-[10px] text-amber-700 font-normal ml-auto">(Leave blank to keep current password)</span>
+                            </label>
+                            <input type="password" name="password" placeholder="Enter new password (min 6 characters)" class="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm bg-white focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                        <button type="button" @click="editModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs transition shadow-md flex items-center gap-1.5">
+                            <i class="fa-solid fa-check"></i> Save Hotel Changes
+                        </button>
+                    </div>
+                </form>
 
             </div>
         </div>

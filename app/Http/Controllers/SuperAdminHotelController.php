@@ -154,6 +154,57 @@ class SuperAdminHotelController extends Controller
         }
     }
 
+    public function update(Request $request, Hotel $hotel)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'business_name' => ['nullable', 'string', 'max:255'],
+            'owner_name' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'address' => ['required', 'string', 'max:500'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'country' => ['nullable', 'string', 'max:100'],
+            'tax_id' => ['nullable', 'string', 'max:100'],
+            'rooms_count' => ['nullable', 'integer', 'min:1'],
+            'account_status' => ['required', 'string', 'in:pending_approval,active,suspended'],
+            'password' => ['nullable', 'string', 'min:6'],
+        ]);
+
+        try {
+            $hotel->update($validated);
+
+            if ($validated['account_status'] === 'active') {
+                $hotel->status = 'approved';
+            } elseif ($validated['account_status'] === 'suspended') {
+                $hotel->status = 'suspended';
+            } elseif ($validated['account_status'] === 'pending_approval') {
+                $hotel->status = 'pending';
+            }
+            $hotel->save();
+
+            if ($validated['account_status'] === 'suspended') {
+                $hotel->users()->update(['status' => 'inactive']);
+            } elseif ($validated['account_status'] === 'active') {
+                $hotel->users()->update(['status' => 'active']);
+            }
+
+            if ($request->filled('password')) {
+                $hashed = \Illuminate\Support\Facades\Hash::make($request->password);
+                foreach ($hotel->users as $u) {
+                    $u->password = $hashed;
+                    $u->save();
+                }
+            }
+
+            ActivityLog::logAdminAction($hotel, 'Update Hotel Record', null, null, "Updated hotel profile & password by SuperAdmin");
+
+            return redirect()->back()->with('success', "Hotel '{$hotel->name}' record and login credentials updated successfully!");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', "Failed updating hotel: " . $e->getMessage());
+        }
+    }
+
     public function destroy(Hotel $hotel)
     {
         try {
