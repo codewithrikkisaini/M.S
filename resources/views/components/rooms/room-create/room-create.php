@@ -16,7 +16,7 @@ new class extends Component
     public string $floor = '1';
     public string $bed_type = 'King Bed';
     public array $room_option = [];
-    // public string $room_type_select = 'Single';
+    public string $room_type_select = 'Single';
     public string $room_type_name = 'Single';
     public string $daily_rate = '59.95';
     public string $weekly_rate = '249.90';
@@ -98,7 +98,12 @@ new class extends Component
 
     private function applyPreset(string $val): void
     {
-        $type = RoomType::where('name', $val)->first();
+        $user = Auth::user();
+        $hotel_id = $user?->hotel_id ?? \App\Models\Hotel::where('status', 'approved')->first()?->id ?? \App\Models\Hotel::first()?->id;
+
+        $type = RoomType::where('name', $val)->when($hotel_id, fn($q) => $q->where('hotel_id', $hotel_id))->first()
+            ?? RoomType::where('name', $val)->first();
+
         if ($type) {
             $this->room_type_name = $type->name;
             $this->daily_rate = (string) ($type->daily_rate ?: 59.95);
@@ -118,12 +123,32 @@ new class extends Component
                 $this->weekly_rate = '349.90';
                 $this->monthly_rate = '1190.00';
                 $this->tax_percent = '15';
+            } elseif ($val === 'Twin') {
+                $this->room_type_name = 'Twin';
+                $this->daily_rate = '69.95';
+                $this->weekly_rate = '299.90';
+                $this->monthly_rate = '1090.00';
+                $this->tax_percent = '15';
+            } elseif ($val === 'Deluxe') {
+                $this->room_type_name = 'Deluxe';
+                $this->daily_rate = '99.95';
+                $this->weekly_rate = '449.90';
+                $this->monthly_rate = '1590.00';
+                $this->tax_percent = '15';
+            } elseif ($val === 'Executive') {
+                $this->room_type_name = 'Executive Suite';
+                $this->daily_rate = '129.95';
+                $this->weekly_rate = '599.90';
+                $this->monthly_rate = '1990.00';
+                $this->tax_percent = '15';
             } elseif ($val === 'Apartment') {
                 $this->room_type_name = 'Apartment';
                 $this->daily_rate = '79.90';
                 $this->weekly_rate = '349.90';
                 $this->monthly_rate = '1349.00';
                 $this->tax_percent = '15';
+            } else {
+                $this->room_type_name = $val;
             }
         }
     }
