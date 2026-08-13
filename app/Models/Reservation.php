@@ -14,7 +14,7 @@ class Reservation extends Model
         'guest_id', 'check_in_date',
         'check_out_date', 'adults', 'children',
         'discount_type', 'discount_value', 'tax_rate',
-        'special_notes', 'status', 'hotel_id', 'pnr'
+        'special_notes', 'status', 'hotel_id', 'pnr', 'booking_type'
     ];
 
     public function guest()

@@ -17,12 +17,11 @@
             'Clean' => ['key' => 'clean', 'bg' => 'bg-emerald-50 border-emerald-100/50', 'text' => 'text-emerald-600', 'icon' => 'fa-check-circle'],
             'Dirty' => ['key' => 'dirty', 'bg' => 'bg-rose-50 border-rose-100/50', 'text' => 'text-rose-600', 'icon' => 'fa-exclamation-circle'],
             'Inspecting' => ['key' => 'inspecting', 'bg' => 'bg-amber-50 border-amber-100/50', 'text' => 'text-amber-600', 'icon' => 'fa-search'],
-            'Maintenance' => ['key' => 'maintenance', 'bg' => 'bg-slate-100 border-slate-200/50', 'text' => 'text-slate-600', 'icon' => 'fa-tools'],
         ];
     @endphp
 
     {{-- Status Overview Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         @foreach($statusConfig as $label => $config)
         <button wire:click="$set('statusFilter', '{{ $statusFilter === $label ? '' : $label }}')"
                 class="pms-card p-5 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $statusFilter === $label ? 'ring-2 ring-indigo-600 border-indigo-100 shadow-md bg-indigo-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
@@ -62,7 +61,6 @@
                     <option>Clean</option>
                     <option>Dirty</option>
                     <option>Inspecting</option>
-                    <option>Maintenance</option>
                 </select>
                 @if($statusFilter)
                 <button wire:click="$set('statusFilter', '')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer shrink-0">
@@ -183,7 +181,6 @@
                     <option value="Clean">Clean</option>
                     <option value="Dirty">Dirty</option>
                     <option value="Inspecting">Inspecting</option>
-                    <option value="Maintenance">Maintenance</option>
                 </select>
             </div>
             <div>

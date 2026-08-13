@@ -43,6 +43,7 @@
                         <th class="font-bold">Room(s)</th>
                         <th class="font-bold">Check In</th>
                         <th class="font-bold">Check Out</th>
+                        <th class="font-bold">Booking Source</th>
                         <th class="font-bold">Payment Status</th>
                         <th class="font-bold">Booking Status</th>
                         <th class="font-bold text-right">Actions</th>
@@ -54,23 +55,32 @@
                         <td class="text-slate-400 text-xs font-semibold">#{{ $res->id }}</td>
                         <td>
                             <div class="flex items-center gap-3">
-                                @php
-                                    $initials = strtoupper(substr($res->guest->name ?? 'G', 0, 1));
-                                    $gradients = [
-                                        'A' => 'from-indigo-400 to-indigo-600', 'B' => 'from-emerald-400 to-emerald-600',
-                                        'C' => 'from-blue-400 to-blue-600', 'D' => 'from-rose-400 to-rose-600',
-                                        'E' => 'from-amber-400 to-amber-600', 'F' => 'from-orange-400 to-orange-600',
-                                        'G' => 'from-teal-400 to-teal-600', 'H' => 'from-purple-400 to-purple-600',
-                                        'I' => 'from-pink-400 to-pink-600', 'J' => 'from-cyan-400 to-cyan-600',
-                                    ];
-                                    $gradient = $gradients[$initials] ?? 'from-slate-400 to-slate-600';
-                                @endphp
-                                <div class="w-8 h-8 rounded-xl bg-gradient-to-br {{ $gradient }} flex items-center justify-center shrink-0 shadow-sm border border-white">
-                                    <span class="text-xs font-black text-white">{{ $initials }}</span>
-                                </div>
+                                @if(optional($res->guest)->guest_photo)
+                                    <img src="{{ asset('storage/' . $res->guest->guest_photo) }}" class="w-8 h-8 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200">
+                                @else
+                                    @php
+                                        $initials = strtoupper(substr($res->guest->name ?? 'G', 0, 1));
+                                        $gradients = [
+                                            'A' => 'from-indigo-400 to-indigo-600', 'B' => 'from-emerald-400 to-emerald-600',
+                                            'C' => 'from-blue-400 to-blue-600', 'D' => 'from-rose-400 to-rose-600',
+                                            'E' => 'from-amber-400 to-amber-600', 'F' => 'from-orange-400 to-orange-600',
+                                            'G' => 'from-teal-400 to-teal-600', 'H' => 'from-purple-400 to-purple-600',
+                                            'I' => 'from-pink-400 to-pink-600', 'J' => 'from-cyan-400 to-cyan-600',
+                                        ];
+                                        $gradient = $gradients[$initials] ?? 'from-slate-400 to-slate-600';
+                                    @endphp
+                                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br {{ $gradient }} flex items-center justify-center shrink-0 shadow-sm border border-white">
+                                        <span class="text-xs font-black text-white">{{ $initials }}</span>
+                                    </div>
+                                @endif
                                 <div>
                                     <span class="font-bold text-slate-800 text-sm block leading-none mb-1">{{ $res->guest->name ?? 'N/A' }}</span>
-                                    <span class="text-[10px] text-slate-400 block">{{ $res->guest->email ?? '' }}</span>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-[10px] text-slate-400 block">{{ $res->guest->email ?? '' }}</span>
+                                        @if(optional($res->guest)->id_card_front || optional($res->guest)->id_card_back)
+                                            <span class="text-[9px] bg-indigo-50 text-indigo-700 px-1 py-0.2 rounded font-bold" title="ID Scanned"><i class="fas fa-id-card"></i> Verified</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -79,6 +89,28 @@
                         </td>
                         <td class="text-slate-500 text-xs font-medium">{{ \Carbon\Carbon::parse($res->check_in_date)->format('d M Y') }}</td>
                         <td class="text-slate-500 text-xs font-medium">{{ \Carbon\Carbon::parse($res->check_out_date)->format('d M Y') }}</td>
+                        <td>
+                            @php
+                                $bType = $res->booking_type ?: 'Walk in';
+                                $bClass = match($bType) {
+                                    'Walk in' => 'bg-purple-50 text-purple-700 border-purple-100',
+                                    'Direct website' => 'bg-blue-50 text-blue-700 border-blue-100',
+                                    'OTA' => 'bg-amber-50 text-amber-700 border-amber-100',
+                                    'Phone' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                    default => 'bg-slate-100 text-slate-700 border-slate-200',
+                                };
+                                $bIcon = match($bType) {
+                                    'Walk in' => 'fa-walking',
+                                    'Direct website' => 'fa-globe',
+                                    'OTA' => 'fa-hotel',
+                                    'Phone' => 'fa-phone',
+                                    default => 'fa-bookmark',
+                                };
+                            @endphp
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $bClass }}">
+                                <i class="fas {{ $bIcon }} text-[9px]"></i> {{ $bType }}
+                            </span>
+                        </td>
                         <td>
                             @php $balance = $res->balance_due; @endphp
                             @if($balance > 0)

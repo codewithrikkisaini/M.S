@@ -78,17 +78,6 @@ new class extends Component
         if (in_array($this->status, ['Open', 'In Progress']) && in_array($this->priority, ['High', 'Critical'])) {
             // Put room under maintenance
             $room->update(['status' => 'Maintenance']);
-            
-            // Set housekeeping status to Maintenance
-            Housekeeping::updateOrCreate(
-                ['room_id' => $this->room_id],
-                [
-                    'status' => 'Maintenance', 
-                    'updated_by' => Auth::id(), 
-                    'hotel_id' => $room->hotel_id ?? Auth::user()?->hotel_id,
-                    'notes' => "Auto-assigned under maintenance via Ticket #{$this->ticketId}: {$this->issue}"
-                ]
-            );
         } elseif (in_array($this->status, ['Completed', 'Cancelled'])) {
             // Check if there are any OTHER active tickets for this room
             $hasOtherActive = DB::table('maintenance_tickets')

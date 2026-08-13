@@ -7,6 +7,8 @@ use App\Models\Room;
 use App\Models\Reservation;
 use App\Models\Payment;
 use App\Services\ReservationService;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 new class extends Component
 {
@@ -28,13 +30,15 @@ new class extends Component
     public string $id_type = '';
     public string $guest_id_number = '';
 
-    public $guest_id_photo;
+    // ID Cards & Guest Photo File Uploads & Base64 Camera Captures
+    public $id_card_front;
+    public $id_card_back;
+    public $guest_photo;
+    public string $id_card_front_base64 = '';
+    public string $id_card_back_base64 = '';
+    public string $guest_photo_base64 = '';
 
-    public string $booking_type = '';
-
-    // // New guest fields
-    // public bool $is_new_guest = false;
-    // public string $new_guest_name = '', $new_guest_email = '', $new_guest_phone = '';
+    public string $booking_type = 'Walk in';
 
     public function mount(): void
     {
@@ -60,6 +64,20 @@ new class extends Component
         }
     }
 
+    private function saveBase64Image(string $base64String, string $folder = 'guest-docs'): ?string
+    {
+        if (!$base64String) return null;
+        if (preg_match('/^data:image\/(\w+);base64,/', $base64String, $type)) {
+            $data = substr($base64String, strpos($base64String, ',') + 1);
+            $type = strtolower($type[1]);
+            $data = base64_decode($data);
+            $fileName = $folder . '_' . time() . '_' . Str::random(6) . '.' . $type;
+            Storage::disk('public')->put($folder . '/' . $fileName, $data);
+            return $folder . '/' . $fileName;
+        }
+        return null;
+    }
+
     public function save(ReservationService $service): void
     {
         $rules = [
@@ -74,16 +92,18 @@ new class extends Component
             'tax_rate'        => 'required|numeric|min:0|max:100',
             'payment_type'    => 'required|in:Cash,Card,UPI',
             'payment_amount'  => 'nullable|numeric|min:0',
-            'booking_type' => 'required|in:Walk in,Direct website,OTA,Phone,Other',
+            'booking_type'    => 'required|in:Walk in,Direct website,OTA,Phone,Other',
         ];
 
         if ($this->is_new_guest) {
-            $rules['new_guest_name'] = 'required|string|max:255';
+            $rules['new_guest_name']  = 'required|string|max:255';
             $rules['new_guest_email'] = 'nullable|email|unique:guests,email';
             $rules['new_guest_phone'] = 'nullable|string|max:20';
-            $rules['id_type'] = 'nullable|in:Driving License,Aadhaar Card,Passport,Voter ID,Other';
+            $rules['id_type']         = 'nullable|in:Driving License,Aadhaar Card,Passport,Voter ID,Other';
             $rules['guest_id_number'] = 'nullable|string|max:100';
-            $rules['guest_id_photo'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096';
+            $rules['id_card_front']   = 'nullable|image|max:4096';
+            $rules['id_card_back']    = 'nullable|image|max:4096';
+            $rules['guest_photo']     = 'nullable|image|max:4096';
         } else {
             $rules['guest_id'] = 'required|exists:guests,id';
         }
@@ -95,19 +115,21 @@ new class extends Component
             while (Guest::where('guest_id', $guest_id_str)->exists()) {
                 $guest_id_str = 'G-' . str_pad(rand(1000, 99999), 5, '0', STR_PAD_LEFT);
             }
-            $photoPath = null;
 
-            if ($this->guest_id_photo) {
-                $photoPath = $this->guest_id_photo->store('guest-ids', 'public');
-            }
+            $frontPath = $this->id_card_front ? $this->id_card_front->store('guest-ids', 'public') : $this->saveBase64Image($this->id_card_front_base64, 'guest-ids');
+            $backPath  = $this->id_card_back ? $this->id_card_back->store('guest-ids', 'public') : $this->saveBase64Image($this->id_card_back_base64, 'guest-ids');
+            $photoPath = $this->guest_photo ? $this->guest_photo->store('guest-photos', 'public') : $this->saveBase64Image($this->guest_photo_base64, 'guest-photos');
+
             $guest = Guest::create([
-                'guest_id' => $guest_id_str,
-                'name'     => $this->new_guest_name,
-                'email'    => $this->new_guest_email ?: null,
-                'phone'    => $this->new_guest_phone ?: null,
-                'id_type'  => $this->id_type ?: null,
-                'id_number'=> $this->guest_id_number ?: null,
-                'id_photo' => $photoPath,
+                'guest_id'      => $guest_id_str,
+                'name'          => $this->new_guest_name,
+                'email'         => $this->new_guest_email ?: null,
+                'phone'         => $this->new_guest_phone ?: null,
+                'id_type'       => $this->id_type ?: null,
+                'id_number'     => $this->guest_id_number ?: null,
+                'id_card_front' => $frontPath,
+                'id_card_back'  => $backPath,
+                'guest_photo'   => $photoPath,
             ]);
             $this->guest_id = (string)$guest->id;
         }

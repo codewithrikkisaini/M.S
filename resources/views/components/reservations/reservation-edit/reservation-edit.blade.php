@@ -30,6 +30,19 @@
                         </select>
                         @error('guest_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+
+                    {{-- Booking Type --}} 
+                    <div class="col-span-2"> 
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider"> Booking Type <span class="text-red-500">*</span></label> 
+                        <select wire:model="booking_type" class="pms-select text-xs"> 
+                            <option value="Walk in">🚶 Walk in</option> 
+                            <option value="Direct website">🌐 Direct website</option> 
+                            <option value="OTA">🏨 OTA (Booking.com/MMT/Agoda)</option> 
+                            <option value="Phone">📞 Phone</option> 
+                            <option value="Other">📌 Other</option> 
+                        </select> 
+                        @error('booking_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror 
+                    </div>
                     
                     <div>
                         <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Adults</label>
