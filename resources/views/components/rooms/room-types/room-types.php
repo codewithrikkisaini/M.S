@@ -133,6 +133,32 @@ new class extends Component
         }
     }
 
+    public function deleteRoomType(int $id): void
+    {
+        $roomType = RoomType::findOrFail($id);
+
+        $fallbackType = RoomType::where('hotel_id', $roomType->hotel_id)
+            ->whereKeyNot($roomType->id)
+            ->first();
+
+        if (!$fallbackType) {
+            $fallbackType = RoomType::create([
+                'name' => 'Standard Room',
+                'hotel_id' => $roomType->hotel_id,
+                'daily_rate' => 59.95,
+                'weekly_rate' => 249.90,
+                'monthly_rate' => 990.00,
+                'tax_percent' => 15,
+                'status' => 'active',
+            ]);
+        }
+
+        $roomType->rooms()->update(['room_type_id' => $fallbackType->id]);
+        $roomType->delete();
+
+        $this->dispatch('toast', message: 'Room type deleted successfully.', type: 'success');
+    }
+
     public function deleteRoom(int $id): void
     {
         $room = Room::findOrFail($id);
