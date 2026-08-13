@@ -263,20 +263,62 @@
                             </div>
                         </div>
 
-                        {{-- WebCam Live Capture Modal --}}
-                        <div x-show="showCamera" style="display: none;" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div class="bg-white rounded-2xl p-5 max-w-md w-full shadow-2xl border border-slate-200 text-center">
-                                <h3 class="text-sm font-extrabold text-slate-800 mb-3 flex items-center justify-center gap-2">
-                                    <i class="fas fa-camera text-indigo-600"></i> Capture Photo via Camera
-                                </h3>
-                                <div class="bg-slate-900 rounded-xl overflow-hidden aspect-video relative mb-4">
-                                    <video x-ref="videoElem" autoplay playsinline class="w-full h-full object-cover"></video>
-                                </div>
-                                <div class="flex items-center justify-center gap-3">
-                                    <button type="button" @click="capture()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2">
-                                        <i class="fas fa-camera"></i> Take Snapshot
+                        {{-- WebCam Live Capture Scanner Modal --}}
+                        <div x-show="showCamera" style="display: none;" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+                            <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 text-center transition-all">
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-bold">
+                                            <i class="fas fa-expand"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider" x-text="targetField === 'front' ? 'Scan ID Document - FRONT Side' : (targetField === 'back' ? 'Scan ID Document - BACK Side' : 'Capture Guest Live Photo')"></h3>
+                                            <p class="text-[10px] text-slate-400">Position document clearly within the frame</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" @click="stopCamera()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs flex items-center justify-center">
+                                        <i class="fas fa-times"></i>
                                     </button>
-                                    <button type="button" @click="stopCamera()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl">
+                                </div>
+
+                                {{-- Camera Viewfinder with ID Card Scanner Overlay --}}
+                                <div class="bg-slate-950 rounded-2xl overflow-hidden aspect-4/3 relative mb-4 shadow-inner border border-slate-800">
+                                    <video x-ref="videoElem" autoplay playsinline class="w-full h-full object-cover"></video>
+                                    
+                                    {{-- ID Card Scanner Viewfinder Target Overlay --}}
+                                    <div class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-6">
+                                        <template x-if="targetField === 'front' || targetField === 'back'">
+                                            <div class="w-full h-48 border-2 border-dashed border-indigo-400/90 rounded-2xl relative shadow-[0_0_30px_rgba(99,102,241,0.25)] bg-indigo-950/10 flex flex-col justify-between p-3">
+                                                <div class="flex justify-between items-start">
+                                                    <div class="w-4 h-4 border-t-4 border-l-4 border-indigo-400 rounded-tl"></div>
+                                                    <span class="text-[9px] font-black uppercase tracking-widest text-indigo-200 bg-indigo-950/80 px-2 py-0.5 rounded-full border border-indigo-400/40" x-text="targetField === 'front' ? 'FRONT SIDE' : 'BACK SIDE'"></span>
+                                                    <div class="w-4 h-4 border-t-4 border-r-4 border-indigo-400 rounded-tr"></div>
+                                                </div>
+                                                <p class="text-[10px] font-extrabold text-white bg-black/60 backdrop-blur-xs py-1 px-3 rounded-full mx-auto shadow-sm">
+                                                    <i class="fas fa-crop-alt text-indigo-400 mr-1"></i> Align ID Card Here
+                                                </p>
+                                                <div class="flex justify-between items-end">
+                                                    <div class="w-4 h-4 border-b-4 border-l-4 border-indigo-400 rounded-bl"></div>
+                                                    <div class="w-4 h-4 border-b-4 border-r-4 border-indigo-400 rounded-br"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="targetField === 'guest'">
+                                            <div class="w-44 h-56 border-2 border-dashed border-emerald-400/90 rounded-full relative shadow-[0_0_30px_rgba(16,185,129,0.25)] bg-emerald-950/10 flex items-center justify-center">
+                                                <p class="text-[10px] font-extrabold text-white bg-black/60 backdrop-blur-xs py-1 px-3 rounded-full shadow-sm">
+                                                    <i class="fas fa-user-circle text-emerald-400 mr-1"></i> Align Face Here
+                                                </p>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-center gap-3">
+                                    <button type="button" @click="capture()" class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer">
+                                        <i class="fas fa-camera text-sm"></i> Capture & Save Scan
+                                    </button>
+                                    <button type="button" @click="stopCamera()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer">
                                         Cancel
                                     </button>
                                 </div>
