@@ -24,6 +24,25 @@ new class extends Component
     public string $image_path = '';
     public $photos = [];
 
+    public function getBedTypesProperty(): array
+    {
+        return [
+            'Single / Twin Bed',
+            'Twin Beds',
+            'Full / Double Bed',
+            '2 Double / Twin Beds',
+            'Queen Bed',
+            'King Bed',
+            'California King',
+            'Super King',
+            'Sofa Bed / Sleeper Sofa',
+            'Bunk Bed',
+            'Murphy / Wall Bed',
+            'Rollaway / Extra Bed',
+            'Crib / Baby Cot',
+        ];
+    }
+
     public function getAvailableOptionsProperty(): array
     {
         return [

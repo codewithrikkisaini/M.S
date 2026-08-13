@@ -56,10 +56,9 @@
                     <div>
                         <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
                         <select wire:model.live="bed_type" class="pms-select text-xs font-bold text-slate-800">
-                            <option value="King Bed">King Bed</option>
-                            <option value="2 Twin/ Queen Beds">2 Twin/ Queen Beds</option>
-                            <option value="Junior Suite with Sofa and jacuzzi">Junior Suite with Sofa and jacuzzi</option>
-                            <option value="King Bed with Rolling Bed">King Bed with Rolling Bed</option>
+                            @foreach($this->bedTypes as $bedType)
+                                <option value="{{ $bedType }}">{{ $bedType }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="sm:col-span-2">

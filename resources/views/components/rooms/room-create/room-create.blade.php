@@ -56,10 +56,9 @@
                 <div>
                     <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
                     <select wire:model.live="bed_type" class="pms-input text-sm font-bold text-slate-800">
-                        <option value="King Bed">King Bed</option>
-                        <option value="2 Twin/ Queen Beds">2 Twin/ Queen Beds</option>
-                        <option value="Junior Suite with Sofa and jacuzzi">Junior Suite with Sofa and jacuzzi</option>
-                        <option value="King Bed with Rolling Bed">King Bed with Rolling Bed</option>
+                        @foreach($this->bedTypes as $bedType)
+                            <option value="{{ $bedType }}">{{ $bedType }}</option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -209,11 +208,6 @@
                     <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Custom Room Type Name <span class="text-red-500">*</span></label>
                     <input type="text" wire:model="room_type_name" class="pms-input text-sm font-bold" placeholder="e.g. Deluxe Suite, Family Room">
                     @error('room_type_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                @else
-                <div>
-                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Selected Type Name</label>
-                    <input type="text" wire:model="room_type_name" class="pms-input text-sm font-bold bg-slate-50 text-slate-600" readonly>
                 </div>
                 @endif
             </div>

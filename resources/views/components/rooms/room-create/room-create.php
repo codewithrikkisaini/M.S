@@ -16,7 +16,7 @@ new class extends Component
     public string $floor = '1';
     public string $bed_type = 'King Bed';
     public array $room_option = [];
-    public string $room_type_select = 'Single';
+    // public string $room_type_select = 'Single';
     public string $room_type_name = 'Single';
     public string $daily_rate = '59.95';
     public string $weekly_rate = '249.90';
@@ -27,6 +27,25 @@ new class extends Component
     public string $image_path = '';
     public $photos = [];
     public bool $is_custom_type = false;
+
+    public function getBedTypesProperty(): array
+    {
+        return [
+            'Single / Twin Bed',
+            'Twin Beds',
+            'Full / Double Bed',
+            '2 Double / Twin Beds',
+            'Queen Bed',
+            'King Bed',
+            'California King',
+            'Super King',
+            'Sofa Bed / Sleeper Sofa',
+            'Bunk Bed',
+            'Murphy / Wall Bed',
+            'Rollaway / Extra Bed',
+            'Crib / Baby Cot',
+        ];
+    }
 
     public function getAvailableOptionsProperty(): array
     {
