@@ -5,9 +5,11 @@
             <h1 class="text-2xl font-black text-gray-900 tracking-tight">Rooms</h1>
             <p class="text-sm text-gray-500 mt-0.5">Manage hotel room inventory, rates, housekeeping, and maintenance statuses</p>
         </div>
+        @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin'))
         <a href="{{ route('rooms.create') }}" class="btn-primary btn-sm rounded-lg shadow-sm">
             <i class="fas fa-plus text-xs"></i> Add Room
         </a>
+        @endif
     </div>
 
     {{-- Table Card --}}
@@ -146,6 +148,7 @@
                             </div>
                         </td>
                         <td class="text-right">
+                            @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin'))
                             <div class="flex items-center justify-end gap-1.5">
                                 <a href="{{ route('rooms.edit', $room->id) }}"
                                    class="btn-icon text-indigo-500 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-100 shadow-sm" title="Edit">
@@ -157,6 +160,9 @@
                                     <i class="fas fa-trash text-xs"></i>
                                 </button>
                             </div>
+                            @else
+                            <span class="text-xs text-slate-400 font-medium">View Only</span>
+                            @endif
                         </td>
                     </tr>
                     @empty

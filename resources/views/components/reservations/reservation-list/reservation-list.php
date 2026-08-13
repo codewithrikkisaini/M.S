@@ -10,7 +10,24 @@ new class extends Component
 {
     use WithPagination;
 
+    protected $queryString = ['search' => ['except' => '']];
+
     public string $search = '';
+
+    public bool $showIdModal = false;
+    public ?\App\Models\Guest $selectedGuest = null;
+
+    public function openIdModal(int $guestId): void
+    {
+        $this->selectedGuest = \App\Models\Guest::find($guestId);
+        $this->showIdModal = true;
+    }
+
+    public function closeIdModal(): void
+    {
+        $this->showIdModal = false;
+        $this->selectedGuest = null;
+    }
 
     public function updatedSearch(): void { $this->resetPage(); }
 

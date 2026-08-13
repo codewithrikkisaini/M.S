@@ -14,6 +14,9 @@ class AuthController extends Controller
             if ($user->role?->slug === 'superadmin') {
                 return redirect()->route('superadmin.dashboard');
             }
+            if ($user->hasRole('receptionist')) {
+                return redirect()->route('receptionist.dashboard');
+            }
             return redirect()->route('dashboard');
         }
 
@@ -63,6 +66,10 @@ class AuthController extends Controller
 
             if ($user->role?->slug === 'superadmin') {
                 return redirect()->route('superadmin.dashboard')->with('status', 'Welcome back, Super Admin!');
+            }
+
+            if ($user->hasRole('receptionist')) {
+                return redirect()->intended(route('receptionist.dashboard'))->with('status', 'Welcome back!');
             }
 
             return redirect()->intended(route('dashboard'))->with('status', 'Logged in successfully!');
