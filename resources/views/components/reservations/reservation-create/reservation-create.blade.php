@@ -81,12 +81,12 @@
                         {{-- ID Number --}}
                         <div>
                             <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                                ID / Document Number
+                                {{ $id_type ? ($id_type . ' Number') : 'ID / Document Number' }}
                             </label>
                             <input type="text" 
                                    wire:model="guest_id_number" 
                                    class="pms-input text-xs" 
-                                   placeholder="{{ $id_type === 'Aadhaar Card' ? 'e.g. 1234 5678 9012' : ($id_type === 'Passport' ? 'e.g. Z1234567' : ($id_type ? 'Enter ' . $id_type . ' No...' : 'Enter ID / Document No...')) }}">
+                                   placeholder="{{ $id_type === 'Aadhaar Card' ? 'e.g. 1234 5678 9012' : ($id_type === 'Driving License' ? 'e.g. DL-1420110012345' : ($id_type === 'Passport' ? 'e.g. P1234567' : ($id_type === 'Voter ID' ? 'e.g. ABC1234567' : 'Enter ID / Document No...'))) }}">
                             @error('guest_id_number')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror

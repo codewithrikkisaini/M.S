@@ -126,6 +126,56 @@ new class extends Component
         $this->dispatch('toast', message: 'Ticket saved.', type: 'success');
     }
 
+    public function updateTicketStatus(int $id, string $newStatus): void
+    {
+        if (!in_array($newStatus, ['Open', 'In Progress', 'Completed', 'Cancelled'])) return;
+
+        $hotelId = Auth::user()?->hotel_id;
+        $ticketQuery = DB::table('maintenance_tickets')->where('id', $id);
+        if ($hotelId) {
+            $ticketQuery->where('hotel_id', $hotelId);
+        }
+        $ticket = $ticketQuery->first();
+        if (!$ticket) return;
+
+        DB::table('maintenance_tickets')->where('id', $id)->update([
+            'status'     => $newStatus,
+            'updated_at' => now(),
+        ]);
+
+        $room = Room::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->find($ticket->room_id);
+
+        if ($room) {
+            if (in_array($newStatus, ['Open', 'In Progress']) && in_array($ticket->priority, ['High', 'Critical'])) {
+                $room->update(['status' => 'Maintenance']);
+            } elseif (in_array($newStatus, ['Completed', 'Cancelled'])) {
+                $hasOtherActive = DB::table('maintenance_tickets')
+                    ->where('room_id', $ticket->room_id)
+                    ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                    ->whereIn('status', ['Open', 'In Progress'])
+                    ->where('id', '!=', $id)
+                    ->exists();
+
+                if (!$hasOtherActive) {
+                    if ($room->status === 'Maintenance') {
+                        $room->update(['status' => 'Available']);
+                    }
+                    Housekeeping::updateOrCreate(
+                        ['room_id' => $ticket->room_id],
+                        [
+                            'status'     => 'Inspecting',
+                            'updated_by' => Auth::id(),
+                            'hotel_id'   => $room->hotel_id ?? $hotelId,
+                            'notes'      => "Maintenance Ticket #{$id} resolved. Pending inspection."
+                        ]
+                    );
+                }
+            }
+        }
+
+        $this->dispatch('toast', message: "Ticket #{$id} status updated to {$newStatus}.", type: 'success');
+    }
+
     public function delete(int $id): void
     {
         $hotelId = Auth::user()?->hotel_id;
@@ -191,15 +241,29 @@ new class extends Component
             ->groupBy('status')
             ->pluck('count', 'status');
 
+        $totalTickets = DB::table('maintenance_tickets')
+            ->when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
+            ->count();
+
+        $assignedCount = DB::table('maintenance_tickets')
+            ->when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
+            ->whereNotNull('assigned_to')
+            ->where('status', '!=', 'Completed')
+            ->count();
+
+        $urgentCount = DB::table('maintenance_tickets')
+            ->when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
+            ->whereIn('priority', ['High', 'Critical'])
+            ->where('status', '!=', 'Completed')
+            ->count();
+
         $counts = [
+            'total'      => $totalTickets,
             'open'       => $statusCounts['Open'] ?? 0,
+            'assigned'   => $assignedCount,
             'inprogress' => $statusCounts['In Progress'] ?? 0,
+            'urgent'     => $urgentCount,
             'completed'  => $statusCounts['Completed'] ?? 0,
-            'critical'   => DB::table('maintenance_tickets')
-                ->when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
-                ->where('priority', 'Critical')
-                ->where('status', '!=', 'Completed')
-                ->count(),
         ];
 
         $rooms = Room::when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))

@@ -18,6 +18,12 @@ class AuthController extends Controller
             if ($user->hasRole('receptionist')) {
                 return redirect()->route('receptionist.dashboard');
             }
+            if ($user->hasRole('housekeeping')) {
+                return redirect()->route('housekeeping.index');
+            }
+            if ($user->hasRole('maintenance')) {
+                return redirect()->route('maintenance.index');
+            }
             return redirect()->route('dashboard');
         }
 
@@ -83,9 +89,16 @@ class AuthController extends Controller
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                return back()->withErrors([
-                    'email' => '❌ Your hotel registration ("' . $hotel->name . '") was rejected. Please contact support.',
-                ])->onlyInput('email');
+            if ($user->hasRole('receptionist')) {
+                return redirect()->route('receptionist.dashboard')->with('status', 'Welcome back!');
+            }
+
+            if ($user->hasRole('housekeeping')) {
+                return redirect()->route('housekeeping.index')->with('status', 'Welcome back!');
+            }
+
+            if ($user->hasRole('maintenance')) {
+                return redirect()->route('maintenance.index')->with('status', 'Welcome back!');
             }
         }
 

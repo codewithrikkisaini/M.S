@@ -1,14 +1,19 @@
 Seeding log:
 - Roles seeded.
-- Hotel 1 seeded: ID 5 (Grand Plaza Hotel)
-- Hotel 2 seeded: ID 6 (Sunset Beach Resort)
-- Hotel 3 seeded: ID 7 (Royal Crown Hotel)
+- Hotel 1 seeded: ID 6 (Grand Plaza Hotel)
+- Hotel 2 seeded: ID 7 (Sunset Beach Resort)
+- Hotel 3 seeded: ID 8 (Royal Crown Hotel)
 - Super Admin seeded: superadmin@merahkie.com
 - Hotel Admin seeded: admin@merahkie.com
 - Receptionist 1 (Grand Plaza) seeded: receptionist@merahkie.com
+- Housekeeping Staff seeded: housekeeping@merahkie.com
+- Maintenance Staff seeded: maintenance@merahkie.com
 - Receptionist 2 (Sunset Beach) seeded: receptionist2@sunsetbeach.com
 - Receptionist 3 (Royal Crown) seeded: receptionist3@royalcrown.com
 - Settings seeded for all hotels.
 - Subscription plans seeded.
 - Subscriptions seeded for all hotels.
+- Sample rooms seeded for Grand Plaza Hotel.
+- Housekeeping records seeded.
+- Maintenance tickets seeded.
 === SUCCESS ===
