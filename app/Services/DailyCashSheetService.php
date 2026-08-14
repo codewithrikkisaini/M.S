@@ -17,10 +17,11 @@ class DailyCashSheetService
         $endOfDay = Carbon::parse($date)->endOfDay();
 
         // Get hotel settings
-        $hotelName = Setting::get('hotel_name', 'Merahkie Hotel & Resort');
-        $hotelAddress = Setting::get('hotel_address', 'Main Street, Luxury Zone');
-        $hotelPhone = Setting::get('hotel_phone', '+91 9876543210');
-        $hotelEmail = Setting::get('hotel_email', 'info@hotel.com');
+        $userHotel = auth()->user()?->hotel;
+        $hotelName = $userHotel?->name ?? Setting::get('hotel_name', 'Lodgiko Hotel & Resort');
+        $hotelAddress = $userHotel?->address ?? Setting::get('hotel_address', 'Main Street, Luxury Zone');
+        $hotelPhone = $userHotel?->phone ?? Setting::get('hotel_phone', '+91 9876543210');
+        $hotelEmail = $userHotel?->email ?? Setting::get('hotel_email', 'info@hotel.com');
 
         // Get reservations active or created on this date
         $reservations = Reservation::with(['guest', 'rooms.roomType', 'payments'])
@@ -136,10 +137,11 @@ class DailyCashSheetService
         if (!$res) return null;
 
         $charges = $res->calculateCharges();
-        $hotelName = Setting::get('hotel_name', 'Merahkie Hotel & Resort');
-        $hotelAddress = Setting::get('hotel_address', 'Main Street, Luxury Zone');
-        $hotelPhone = Setting::get('hotel_phone', '+91 9876543210');
-        $hotelEmail = Setting::get('hotel_email', 'info@hotel.com');
+        $resHotel = $res->hotel ?? auth()->user()?->hotel;
+        $hotelName = $resHotel?->name ?? Setting::get('hotel_name', 'Lodgiko Hotel & Resort');
+        $hotelAddress = $resHotel?->address ?? Setting::get('hotel_address', 'Main Street, Luxury Zone');
+        $hotelPhone = $resHotel?->phone ?? Setting::get('hotel_phone', '+91 9876543210');
+        $hotelEmail = $resHotel?->email ?? Setting::get('hotel_email', 'info@hotel.com');
 
         $paymentMethod = $res->payments->last()?->payment_type ?: 'Cash';
         if ($res->total_paid == 0) {

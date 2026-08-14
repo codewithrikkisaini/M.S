@@ -141,7 +141,7 @@
     <table class="header-table">
         <tr>
             <td>
-                <div class="brand-title">MERAHKIE</div>
+                <div class="brand-title">{{ strtoupper($reservation->hotel->name ?? 'LODGIKO') }}</div>
                 <div class="brand-sub">Hotel Booking Confirmation Slip</div>
                 <div style="font-size: 11px; color: #475569; margin-top: 5px;">
                     <strong>{{ $reservation->hotel->name ?? 'Hotel Reservation' }}</strong><br>

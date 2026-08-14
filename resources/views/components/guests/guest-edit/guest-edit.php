@@ -7,7 +7,7 @@ new class extends Component
 {
     public Guest $guest;
     public string $guest_id = '', $name = '', $email = '', $phone = '',
-                  $nationality = '', $passport_number = '', $address = '';
+                  $nationality = '', $id_type = '', $id_number = '', $passport_number = '', $address = '';
 
     public function mount(Guest $guest): void
     {
@@ -17,6 +17,8 @@ new class extends Component
         $this->email            = $guest->email ?? '';
         $this->phone            = $guest->phone ?? '';
         $this->nationality      = $guest->nationality ?? '';
+        $this->id_type          = $guest->id_type ?? '';
+        $this->id_number        = $guest->id_number ?? $guest->passport_number ?? '';
         $this->passport_number  = $guest->passport_number ?? '';
         $this->address          = $guest->address ?? '';
     }
@@ -29,6 +31,8 @@ new class extends Component
             'email'           => 'nullable|email|unique:guests,email,' . $this->guest->id,
             'phone'           => 'nullable|string|max:20',
             'nationality'     => 'nullable|string|max:100',
+            'id_type'         => 'nullable|string|max:100',
+            'id_number'       => 'nullable|string|max:100',
             'passport_number' => 'nullable|string|max:100',
             'address'         => 'nullable|string',
         ]);
@@ -39,7 +43,9 @@ new class extends Component
             'email'           => $this->email ?: null,
             'phone'           => $this->phone ?: null,
             'nationality'     => $this->nationality ?: null,
-            'passport_number' => $this->passport_number ?: null,
+            'id_type'         => $this->id_type ?: null,
+            'id_number'       => $this->id_number ?: null,
+            'passport_number' => $this->id_number ?: ($this->passport_number ?: null),
             'address'         => $this->address ?: null,
         ]);
 

@@ -172,6 +172,17 @@ class SuperAdminHotelController extends Controller
         ]);
 
         try {
+            // Check if email is already taken by another hotel's user or superadmin
+            $existingUser = \App\Models\User::where('email', $validated['email'])
+                ->where(function($q) use ($hotel) {
+                    $q->whereNull('hotel_id')->orWhere('hotel_id', '!=', $hotel->id);
+                })->first();
+
+            if ($existingUser) {
+                return redirect()->back()->with('error', "The email address '{$validated['email']}' is already in use by another account.");
+            }
+
+            $oldEmail = $hotel->email;
             $hotel->update($validated);
 
             if ($validated['account_status'] === 'active') {
@@ -189,17 +200,21 @@ class SuperAdminHotelController extends Controller
                 $hotel->users()->update(['status' => 'active']);
             }
 
-            if ($request->filled('password')) {
-                $hashed = \Illuminate\Support\Facades\Hash::make($request->password);
-                foreach ($hotel->users as $u) {
-                    $u->password = $hashed;
-                    $u->save();
+            // Sync Hotel Admin User Login Credentials (Email & Password)
+            $users = \App\Models\User::where('hotel_id', $hotel->id)->get();
+            foreach ($users as $u) {
+                if ($u->email === $oldEmail || $u->role?->slug === 'admin' || $users->count() === 1) {
+                    $u->email = $validated['email'];
                 }
+                if ($request->filled('password')) {
+                    $u->password = \Illuminate\Support\Facades\Hash::make($request->password);
+                }
+                $u->save();
             }
 
-            ActivityLog::logAdminAction($hotel, 'Update Hotel Record', null, null, "Updated hotel profile & password by SuperAdmin");
+            ActivityLog::logAdminAction($hotel, 'Update Hotel Record', null, null, "Updated hotel profile & login credentials (Email: {$validated['email']}) by SuperAdmin");
 
-            return redirect()->back()->with('success', "Hotel '{$hotel->name}' record and login credentials updated successfully!");
+            return redirect()->back()->with('success', "Hotel '{$hotel->name}' record and login credentials updated successfully! New Email: {$validated['email']}");
         } catch (\Exception $e) {
             return redirect()->back()->with('error', "Failed updating hotel: " . $e->getMessage());
         }

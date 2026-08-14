@@ -42,6 +42,8 @@
                         <th class="font-bold">Guest Name</th>
                         <th class="font-bold">Email Address</th>
                         <th class="font-bold">Phone Number</th>
+                        <th class="font-bold">ID Type</th>
+                        <th class="font-bold">ID Number</th>
                         <th class="font-bold">Nationality</th>
                         <th class="font-bold text-right">Actions</th>
                     </tr>
@@ -78,6 +80,27 @@
                             <span class="text-slate-600 text-xs font-semibold">{{ $guest->phone ?? '—' }}</span>
                         </td>
                         <td>
+                            @if($guest->id_type)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-2xs">
+                                    {{ $guest->id_type }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 text-xs">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            @php
+                                $gidNum = $guest->id_number ?: $guest->passport_number;
+                            @endphp
+                            @if($gidNum)
+                                <span class="text-xs font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
+                                    {{ $gidNum }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 text-xs">—</span>
+                            @endif
+                        </td>
+                        <td>
                             @if($guest->nationality)
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-150 shadow-sm">
                                 {{ $guest->nationality }}
@@ -100,7 +123,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="py-12 text-center text-slate-400">
+                        <td colspan="8" class="py-12 text-center text-slate-400">
                             <i class="fas fa-users text-4xl text-slate-200 mb-3 block"></i>
                             <p class="text-sm font-medium">No guests found.</p>
                         </td>

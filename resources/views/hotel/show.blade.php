@@ -123,7 +123,7 @@
                 <a href="/" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
                     <i class="fas fa-home text-xs text-blue-500"></i> Home
                 </a>
-                <a href="#available-rooms" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                <a href="/#hotels" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
                     <i class="fas fa-hotel text-xs text-blue-500"></i> Hotels
                 </a>
                 <a href="#about-property" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">

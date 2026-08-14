@@ -29,7 +29,12 @@ new class extends Component
     public function edit(int $id): void
     {
         $this->resetValidation();
-        $ticket = DB::table('maintenance_tickets')->find($id);
+        $hotelId = Auth::user()?->hotel_id;
+        $ticketQuery = DB::table('maintenance_tickets')->where('id', $id);
+        if ($hotelId) {
+            $ticketQuery->where('hotel_id', $hotelId);
+        }
+        $ticket = $ticketQuery->first();
         if (!$ticket) return;
         $this->ticketId   = $ticket->id;
         $this->room_id    = (string)$ticket->room_id;
@@ -44,6 +49,8 @@ new class extends Component
 
     public function store(): void
     {
+        $hotelId = Auth::user()?->hotel_id;
+
         $this->validate([
             'room_id'  => 'required|exists:rooms,id',
             'issue'    => 'required|string|max:500',
@@ -51,7 +58,11 @@ new class extends Component
             'status'   => 'required|in:Open,In Progress,Completed,Cancelled',
         ]);
 
-        $room = Room::findOrFail($this->room_id);
+        $roomQuery = Room::query();
+        if ($hotelId) {
+            $roomQuery->where('hotel_id', $hotelId);
+        }
+        $room = $roomQuery->findOrFail($this->room_id);
 
         $data = [
             'room_id'     => $this->room_id,
@@ -60,12 +71,16 @@ new class extends Component
             'assigned_to' => $this->assigned_to ?: null,
             'status'      => $this->status,
             'notes'       => $this->notes ?: null,
-            'hotel_id'    => $room->hotel_id ?? Auth::user()?->hotel_id,
+            'hotel_id'    => $hotelId ?? $room->hotel_id,
             'updated_at'  => now(),
         ];
 
         if ($this->isEditMode) {
-            DB::table('maintenance_tickets')->where('id', $this->ticketId)->update($data);
+            $updateQuery = DB::table('maintenance_tickets')->where('id', $this->ticketId);
+            if ($hotelId) {
+                $updateQuery->where('hotel_id', $hotelId);
+            }
+            $updateQuery->update($data);
         } else {
             $insertedId = DB::table('maintenance_tickets')->insertGetId(array_merge($data, [
                 'reported_by' => Auth::id(),
@@ -82,7 +97,9 @@ new class extends Component
             // Check if there are any OTHER active tickets for this room
             $hasOtherActive = DB::table('maintenance_tickets')
                 ->where('room_id', $this->room_id)
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereIn('status', ['Open', 'In Progress'])
+                ->where('id', '!=', $this->ticketId)
                 ->exists();
                 
             if (!$hasOtherActive) {
@@ -97,7 +114,7 @@ new class extends Component
                     [
                         'status' => 'Inspecting', 
                         'updated_by' => Auth::id(), 
-                        'hotel_id' => $room->hotel_id ?? Auth::user()?->hotel_id,
+                        'hotel_id' => $room->hotel_id ?? $hotelId,
                         'notes' => "Maintenance Ticket #{$this->ticketId} resolved. Pending inspection."
                     ]
                 );
@@ -111,7 +128,12 @@ new class extends Component
 
     public function delete(int $id): void
     {
-        DB::table('maintenance_tickets')->where('id', $id)->delete();
+        $hotelId = Auth::user()?->hotel_id;
+        $deleteQuery = DB::table('maintenance_tickets')->where('id', $id);
+        if ($hotelId) {
+            $deleteQuery->where('hotel_id', $hotelId);
+        }
+        $deleteQuery->delete();
         $this->dispatch('toast', message: 'Ticket deleted.', type: 'success');
     }
 
@@ -144,10 +166,13 @@ new class extends Component
 
     public function render(): mixed
     {
+        $hotelId = Auth::user()?->hotel_id;
+
         $query = DB::table('maintenance_tickets')
             ->join('rooms', 'rooms.id', '=', 'maintenance_tickets.room_id')
             ->leftJoin('users', 'users.id', '=', 'maintenance_tickets.assigned_to')
             ->select('maintenance_tickets.*', 'rooms.room_number', 'users.name as assignee_name')
+            ->when($hotelId, fn ($q) => $q->where('maintenance_tickets.hotel_id', $hotelId))
             ->when($this->search, fn ($q) => $q->where(function ($qq) {
                 $qq->where('rooms.room_number', 'like', "%{$this->search}%")
                    ->orWhere('maintenance_tickets.issue', 'like', "%{$this->search}%");
@@ -159,8 +184,9 @@ new class extends Component
 
         $tickets = $query->paginate(15);
 
-        // Group status count optimization
+        // Group status count optimization scoped by hotel_id
         $statusCounts = DB::table('maintenance_tickets')
+            ->when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
             ->select('status', DB::raw('count(*) as count'))
             ->groupBy('status')
             ->pluck('count', 'status');
@@ -170,16 +196,25 @@ new class extends Component
             'inprogress' => $statusCounts['In Progress'] ?? 0,
             'completed'  => $statusCounts['Completed'] ?? 0,
             'critical'   => DB::table('maintenance_tickets')
+                ->when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
                 ->where('priority', 'Critical')
                 ->where('status', '!=', 'Completed')
                 ->count(),
         ];
 
+        $rooms = Room::when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
+            ->orderBy('room_number')
+            ->get();
+
+        $users = User::when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
+            ->orderBy('name')
+            ->get();
+
         return $this->view([
             'tickets' => $tickets,
             'counts'  => $counts,
-            'rooms'   => Room::orderBy('room_number')->get(),
-            'users'   => User::orderBy('name')->get(),
+            'rooms'   => $rooms,
+            'users'   => $users,
         ]);
     }
 };
