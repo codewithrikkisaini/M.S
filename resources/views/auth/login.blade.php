@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         body {
             font-family: 'Inter', sans-serif !important;
@@ -184,16 +183,6 @@
                     <i class="fas fa-sign-in-alt text-sm"></i>
                     Sign In to Dashboard
                 </button>
-                
-                <div class="mb-4">
-                <div class="g-recaptcha"
-                    data-sitekey="{{ config('services.recaptcha.site_key') }}">
-                </div>
-
-                @error('g-recaptcha-response')
-                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-                </div>
 
 
 

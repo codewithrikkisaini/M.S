@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Http;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +32,31 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+<<<<<<< HEAD
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+
+            if ($user->hotel_id) {
+                $hotel = \App\Models\Hotel::find($user->hotel_id);
+                if ($hotel && $hotel->status === 'pending') {
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+                    return back()->withErrors([
+                        'email' => 'Your hotel is waiting for Super Admin approval. Please wait until your hotel is approved.',
+                    ])->onlyInput('email');
+                } elseif ($hotel && $hotel->status === 'rejected') {
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+                    return back()->withErrors([
+                        'email' => '❌ Your hotel registration ("' . $hotel->name . '") was rejected. Please contact support.',
+=======
         // Validate login fields + reCAPTCHA
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -91,10 +115,17 @@ class AuthController extends Controller
 
                     return back()->withErrors([
                         'email' => 'Your hotel account has been rejected by Super Admin.',
+>>>>>>> 44f8aebe90bde9b5861acf86bf233bb9841c7ecc
                     ])->onlyInput('email');
                 }
             }
 
+<<<<<<< HEAD
+            if ($user->status !== 'active') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+=======
             // Check user account status
             if ($user->status !== 'active') {
 
@@ -102,11 +133,34 @@ class AuthController extends Controller
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
+>>>>>>> 44f8aebe90bde9b5861acf86bf233bb9841c7ecc
                 return back()->withErrors([
                     'email' => 'Your account is currently inactive or pending approval.',
                 ])->onlyInput('email');
             }
 
+<<<<<<< HEAD
+            $request->session()->regenerate();
+
+            if ($user->role?->slug === 'superadmin') {
+                return redirect()->route('superadmin.dashboard')->with('status', 'Welcome back, Super Admin!');
+            }
+
+            if ($user->hasRole('receptionist')) {
+                return redirect()->intended(route('receptionist.dashboard'))->with('status', 'Welcome back!');
+            }
+
+            return redirect()->intended(route('dashboard'))->with('status', 'Logged in successfully!');
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
+
+
+
+=======
             // Regenerate session after successful login
             $request->session()->regenerate();
 
@@ -152,6 +206,7 @@ class AuthController extends Controller
             ->onlyInput('email');
     }
 
+>>>>>>> 44f8aebe90bde9b5861acf86bf233bb9841c7ecc
     public function logout(Request $request)
     {
         Auth::logout();
