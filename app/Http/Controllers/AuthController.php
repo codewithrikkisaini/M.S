@@ -31,123 +31,126 @@ class AuthController extends Controller
         return view('auth.login', compact('hotelName'));
     }
 
- public function login(Request $request)
-{
-    // Validate login fields + reCAPTCHA
-    $credentials = $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-        'g-recaptcha-response' => ['required'],
-    ], [
-        'g-recaptcha-response.required' => 'Please complete the reCAPTCHA.',
-    ]);
+    public function login(Request $request)
+    {
+        // Validate login fields + reCAPTCHA
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+            'g-recaptcha-response' => ['required'],
+        ], [
+            'g-recaptcha-response.required' => 'Please complete the reCAPTCHA.',
+        ]);
 
-    // Verify reCAPTCHA with Google
-    $recaptchaResponse = Http::asForm()->post(
-        'https://www.google.com/recaptcha/api/siteverify',
-        [
-            'secret' => config('services.recaptcha.secret_key'),
-            'response' => $request->input('g-recaptcha-response'),
-            'remoteip' => $request->ip(),
-        ]
-    );
+        // Verify reCAPTCHA with Google
+        $recaptchaResponse = Http::asForm()->post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            [
+                'secret' => config('services.recaptcha.secret_key'),
+                'response' => $request->input('g-recaptcha-response'),
+                'remoteip' => $request->ip(),
+            ]
+        );
 
-    if (!$recaptchaResponse->json('success')) {
-        return back()
-            ->withErrors([
-                'g-recaptcha-response' => 'reCAPTCHA verification failed. Please try again.',
-            ])
-            ->onlyInput('email');
-    }
+        if (!$recaptchaResponse->json('success')) {
+            return back()
+                ->withErrors([
+                    'g-recaptcha-response' => 'reCAPTCHA verification failed. Please try again.',
+                ])
+                ->onlyInput('email');
+        }
 
-    // Remove reCAPTCHA from credentials
-    unset($credentials['g-recaptcha-response']);
+        // Remove reCAPTCHA from credentials
+        unset($credentials['g-recaptcha-response']);
 
-    // Attempt login
-    if (Auth::attempt($credentials)) {
+        // Attempt login
+        if (Auth::attempt($credentials)) {
 
-        $user = Auth::user();
+            $user = Auth::user();
 
-        // Check hotel status
-        if ($user->hotel_id) {
+            // Check hotel status
+            if ($user->hotel_id) {
 
-            $hotel = \App\Models\Hotel::find($user->hotel_id);
+                $hotel = \App\Models\Hotel::find($user->hotel_id);
 
-            if ($hotel && $hotel->status === 'pending') {
+                if ($hotel && $hotel->status === 'pending') {
+
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+
+                    return back()->withErrors([
+                        'email' => 'Your hotel is waiting for Super Admin approval. Please wait until your hotel is approved.',
+                    ])->onlyInput('email');
+
+                } elseif ($hotel && $hotel->status === 'rejected') {
+
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+
+                    return back()->withErrors([
+                        'email' => 'Your hotel account has been rejected by Super Admin.',
+                    ])->onlyInput('email');
+                }
+            }
+
+            // Check user account status
+            if ($user->status !== 'active') {
 
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
                 return back()->withErrors([
-                    'email' => 'Your hotel is waiting for Super Admin approval. Please wait until your hotel is approved.',
+                    'email' => 'Your account is currently inactive or pending approval.',
                 ])->onlyInput('email');
+            }
 
-            } elseif ($hotel && $hotel->status === 'rejected') {
+            // Regenerate session after successful login
+            $request->session()->regenerate();
 
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
+            // Super Admin
+            if ($user->role?->slug === 'superadmin') {
+                return redirect()
+                    ->route('superadmin.dashboard')
+                    ->with('status', 'Welcome back, Super Admin!');
+            }
 
+            // Receptionist
             if ($user->hasRole('receptionist')) {
-                return redirect()->route('receptionist.dashboard')->with('status', 'Welcome back!');
+                return redirect()
+                    ->intended(route('receptionist.dashboard'))
+                    ->with('status', 'Welcome back!');
             }
 
+            // Housekeeping
             if ($user->hasRole('housekeeping')) {
-                return redirect()->route('housekeeping.index')->with('status', 'Welcome back!');
+                return redirect()
+                    ->intended(route('housekeeping.index'))
+                    ->with('status', 'Welcome back!');
             }
 
+            // Maintenance
             if ($user->hasRole('maintenance')) {
-                return redirect()->route('maintenance.index')->with('status', 'Welcome back!');
+                return redirect()
+                    ->intended(route('maintenance.index'))
+                    ->with('status', 'Welcome back!');
             }
-        }
 
-        // Check user account status
-        if ($user->status !== 'active') {
-
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return back()->withErrors([
-                'email' => 'Your account is currently inactive or pending approval.',
-            ])->onlyInput('email');
-        }
-
-        // Regenerate session after successful login
-        $request->session()->regenerate();
-
-        // Super Admin
-        if ($user->role?->slug === 'superadmin') {
-
+            // Other users
             return redirect()
-                ->route('superadmin.dashboard')
-                ->with('status', 'Welcome back, Super Admin!');
+                ->intended(route('dashboard'))
+                ->with('status', 'Logged in successfully!');
         }
 
-        // Receptionist
-        if ($user->hasRole('receptionist')) {
-
-            return redirect()
-                ->intended(route('receptionist.dashboard'))
-                ->with('status', 'Welcome back!');
-        }
-
-        // Other users
-        return redirect()
-            ->intended(route('dashboard'))
-            ->with('status', 'Logged in successfully!');
+        // Invalid credentials
+        return back()
+            ->withErrors([
+                'email' => 'The provided credentials do not match our records.',
+            ])
+            ->onlyInput('email');
     }
-
-    // Invalid credentials
-    return back()
-        ->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])
-        ->onlyInput('email');
-}
-
-
 
     public function logout(Request $request)
     {
