@@ -137,46 +137,46 @@
         @elseif(Auth::check() && Auth::user()->hasRole('housekeeping'))
             {{-- Category: Housekeeping --}}
             <div x-show="sidebarOpen" class="px-3 pb-1.5 pt-1">
-                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Housekeeping</span>
+                <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">HOUSEKEEPING</span>
             </div>
 
-            <a href="{{ route('housekeeping.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('housekeeping.*') ? 'active bg-blue-600 text-white shadow-md shadow-blue-600/20' : '' }}"
+            <a href="{{ route('housekeeping.index', ['tab' => 'dashboard']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ (!request()->has('tab') || request()->get('tab') === 'dashboard') && request()->routeIs('housekeeping.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-th-large nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Dashboard</span>
             </a>
 
-            <a href="{{ route('housekeeping.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('housekeeping.index', ['tab' => 'room_status']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ request()->get('tab') === 'room_status' ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-bed nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Room Status</span>
             </a>
 
-            <a href="{{ route('housekeeping.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('housekeeping.index', ['tab' => 'cleaning_tasks']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ request()->get('tab') === 'cleaning_tasks' ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-tasks nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Cleaning Tasks</span>
             </a>
 
-            <a href="{{ route('housekeeping.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('housekeeping.index', ['tab' => 'inspections']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ request()->get('tab') === 'inspections' ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-clipboard-check nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Inspections</span>
             </a>
 
-            <a href="{{ route('housekeeping.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('housekeeping.index', ['tab' => 'lost_found']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ request()->get('tab') === 'lost_found' ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-box-open nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Lost & Found</span>
             </a>
 
-            <a href="{{ route('housekeeping.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('housekeeping.index', ['tab' => 'task_history']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ request()->get('tab') === 'task_history' ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-history nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Task History</span>
