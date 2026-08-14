@@ -27,7 +27,8 @@ new class extends Component
     public function edit(int $id): void
     {
         $this->resetValidation();
-        $rec = Housekeeping::findOrFail($id);
+        $hotelId = Auth::user()?->hotel_id;
+        $rec = Housekeeping::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->findOrFail($id);
         $this->housekeepingId = $rec->id;
         $this->room_id        = (string)$rec->room_id;
         $this->status         = $rec->status;
@@ -38,19 +39,21 @@ new class extends Component
 
     public function store(): void
     {
+        $hotelId = Auth::user()?->hotel_id;
+
         $this->validate([
             'room_id' => 'required|exists:rooms,id',
             'status'  => 'required|in:Clean,Dirty,Inspecting',
         ]);
 
-        $room = Room::findOrFail($this->room_id);
+        $room = Room::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->findOrFail($this->room_id);
 
         Housekeeping::updateOrCreate(['id' => $this->housekeepingId], [
             'room_id'    => $this->room_id,
             'status'     => $this->status,
             'updated_by' => Auth::id(),
             'notes'      => $this->notes ?: null,
-            'hotel_id'   => $room->hotel_id ?? Auth::user()?->hotel_id,
+            'hotel_id'   => $hotelId ?? $room->hotel_id,
         ]);
 
         $this->resetFields();
@@ -61,7 +64,8 @@ new class extends Component
     public function delete(int $id): void
     {
         if (Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist')) {
-            $rec = Housekeeping::findOrFail($id);
+            $hotelId = Auth::user()?->hotel_id;
+            $rec = Housekeeping::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->findOrFail($id);
             $rec->delete();
             $this->dispatch('toast', message: 'Record deleted.', type: 'success');
         } else {
@@ -81,23 +85,34 @@ new class extends Component
 
     public function render(): mixed
     {
+        $hotelId = Auth::user()?->hotel_id;
+
         $query = Housekeeping::with(['room', 'updater'])
-            ->whereIn('status', ['Clean', 'Dirty', 'Inspecting'])
-            ->whereHas('room', fn ($q) => $q->where('room_number', 'like', "%{$this->search}%"));
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+            ->whereIn('status', ['Clean', 'Dirty', 'Inspecting']);
+
+        if ($this->search) {
+            $query->whereHas('room', fn ($q) => $q->where('room_number', 'like', "%{$this->search}%"));
+        }
 
         if ($this->statusFilter && in_array($this->statusFilter, ['Clean', 'Dirty', 'Inspecting'])) {
             $query->where('status', $this->statusFilter);
         }
 
-        // Group status count optimization for housekeeping cleanliness statuses
+        // Group status count optimization for housekeeping cleanliness statuses scoped by hotel_id
         $statusCounts = Housekeeping::whereIn('status', ['Clean', 'Dirty', 'Inspecting'])
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
             ->select('status', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
             ->groupBy('status')
             ->pluck('count', 'status');
 
+        $rooms = Room::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+            ->orderBy('room_number')
+            ->get();
+
         return $this->view([
             'records' => $query->latest()->paginate(10),
-            'rooms'   => Room::orderBy('room_number')->get(),
+            'rooms'   => $rooms,
             'counts'  => [
                 'clean'      => $statusCounts['Clean'] ?? 0,
                 'dirty'      => $statusCounts['Dirty'] ?? 0,

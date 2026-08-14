@@ -25,8 +25,8 @@
                 <div class="relative max-w-xs w-full">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
                     <input type="text" wire:model.live.debounce.300ms="search"
-                           placeholder="Search by guest or room..."
-                           class="pms-input pl-9 py-1.5 text-xs rounded-lg border border-slate-200">
+                           placeholder="Search guest, ID / Aadhaar No, room, status..."
+                           class="pms-input pl-9 py-1.5 text-xs rounded-lg border border-slate-200 w-64">
                 </div>
                 <span class="text-xs font-semibold text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 shrink-0">
                     {{ $reservations->total() }} total
@@ -40,6 +40,8 @@
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500">
                         <th class="font-bold"># ID</th>
                         <th class="font-bold">Guest</th>
+                        <th class="font-bold">ID Type</th>
+                        <th class="font-bold">ID Number</th>
                         <th class="font-bold">Room(s)</th>
                         <th class="font-bold">Check In</th>
                         <th class="font-bold">Check Out</th>
@@ -79,18 +81,39 @@
                                 @endif
                                 <div>
                                     <span class="font-bold text-slate-800 text-sm block leading-none mb-1">{{ $res->guest->name ?? 'N/A' }}</span>
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="text-[10px] text-slate-400 block">{{ $res->guest->email ?? '' }}</span>
+                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                        <span class="text-[10px] text-slate-400 block">{{ $res->guest->email ?? $res->guest->phone ?? '' }}</span>
                                         @if(optional($res->guest)->id_card_front || optional($res->guest)->id_card_back || optional($res->guest)->guest_photo)
                                             <button wire:click="openIdModal({{ $res->guest->id }})"
                                                     class="text-[9px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 px-1.5 py-0.5 rounded font-bold transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs"
                                                     title="Click to view Guest Photo & ID Scans">
-                                                <i class="fas fa-id-card text-indigo-500"></i> View Documents
+                                                <i class="fas fa-camera text-indigo-500"></i> Docs
                                             </button>
                                         @endif
                                     </div>
                                 </div>
                             </div>
+                        </td>
+                        <td>
+                            @if(optional($res->guest)->id_type)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-2xs">
+                                    {{ $res->guest->id_type }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 text-xs">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            @php
+                                $idNum = optional($res->guest)->id_number ?: optional($res->guest)->passport_number;
+                            @endphp
+                            @if($idNum)
+                                <span class="text-xs font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/80 shadow-2xs">
+                                    {{ $idNum }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 text-xs">—</span>
+                            @endif
                         </td>
                         <td class="font-semibold text-slate-700 text-sm">
                             {{ $res->rooms->pluck('room_number')->implode(', ') ?: 'N/A' }}
@@ -188,7 +211,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="py-12 text-center text-slate-400">
+                        <td colspan="11" class="py-12 text-center text-slate-400">
                             <i class="fas fa-calendar-times text-4xl text-slate-200 mb-3 block"></i>
                             <p class="text-sm font-medium text-slate-400">No reservations found.</p>
                         </td>
@@ -226,9 +249,14 @@
             </div>
 
             <div class="space-y-4">
-                <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-150">
-                    <span class="text-xs font-bold text-slate-700">Verification Documents Status:</span>
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-150 gap-2">
+                    <div>
+                        <span class="text-xs font-bold text-slate-700 block">ID Document Details:</span>
+                        <span class="text-xs font-mono font-bold text-indigo-700">
+                            {{ $selectedGuest->id_type ?: 'ID Card' }}: {{ $selectedGuest->id_number ?: ($selectedGuest->passport_number ?: 'Not Provided') }}
+                        </span>
+                    </div>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">
                         <i class="fas fa-shield-alt text-xs"></i> Verified Guest Profile
                     </span>
                 </div>

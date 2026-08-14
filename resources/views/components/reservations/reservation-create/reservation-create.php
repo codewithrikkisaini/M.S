@@ -54,6 +54,17 @@ new class extends Component
 
     public function updatedCheckOutDate(): void { $this->room_ids = []; }
 
+    public function updatedGuestId($value): void
+    {
+        if ($value) {
+            $guest = Guest::find($value);
+            if ($guest) {
+                $this->id_type = $guest->id_type ?? '';
+                $this->guest_id_number = $guest->id_number ?? $guest->passport_number ?? '';
+            }
+        }
+    }
+
     public function updatedRoomIds(): void
     {
         if (!empty($this->room_ids)) {
@@ -127,11 +138,22 @@ new class extends Component
                 'phone'         => $this->new_guest_phone ?: null,
                 'id_type'       => $this->id_type ?: null,
                 'id_number'     => $this->guest_id_number ?: null,
+                'passport_number' => $this->guest_id_number ?: null,
                 'id_card_front' => $frontPath,
                 'id_card_back'  => $backPath,
                 'guest_photo'   => $photoPath,
             ]);
             $this->guest_id = (string)$guest->id;
+        } else {
+            if ($this->guest_id && ($this->id_type || $this->guest_id_number)) {
+                $existingGuest = Guest::find($this->guest_id);
+                if ($existingGuest) {
+                    $existingGuest->update([
+                        'id_type'   => $this->id_type ?: $existingGuest->id_type,
+                        'id_number' => $this->guest_id_number ?: $existingGuest->id_number,
+                    ]);
+                }
+            }
         }
 
         foreach ($this->room_ids as $roomId) {

@@ -6,7 +6,7 @@ use App\Models\Guest;
 new class extends Component
 {
     public string $guest_id = '', $name = '', $email = '', $phone = '',
-                  $nationality = '', $passport_number = '', $address = '';
+                  $nationality = '', $id_type = '', $id_number = '', $passport_number = '', $address = '';
 
     public function mount(): void
     {
@@ -21,6 +21,8 @@ new class extends Component
             'email'           => 'nullable|email|unique:guests,email',
             'phone'           => 'nullable|string|max:20',
             'nationality'     => 'nullable|string|max:100',
+            'id_type'         => 'nullable|string|max:100',
+            'id_number'       => 'nullable|string|max:100',
             'passport_number' => 'nullable|string|max:100',
             'address'         => 'nullable|string',
         ]);
@@ -31,7 +33,9 @@ new class extends Component
             'email'           => $this->email ?: null,
             'phone'           => $this->phone ?: null,
             'nationality'     => $this->nationality ?: null,
-            'passport_number' => $this->passport_number ?: null,
+            'id_type'         => $this->id_type ?: null,
+            'id_number'       => $this->id_number ?: null,
+            'passport_number' => $this->id_number ?: ($this->passport_number ?: null),
             'address'         => $this->address ?: null,
         ]);
 
