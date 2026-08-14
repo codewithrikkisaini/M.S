@@ -59,35 +59,51 @@
                     </div>
                     
                     
-                    {{-- ID Type --}}
-                    <div>
-                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                            ID Type
-                        </label>
-                        <select wire:model="id_type" class="pms-select text-xs">
-                            <option value="">Select ID...</option>
-                            <option value="Driving License">Driving License</option>
-                            <option value="Aadhaar Card">Aadhaar Card</option>
-                            <option value="Passport">Passport</option>
-                            <option value="Voter ID">Voter ID</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        @error('id_type')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <div class="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/40 p-3.5 rounded-xl border border-slate-200/80">
+                        {{-- ID Type --}}
+                        <div>
+                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                ID Type
+                            </label>
+                            <select wire:model.live="id_type" class="pms-select text-xs">
+                                <option value="">Select ID Type...</option>
+                                <option value="Aadhaar Card">🪪 Aadhaar Card</option>
+                                <option value="Driving License">🪪 Driving License</option>
+                                <option value="Passport">🛂 Passport</option>
+                                <option value="Voter ID">🗳️ Voter ID</option>
+                                <option value="Other">📄 Other Document</option>
+                            </select>
+                            @error('id_type')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    {{-- Booking Type --}} 
-                    <div> 
-                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider"> Booking Type <span class="text-red-500">*</span></label> 
-                        <select wire:model="booking_type" class="pms-select text-xs"> 
-                            <option value="Walk in">🚶 Walk in</option> 
-                            <option value="Direct website">🌐 Direct website</option> 
-                            <option value="OTA">🏨 OTA (Booking.com/MMT/Agoda)</option> 
-                            <option value="Phone">📞 Phone</option> 
-                            <option value="Other">📌 Other</option> 
-                        </select> 
-                        @error('booking_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror 
+                        {{-- ID Number --}}
+                        <div>
+                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                ID / Document Number
+                            </label>
+                            <input type="text" 
+                                   wire:model="guest_id_number" 
+                                   class="pms-input text-xs" 
+                                   placeholder="{{ $id_type === 'Aadhaar Card' ? 'e.g. 1234 5678 9012' : ($id_type === 'Passport' ? 'e.g. Z1234567' : ($id_type ? 'Enter ' . $id_type . ' No...' : 'Enter ID / Document No...')) }}">
+                            @error('guest_id_number')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Booking Type --}} 
+                        <div> 
+                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider"> Booking Type <span class="text-red-500">*</span></label> 
+                            <select wire:model="booking_type" class="pms-select text-xs"> 
+                                <option value="Walk in">🚶 Walk in</option> 
+                                <option value="Direct website">🌐 Direct website</option> 
+                                <option value="OTA">🏨 OTA (Booking.com/MMT/Agoda)</option> 
+                                <option value="Phone">📞 Phone</option> 
+                                <option value="Other">📌 Other</option> 
+                            </select> 
+                            @error('booking_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror 
+                        </div>
                     </div>
 
                     {{-- ID & Guest Photo Attachments Section --}}

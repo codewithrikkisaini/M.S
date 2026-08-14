@@ -55,7 +55,7 @@
                 <a href="/" class="hover:text-blue-600 transition-colors flex items-center gap-1.5 text-blue-600 font-bold">
                     <i class="fas fa-home text-blue-600"></i> Home
                 </a>
-                <a href="#destinations" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                <a href="#hotels" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
                     <i class="fas fa-hotel text-blue-600"></i> Hotels
                 </a>
                 <a href="#about" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
@@ -93,7 +93,7 @@
             <a href="/" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600">
                 <i class="fas fa-home w-5 text-blue-600"></i> Home
             </a>
-            <a href="#destinations" @click="mobileMenu = false" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600">
+            <a href="#hotels" @click="mobileMenu = false" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600">
                 <i class="fas fa-hotel w-5 text-blue-600"></i> Hotels
             </a>
             <a href="#about" @click="mobileMenu = false" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600">
@@ -117,11 +117,11 @@
     </header>
 
     <!-- Hero Search Section -->
-    <section class="relative pt-20 pb-28 bg-gradient-to-br bg-primary to-indigo-700 overflow-hidden">
+    <section class="relative pt-20 pb-28 bg-[#0892A7] overflow-hidden">
         <!-- Floating Bokeh & Glowing Background Effect -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute -top-10 left-1/4 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-            <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-400/20 rounded-full blur-3xl"></div>
             
             {{-- Bokeh circles --}}
             <div class="absolute top-12 left-1/3 w-32 h-32 bg-white/15 rounded-full blur-md"></div>
@@ -131,58 +131,56 @@
         </div>
         
         <div class="max-w-6xl mx-auto px-4 relative z-10 text-center">
-            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-3">
                 Find Your Perfect Stay
             </h1>
-            <p class="text-blue-100 text-lg mb-10 max-w-2xl mx-auto font-medium">
+            <p class="text-teal-50 text-base sm:text-lg mb-10 max-w-2xl mx-auto font-medium">
                 Search through premium hotels, luxury resorts, and cozy homestays at the best prices.
             </p>
 
             <!-- Pill Search Bar Component (Exact match to screenshot) -->
-            <div class="bg-white p-2 sm:p-3 rounded-[32px] sm:rounded-full shadow-2xl shadow-blue-950/30 mx-auto max-w-5xl text-left border border-white/50">
-                <form action="{{ route('booking-engine') }}" method="get" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-2 items-center">
+            <div class="bg-white p-2 rounded-[32px] sm:rounded-full shadow-2xl mx-auto max-w-5xl text-left border border-white/80">
+                <form action="{{ route('booking-engine') }}" method="get" class="flex flex-col md:flex-row items-center gap-2">
                     
                     {{-- Destination --}}
-                    <div class="md:col-span-4 bg-slate-50/90 hover:bg-slate-100/90 border border-slate-100 rounded-2xl sm:rounded-full px-5 py-3.5 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:bg-white focus-within:border-blue-300">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">DESTINATION</label>
+                    <div class="flex-1 bg-white hover:bg-slate-50 border border-blue-300/80 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-200 rounded-2xl sm:rounded-full px-6 py-3 transition-all w-full">
+                        <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none mb-1">DESTINATION</label>
                         <div class="flex items-center gap-2.5">
                             <i class="fas fa-map-marker-alt text-blue-500 text-sm"></i>
-                            <input type="text" name="search" placeholder="City or Hotel Name" class="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-800 placeholder-slate-400 p-0 focus:ring-0">
+                            <input type="text" name="search" placeholder="City or Hotel Name" class="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-700 placeholder-blue-300/80 p-0 focus:ring-0">
                         </div>
                     </div>
                     
                     {{-- Check-In --}}
-                    <div class="md:col-span-3 bg-slate-50/90 hover:bg-slate-100/90 border border-slate-100 rounded-2xl sm:rounded-full px-5 py-3.5 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:bg-white focus-within:border-blue-300">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">CHECK-IN</label>
-                        <div class="flex items-center gap-2.5">
+                    <div class="w-full md:w-56 bg-slate-50/90 hover:bg-slate-100/90 border border-slate-100/80 rounded-2xl sm:rounded-full px-5 py-3 transition-all focus-within:ring-2 focus-within:ring-blue-300">
+                        <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none mb-1">CHECK-IN</label>
+                        <div class="flex items-center gap-2">
                             <i class="far fa-calendar-alt text-blue-500 text-sm"></i>
-                            <input type="date" name="checkin" class="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-800 p-0 focus:ring-0">
+                            <input type="date" name="checkin" class="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-700 p-0 focus:ring-0">
                         </div>
                     </div>
 
                     {{-- Check-Out --}}
-                    <div class="md:col-span-3 bg-slate-50/90 hover:bg-slate-100/90 border border-slate-100 rounded-2xl sm:rounded-full px-5 py-3.5 transition-all focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:bg-white focus-within:border-blue-300">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">CHECK-OUT</label>
-                        <div class="flex items-center gap-2.5">
+                    <div class="w-full md:w-56 bg-slate-50/90 hover:bg-slate-100/90 border border-slate-100/80 rounded-2xl sm:rounded-full px-5 py-3 transition-all focus-within:ring-2 focus-within:ring-blue-300">
+                        <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none mb-1">CHECK-OUT</label>
+                        <div class="flex items-center gap-2">
                             <i class="far fa-calendar-alt text-blue-500 text-sm"></i>
-                            <input type="date" name="checkout" class="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-800 p-0 focus:ring-0">
+                            <input type="date" name="checkout" class="w-full bg-transparent border-none outline-none text-xs font-bold text-slate-700 p-0 focus:ring-0">
                         </div>
                     </div>
 
                     {{-- Search Button --}}
-                    <div class="md:col-span-2 h-full flex">
-                        <button type="submit" class="w-full py-4 px-6 bg-accent hover:bg-secondary text-white font-black rounded-2xl sm:rounded-full flex items-center justify-center gap-2.5 transition-all text-base shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 cursor-pointer active:scale-95">
-                            <span>Search</span>
-                            <i class="fas fa-search text-sm"></i>
-                        </button>
-                    </div>
+                    <button type="submit" class="w-full md:w-auto py-3.5 px-8 bg-[#DAAF6C] hover:bg-[#c99e5b] text-white font-extrabold rounded-2xl sm:rounded-full flex items-center justify-center gap-2 transition-all text-sm shadow-md hover:shadow-lg cursor-pointer shrink-0">
+                        <span>Search</span>
+                        <i class="fas fa-search text-xs"></i>
+                    </button>
                 </form>
             </div>
         </div>
     </section>
 
     <!-- Popular Destinations / Hotels -->
-    <section id="destinations" class="py-24 bg-slate-50">
+    <section id="hotels" class="py-24 bg-slate-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-black text-slate-900 tracking-tight">Trending Hotels & Resorts</h2>
@@ -499,7 +497,7 @@
                     <h4 class="text-white font-bold mb-4">Quick Links</h4>
                     <ul class="space-y-2.5 text-sm">
                         <li><a href="/" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-home text-blue-500 text-xs"></i> Home</a></li>
-                        <li><a href="#destinations" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-hotel text-blue-500 text-xs"></i> Hotels</a></li>
+                        <li><a href="#hotels" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-hotel text-blue-500 text-xs"></i> Hotels</a></li>
                         <li><a href="#about" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-info-circle text-blue-500 text-xs"></i> About Us</a></li>
                         <li><a href="#contact" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-phone-alt text-blue-500 text-xs"></i> Contact Us</a></li>
                         <li><a href="#faq" class="hover:text-blue-400 transition-colors flex items-center gap-2"><i class="fas fa-question-circle text-blue-500 text-xs"></i> FAQ</a></li>

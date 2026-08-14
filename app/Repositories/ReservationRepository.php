@@ -9,12 +9,25 @@ class ReservationRepository implements ReservationRepositoryInterface
     public function getAllPaginated($search, $perPage = 10)
     {
         return Reservation::with(['guest', 'rooms', 'payments'])
-            ->whereHas('guest', function($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%');
+            ->when($search, function($query) use ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->whereHas('guest', function($gq) use ($search) {
+                        $gq->where('name', 'like', '%' . $search . '%')
+                           ->orWhere('email', 'like', '%' . $search . '%')
+                           ->orWhere('phone', 'like', '%' . $search . '%')
+                           ->orWhere('id_type', 'like', '%' . $search . '%')
+                           ->orWhere('id_number', 'like', '%' . $search . '%')
+                           ->orWhere('passport_number', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('rooms', function($rq) use ($search) {
+                        $rq->where('room_number', 'like', '%' . $search . '%');
+                    })
+                    ->orWhere('id', 'like', '%' . $search . '%')
+                    ->orWhere('booking_type', 'like', '%' . $search . '%')
+                    ->orWhere('status', 'like', '%' . $search . '%');
+                });
             })
-            ->orWhereHas('rooms', function($q) use ($search) {
-                $q->where('room_number', 'like', '%' . $search . '%');
-            })
+            ->orderBy('id', 'desc')
             ->paginate($perPage);
     }
 

@@ -27,15 +27,23 @@ class AppServiceProvider extends ServiceProvider
                     $userHotel = (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->hotel_id) 
                         ? \Illuminate\Support\Facades\Auth::user()->hotel 
                         : null;
-                    $fallbackName = $userHotel?->name ?? 'Lodgiko PMS';
 
-                    $settingName  = Setting::get('hotel_name');
-                    $hotelName    = (!empty($settingName) && $settingName !== 'Merahkie PMS Lite') ? $settingName : $fallbackName;
-                    $hotelPhone   = Setting::get('hotel_phone',   $userHotel?->phone ?? '');
-                    $hotelEmail   = Setting::get('hotel_email',   $userHotel?->email ?? '');
-                    $hotelAddress = Setting::get('hotel_address', $userHotel?->address ?? '');
-                    $hotelWebsite = Setting::get('hotel_website', '');
-                    $currency     = Setting::get('currency',      'USD');
+                    if ($userHotel) {
+                        $hotelName    = $userHotel->name;
+                        $hotelPhone   = $userHotel->phone ?? Setting::get('hotel_phone', '');
+                        $hotelEmail   = $userHotel->email ?? Setting::get('hotel_email', '');
+                        $hotelAddress = $userHotel->address ?? Setting::get('hotel_address', '');
+                        $hotelWebsite = $userHotel->website ?? Setting::get('hotel_website', '');
+                        $currency     = $userHotel->currency ?? Setting::get('currency', 'USD');
+                    } else {
+                        $settingName  = Setting::get('hotel_name');
+                        $hotelName    = (!empty($settingName) && $settingName !== 'Merahkie PMS Lite' && $settingName !== 'Merahkie Hotel & Resort') ? $settingName : 'Lodgiko PMS';
+                        $hotelPhone   = Setting::get('hotel_phone', '');
+                        $hotelEmail   = Setting::get('hotel_email', '');
+                        $hotelAddress = Setting::get('hotel_address', '');
+                        $hotelWebsite = Setting::get('hotel_website', '');
+                        $currency     = Setting::get('currency', 'USD');
+                    }
                 } else {
                     $userHotel    = (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->hotel_id) ? \Illuminate\Support\Facades\Auth::user()->hotel : null;
                     $hotelName    = $userHotel?->name ?? 'Lodgiko PMS';

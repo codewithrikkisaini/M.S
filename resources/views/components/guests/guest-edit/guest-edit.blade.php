@@ -45,8 +45,21 @@
                         <input type="text" wire:model="nationality" class="pms-input text-xs" placeholder="e.g. Indian">
                     </div>
                     <div>
-                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Passport / Govt ID No.</label>
-                        <input type="text" wire:model="passport_number" class="pms-input text-xs" placeholder="A1234567">
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">ID Type</label>
+                        <select wire:model.live="id_type" class="pms-select text-xs">
+                            <option value="">Select ID Type...</option>
+                            <option value="Aadhaar Card">🪪 Aadhaar Card</option>
+                            <option value="Driving License">🪪 Driving License</option>
+                            <option value="Passport">Passport</option>
+                            <option value="Voter ID">🗳️ Voter ID</option>
+                            <option value="Other">📄 Other Document</option>
+                        </select>
+                        @error('id_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">ID / Aadhaar / Document Number</label>
+                        <input type="text" wire:model="id_number" class="pms-input text-xs" placeholder="{{ $id_type ? 'Enter ' . $id_type . ' number...' : 'Enter ID / Aadhaar / Passport number...' }}">
+                        @error('id_number') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="sm:col-span-2">
                         <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Address</label>
