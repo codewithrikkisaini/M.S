@@ -71,13 +71,16 @@
                         <td>
                             @if($user->role)
                             @php
-                                $roleClass = match($user->role->name) {
+                                $roleClass = match($user->role->slug) {
                                     'admin' => 'bg-indigo-50 text-indigo-700 border-indigo-100',
+                                    'receptionist' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                    'housekeeping' => 'bg-teal-50 text-teal-700 border-teal-100',
+                                    'maintenance' => 'bg-blue-50 text-blue-700 border-blue-100',
                                     default => 'bg-slate-100 text-slate-600 border-slate-200',
                                 };
                             @endphp
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $roleClass }}">
-                                {{ ucfirst($user->role->name) }}
+                                {{ $user->role->name }}
                             </span>
                             @endif
                         </td>
@@ -156,7 +159,7 @@
                 <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Assigned Role <span class="text-red-500">*</span></label>
                 <select wire:model="role_id" class="pms-select text-xs">
                     <option value="">Select role...</option>
-                    @foreach($roles as $role)<option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>@endforeach
+                    @foreach($roles as $role)<option value="{{ $role->id }}">{{ $role->name }}</option>@endforeach
                 </select>
                 @error('role_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>

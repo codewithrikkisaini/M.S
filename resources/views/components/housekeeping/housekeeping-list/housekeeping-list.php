@@ -61,6 +61,25 @@ new class extends Component
         $this->dispatch('toast', message: 'Housekeeping record updated.', type: 'success');
     }
 
+    public function updateRoomStatus(int $id, string $newStatus): void
+    {
+        if (!in_array($newStatus, ['Clean', 'Dirty', 'Inspecting'])) return;
+
+        $hotelId = Auth::user()?->hotel_id;
+        $rec = Housekeeping::with('room')->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->findOrFail($id);
+        $rec->update([
+            'status'     => $newStatus,
+            'updated_by' => Auth::id(),
+        ]);
+
+        if ($newStatus === 'Clean' && $rec->room && $rec->room->status === 'Dirty') {
+            $rec->room->update(['status' => 'Available']);
+        }
+
+        $roomNo = $rec->room->room_number ?? "#{$id}";
+        $this->dispatch('toast', message: "Room {$roomNo} status updated to {$newStatus}.", type: 'success');
+    }
+
     public function delete(int $id): void
     {
         if (Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist')) {
@@ -110,13 +129,20 @@ new class extends Component
             ->orderBy('room_number')
             ->get();
 
+        $totalRoomsTracked = Room::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->count();
+        $cleanCount = $statusCounts['Clean'] ?? 0;
+        $dirtyCount = $statusCounts['Dirty'] ?? 0;
+        $inspectingCount = $statusCounts['Inspecting'] ?? 0;
+
         return $this->view([
             'records' => $query->latest()->paginate(10),
             'rooms'   => $rooms,
             'counts'  => [
-                'clean'      => $statusCounts['Clean'] ?? 0,
-                'dirty'      => $statusCounts['Dirty'] ?? 0,
-                'inspecting' => $statusCounts['Inspecting'] ?? 0,
+                'total'      => $totalRoomsTracked,
+                'clean'      => $cleanCount,
+                'dirty'      => $dirtyCount,
+                'inspecting' => $inspectingCount,
+                'pending'    => $dirtyCount + $inspectingCount,
             ],
         ]);
     }

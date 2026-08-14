@@ -1,65 +1,125 @@
 <div>
-    {{-- Header --}}
-    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    {{-- Page Title Header --}}
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-            <h1 class="text-2xl font-black text-gray-900 tracking-tight">Maintenance Tickets</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Manage room repairs, facility issues, and technical maintenance logs</p>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-sm shadow-xs">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <span>Maintenance Dashboard</span>
+            </h1>
+            <p class="text-xs text-slate-500 font-medium mt-1">
+                {{ Auth::user()?->hotel?->name ?? 'Hotel Management System' }} • Repair ticketing, room diagnostics & maintenance tracking
+            </p>
         </div>
-        <button wire:click="openCreate" class="btn-primary btn-sm rounded-lg shadow-sm cursor-pointer">
-            <i class="fas fa-plus text-xs"></i> New Ticket
-        </button>
     </div>
 
-    {{-- Status Filters Grid --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <button wire:click="filterByStatus('Open')"
-                class="pms-card p-5 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $statusFilter === 'Open' ? 'ring-2 ring-indigo-600 border-indigo-100 shadow-md bg-indigo-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
+    {{-- Dedicated Maintenance Dashboard Welcome Banner --}}
+    <div class="mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-800 rounded-2xl p-5 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-blue-500/30">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
+                <i class="fas fa-wrench text-2xl text-white"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-xl font-extrabold text-white tracking-tight">Maintenance Dashboard</h2>
+                    <span class="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-white/20">{{ Auth::user()?->hotel?->name ?? 'Hotel' }}</span>
+                </div>
+                <p class="text-blue-100 text-xs mt-1">
+                    Manage room repairs, track technical issue tickets, and assign staff for <strong>{{ Auth::user()?->hotel?->name ?? 'your hotel' }}</strong>.
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
+            <button wire:click="openCreate" class="bg-white text-blue-900 hover:bg-blue-50 text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                <i class="fas fa-plus"></i> New Ticket
+            </button>
+            <a href="{{ route('dashboard') }}" class="bg-slate-900/60 hover:bg-slate-900 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 border border-white/20">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    {{-- Status Filters Grid (6 Cards Matching User Design) --}}
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-6">
+        {{-- Total Issues --}}
+        <div class="pms-card p-4 text-left border border-slate-100/80 hover:shadow-sm transition-all">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
-                    <i class="fas fa-folder-open text-base"></i>
+                    <i class="fas fa-clipboard-list text-base"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-black text-slate-800 tracking-tight">{{ $counts['open'] }}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Open Tickets</p>
+                    <p class="text-2xl font-black text-slate-800 tracking-tight">{{ sprintf('%02d', $counts['total']) }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Total Issues</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Open --}}
+        <button wire:click="filterByStatus('Open')"
+                class="pms-card p-4 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $statusFilter === 'Open' ? 'ring-2 ring-indigo-600 border-indigo-100 shadow-md bg-indigo-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
+                    <i class="fas fa-exclamation-circle text-base"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-black text-rose-600 tracking-tight">{{ sprintf('%02d', $counts['open']) }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Open</p>
                 </div>
             </div>
         </button>
 
-        <button wire:click="filterByStatus('In Progress')"
-                class="pms-card p-5 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $statusFilter === 'In Progress' ? 'ring-2 ring-indigo-600 border-indigo-100 shadow-md bg-indigo-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
+        {{-- Assigned --}}
+        <div class="pms-card p-4 text-left border border-slate-100/80 hover:shadow-sm transition-all">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
-                    <i class="fas fa-spinner text-base"></i>
+                    <i class="fas fa-user-check text-base"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-black text-slate-800 tracking-tight">{{ $counts['inprogress'] }}</p>
+                    <p class="text-2xl font-black text-slate-800 tracking-tight">{{ sprintf('%02d', $counts['assigned']) }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Assigned</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- In Progress --}}
+        <button wire:click="filterByStatus('In Progress')"
+                class="pms-card p-4 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $statusFilter === 'In Progress' ? 'ring-2 ring-indigo-600 border-indigo-100 shadow-md bg-indigo-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                    <i class="fas fa-cog text-base"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-black text-blue-600 tracking-tight">{{ sprintf('%02d', $counts['inprogress']) }}</p>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">In Progress</p>
                 </div>
             </div>
         </button>
 
+        {{-- Urgent --}}
+        <button wire:click="filterByCritical"
+                class="pms-card p-4 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $priorityFilter === 'Critical' ? 'ring-2 ring-indigo-600 border-indigo-100 shadow-md bg-indigo-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 border border-red-100 flex items-center justify-center shrink-0">
+                    <i class="fas fa-bell text-base animate-pulse"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-black text-red-600 tracking-tight">{{ sprintf('%02d', $counts['urgent']) }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Urgent</p>
+                </div>
+            </div>
+        </button>
+
+        {{-- Resolved --}}
         <button wire:click="filterByStatus('Completed')"
-                class="pms-card p-5 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $statusFilter === 'Completed' ? 'ring-2 ring-indigo-600 border-indigo-100 shadow-md bg-indigo-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
+                class="pms-card p-4 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $statusFilter === 'Completed' ? 'ring-2 ring-indigo-600 border-indigo-100 shadow-md bg-indigo-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
                     <i class="fas fa-check-circle text-base"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-black text-slate-800 tracking-tight">{{ $counts['completed'] }}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Completed</p>
-                </div>
-            </div>
-        </button>
-
-        <button wire:click="filterByCritical"
-                class="pms-card p-5 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $priorityFilter === 'Critical' ? 'ring-2 ring-indigo-600 border-indigo-100 shadow-md bg-indigo-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 border border-red-100 flex items-center justify-center shrink-0">
-                    <i class="fas fa-exclamation-circle text-base animate-pulse"></i>
-                </div>
-                <div>
-                    <p class="text-2xl font-black text-slate-800 tracking-tight">{{ $counts['critical'] }}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Critical Active</p>
+                    <p class="text-2xl font-black text-emerald-600 tracking-tight">{{ sprintf('%02d', $counts['completed']) }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Resolved</p>
                 </div>
             </div>
         </button>
@@ -101,20 +161,20 @@
             <table class="pms-table">
                 <thead>
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500">
-                        <th class="font-bold"># ID</th>
-                        <th class="font-bold">Room</th>
-                        <th class="font-bold">Issue Description</th>
+                        <th class="font-bold">Ticket No.</th>
+                        <th class="font-bold">Room No.</th>
+                        <th class="font-bold">Issue</th>
                         <th class="font-bold">Priority</th>
                         <th class="font-bold">Assigned To</th>
                         <th class="font-bold">Status</th>
-                        <th class="font-bold">Created Date</th>
+                        <th class="font-bold">Reported On</th>
                         <th class="font-bold text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($tickets as $t)
                     <tr class="hover:bg-slate-50/40 transition-colors">
-                        <td class="text-slate-400 text-xs font-semibold">#{{ $t->id }}</td>
+                        <td class="text-slate-600 text-xs font-bold font-mono">#MT-{{ sprintf('%03d', $t->id) }}</td>
                         <td>
                             <span class="font-black text-slate-800 text-base tracking-tight bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 shadow-sm">{{ $t->room_number }}</span>
                         </td>
@@ -141,18 +201,12 @@
                             <span class="text-xs font-semibold text-slate-700">{{ $t->assignee_name ?? '—' }}</span>
                         </td>
                         <td>
-                            @php
-                                $s = $t->status;
-                                $statusClass = match($s) {
-                                    'Open' => 'bg-blue-50 text-blue-700 border-blue-100',
-                                    'In Progress' => 'bg-amber-50 text-amber-700 border-amber-100',
-                                    'Completed' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
-                                    default => 'bg-slate-50 text-slate-500 border-slate-150',
-                                };
-                            @endphp
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $statusClass }}">
-                                {{ $s }}
-                            </span>
+                            <select wire:change="updateTicketStatus({{ $t->id }}, $event.target.value)" class="text-xs font-bold rounded-lg border px-2 py-1 cursor-pointer transition-all focus:outline-none {{ $t->status === 'Open' ? 'bg-blue-50 text-blue-700 border-blue-200' : ($t->status === 'In Progress' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($t->status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200')) }}">
+                                <option value="Open" {{ $t->status === 'Open' ? 'selected' : '' }}>🔵 Open</option>
+                                <option value="In Progress" {{ $t->status === 'In Progress' ? 'selected' : '' }}>⏳ In Progress</option>
+                                <option value="Completed" {{ $t->status === 'Completed' ? 'selected' : '' }}>✅ Completed</option>
+                                <option value="Cancelled" {{ $t->status === 'Cancelled' ? 'selected' : '' }}>❌ Cancelled</option>
+                            </select>
                         </td>
                         <td class="text-slate-500 text-xs font-medium">{{ \Carbon\Carbon::parse($t->created_at)->format('d M Y') }}</td>
                         <td class="text-right">

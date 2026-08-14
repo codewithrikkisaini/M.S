@@ -17,6 +17,12 @@ class AuthController extends Controller
             if ($user->hasRole('receptionist')) {
                 return redirect()->route('receptionist.dashboard');
             }
+            if ($user->hasRole('housekeeping')) {
+                return redirect()->route('housekeeping.index');
+            }
+            if ($user->hasRole('maintenance')) {
+                return redirect()->route('maintenance.index');
+            }
             return redirect()->route('dashboard');
         }
 
@@ -69,7 +75,15 @@ class AuthController extends Controller
             }
 
             if ($user->hasRole('receptionist')) {
-                return redirect()->intended(route('receptionist.dashboard'))->with('status', 'Welcome back!');
+                return redirect()->route('receptionist.dashboard')->with('status', 'Welcome back!');
+            }
+
+            if ($user->hasRole('housekeeping')) {
+                return redirect()->route('housekeeping.index')->with('status', 'Welcome back!');
+            }
+
+            if ($user->hasRole('maintenance')) {
+                return redirect()->route('maintenance.index')->with('status', 'Welcome back!');
             }
 
             return redirect()->intended(route('dashboard'))->with('status', 'Logged in successfully!');

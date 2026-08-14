@@ -15,6 +15,8 @@ try {
     $superadminRole = \App\Models\Role::updateOrCreate(['slug' => 'superadmin'], ['name' => 'Super Admin']);
     $adminRole = \App\Models\Role::updateOrCreate(['slug' => 'admin'], ['name' => 'Admin']);
     $receptionistRole = \App\Models\Role::updateOrCreate(['slug' => 'receptionist'], ['name' => 'Receptionist']);
+    $housekeepingRole = \App\Models\Role::updateOrCreate(['slug' => 'housekeeping'], ['name' => 'Housekeeping Staff']);
+    $maintenanceRole = \App\Models\Role::updateOrCreate(['slug' => 'maintenance'], ['name' => 'Maintenance Staff']);
     $output .= "- Roles seeded.\n";
 
     // 2. Seed Hotels
@@ -88,6 +90,32 @@ try {
         ]
     );
     $output .= "- Receptionist 1 (Grand Plaza) seeded: " . $receptionistUser1->email . "\n";
+
+    // Housekeeping Staff for Hotel 1
+    $housekeepingUser = \App\Models\User::updateOrCreate(
+        ['email' => 'housekeeping@merahkie.com'],
+        [
+            'name' => 'John Doe',
+            'password' => \Illuminate\Support\Facades\Hash::make('123456'),
+            'role_id' => $housekeepingRole->id,
+            'status' => 'active',
+            'hotel_id' => $hotel1->id
+        ]
+    );
+    $output .= "- Housekeeping Staff seeded: " . $housekeepingUser->email . "\n";
+
+    // Maintenance Staff for Hotel 1
+    $maintenanceUser = \App\Models\User::updateOrCreate(
+        ['email' => 'maintenance@merahkie.com'],
+        [
+            'name' => 'Mike Johnson',
+            'password' => \Illuminate\Support\Facades\Hash::make('123456'),
+            'role_id' => $maintenanceRole->id,
+            'status' => 'active',
+            'hotel_id' => $hotel1->id
+        ]
+    );
+    $output .= "- Maintenance Staff seeded: " . $maintenanceUser->email . "\n";
 
     // Receptionist for Hotel 2 (Sunset Beach Resort)
     $receptionistUser2 = \App\Models\User::updateOrCreate(
@@ -223,6 +251,78 @@ try {
         );
     }
     $output .= "- Subscriptions seeded for all hotels.\n";
+
+    // 7. Seed Sample Rooms for Hotel 1 if none exist
+    $roomCount = \App\Models\Room::where('hotel_id', $hotel1->id)->count();
+    if ($roomCount === 0) {
+        $roomType = \App\Models\RoomType::firstOrCreate(
+            ['hotel_id' => $hotel1->id, 'name' => 'Deluxe Suite'],
+            ['base_price' => 150.00, 'capacity' => 2]
+        );
+        foreach ([101, 102, 103, 104, 201, 202] as $idx => $rNum) {
+            \App\Models\Room::create([
+                'hotel_id' => $hotel1->id,
+                'room_type_id' => $roomType->id,
+                'room_number' => (string)$rNum,
+                'type' => 'Deluxe Suite',
+                'price' => 150.00 + ($idx * 30),
+                'status' => 'Available',
+                'description' => 'Spacious room with air conditioning, high speed Wi-Fi, king bed and ocean view.'
+            ]);
+        }
+        $output .= "- Sample rooms seeded for Grand Plaza Hotel.\n";
+    }
+
+    // 8. Seed Housekeeping Records for Hotel 1
+    $rooms = \App\Models\Room::where('hotel_id', $hotel1->id)->get();
+    if ($rooms->count() > 0) {
+        $statuses = ['Clean', 'Dirty', 'Inspecting', 'Clean', 'Dirty', 'Clean'];
+        foreach ($rooms as $idx => $rm) {
+            \App\Models\Housekeeping::updateOrCreate(
+                ['room_id' => $rm->id],
+                [
+                    'hotel_id' => $hotel1->id,
+                    'status' => $statuses[$idx % count($statuses)],
+                    'updated_by' => $housekeepingUser->id,
+                    'notes' => 'Routine daily inspection and sanitization.'
+                ]
+            );
+        }
+        $output .= "- Housekeeping records seeded.\n";
+    }
+
+    // 9. Seed Maintenance Tickets for Hotel 1
+    if ($rooms->count() > 0) {
+        $ticketsData = [
+            ['issue' => 'Air conditioning cooling weak', 'priority' => 'High', 'status' => 'Open'],
+            ['issue' => 'Bathroom sink tap dripping', 'priority' => 'Medium', 'status' => 'In Progress'],
+            ['issue' => 'TV remote battery replacement', 'priority' => 'Low', 'status' => 'Completed'],
+            ['issue' => 'Main electronic door lock sensor issue', 'priority' => 'Critical', 'status' => 'Open'],
+        ];
+        foreach ($ticketsData as $idx => $td) {
+            $rm = $rooms[$idx % $rooms->count()];
+            $existing = \Illuminate\Support\Facades\DB::table('maintenance_tickets')
+                ->where('hotel_id', $hotel1->id)
+                ->where('issue', $td['issue'])
+                ->first();
+            if (!$existing) {
+                \Illuminate\Support\Facades\DB::table('maintenance_tickets')->insert([
+                    'hotel_id' => $hotel1->id,
+                    'room_id' => $rm->id,
+                    'reported_by' => $adminUser->id,
+                    'assigned_to' => $maintenanceUser->id,
+                    'issue' => $td['issue'],
+                    'priority' => $td['priority'],
+                    'status' => $td['status'],
+                    'notes' => 'Assigned to maintenance technician for priority repair.',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+        $output .= "- Maintenance tickets seeded.\n";
+    }
+
     $output .= "=== SUCCESS ===\n";
 
 } catch (\Exception $e) {

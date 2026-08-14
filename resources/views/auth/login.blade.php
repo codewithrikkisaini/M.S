@@ -184,6 +184,40 @@
                     Sign In to Dashboard
                 </button>
 
+                {{-- Demo Accounts Quick Fill --}}
+                <div class="mt-6 pt-5 border-t border-slate-200">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 text-center">Demo Quick Login</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
+                        <button type="button" 
+                                onclick="document.getElementById('email').value='housekeeping@merahkie.com'; document.getElementById('password').value='123456'; document.getElementById('login-form').submit();"
+                                class="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors shadow-xs">
+                            <i class="fas fa-broom text-blue-600"></i>
+                            <span>Housekeeping</span>
+                        </button>
+                        <button type="button" 
+                                onclick="document.getElementById('email').value='maintenance@merahkie.com'; document.getElementById('password').value='123456'; document.getElementById('login-form').submit();"
+                                class="flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 transition-colors shadow-xs">
+                            <i class="fas fa-tools text-amber-600"></i>
+                            <span>Maintenance</span>
+                        </button>
+                        <button type="button" 
+                                onclick="document.getElementById('email').value='receptionist@merahkie.com'; document.getElementById('password').value='123456'; document.getElementById('login-form').submit();"
+                                class="flex items-center justify-center gap-1.5 px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg border border-purple-200 transition-colors shadow-xs">
+                            <i class="fas fa-concierge-bell text-purple-600"></i>
+                            <span>Receptionist</span>
+                        </button>
+                        <button type="button" 
+                                onclick="document.getElementById('email').value='admin@merahkie.com'; document.getElementById('password').value='123456'; document.getElementById('login-form').submit();"
+                                class="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200 transition-colors shadow-xs">
+                            <i class="fas fa-user-shield text-emerald-600"></i>
+                            <span>Hotel Admin</span>
+                        </button>
+                    </div>
+                    <div class="mt-2 text-center">
+                        <span class="text-[11px] text-slate-400">Password for all demo accounts: <code class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-600">123456</code></span>
+                    </div>
+                </div>
+
                 {{-- Public Hotel Registration Link --}}
                 <div class="mt-4 text-center">
                     <p class="text-xs text-slate-500">

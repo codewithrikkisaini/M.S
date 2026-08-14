@@ -1,14 +1,19 @@
 <?php
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use App\Models\Guest;
 use App\Models\Room;
 use App\Models\Reservation;
 use App\Models\Payment;
 use App\Services\ReservationService;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 new class extends Component
 {
+    use WithFileUploads;
+
     public Reservation $reservation;
 
     public string $guest_id = '', $check_in_date = '', $check_out_date = '';
@@ -19,11 +24,25 @@ new class extends Component
     public string $tax_rate = '18';
     public string $booking_type = 'Walk in';
 
+    public string $id_type = '';
+    public string $guest_id_number = '';
+
+    // ID Cards & Guest Photo File Uploads & Base64 Camera Captures
+    public $id_card_front;
+    public $id_card_back;
+    public $guest_photo;
+    public string $id_card_front_base64 = '';
+    public string $id_card_back_base64 = '';
+    public string $guest_photo_base64 = '';
+    public ?string $existing_id_card_front = null;
+    public ?string $existing_id_card_back = null;
+    public ?string $existing_guest_photo = null;
+
     public string $payment_type = 'Cash', $payment_amount = '';
 
     public function mount(Reservation $reservation): void
     {
-        $reservation->load('rooms');
+        $reservation->load(['rooms', 'guest']);
 
         $this->reservation    = $reservation;
         $this->guest_id       = (string) $reservation->guest_id;
@@ -38,11 +57,47 @@ new class extends Component
         $this->special_notes  = $reservation->special_notes ?? '';
         $this->status         = $reservation->status;
         $this->booking_type   = $reservation->booking_type ?? 'Walk in';
+
+        if ($reservation->guest) {
+            $this->id_type                 = $reservation->guest->id_type ?? '';
+            $this->guest_id_number         = $reservation->guest->id_number ?? $reservation->guest->passport_number ?? '';
+            $this->existing_id_card_front  = $reservation->guest->id_card_front;
+            $this->existing_id_card_back   = $reservation->guest->id_card_back;
+            $this->existing_guest_photo    = $reservation->guest->guest_photo;
+        }
+    }
+
+    public function updatedGuestId($value): void
+    {
+        if ($value) {
+            $guest = Guest::find($value);
+            if ($guest) {
+                $this->id_type                 = $guest->id_type ?? '';
+                $this->guest_id_number         = $guest->id_number ?? $guest->passport_number ?? '';
+                $this->existing_id_card_front  = $guest->id_card_front;
+                $this->existing_id_card_back   = $guest->id_card_back;
+                $this->existing_guest_photo    = $guest->guest_photo;
+            }
+        }
     }
 
     public function updatedCheckInDate(): void { $this->room_ids = []; }
 
     public function updatedCheckOutDate(): void { $this->room_ids = []; }
+
+    private function saveBase64Image(string $base64String, string $folder = 'guest-docs'): ?string
+    {
+        if (!$base64String) return null;
+        if (preg_match('/^data:image\/(\w+);base64,/', $base64String, $type)) {
+            $data = substr($base64String, strpos($base64String, ',') + 1);
+            $type = strtolower($type[1]);
+            $data = base64_decode($data);
+            $fileName = $folder . '_' . time() . '_' . Str::random(6) . '.' . $type;
+            Storage::disk('public')->put($folder . '/' . $fileName, $data);
+            return $folder . '/' . $fileName;
+        }
+        return null;
+    }
 
     public function save(ReservationService $service): void
     {
@@ -59,6 +114,11 @@ new class extends Component
             'discount_value'  => 'nullable|numeric|min:0',
             'tax_rate'        => 'required|numeric|min:0|max:100',
             'booking_type'    => 'required|in:Walk in,Direct website,OTA,Phone,Other',
+            'id_type'         => 'nullable|in:Driving License,Aadhaar Card,Passport,Voter ID,Other',
+            'guest_id_number' => 'nullable|string|max:100',
+            'id_card_front'   => 'nullable|image|max:4096',
+            'id_card_back'    => 'nullable|image|max:4096',
+            'guest_photo'     => 'nullable|image|max:4096',
         ]);
 
         foreach ($this->room_ids as $roomId) {
@@ -86,6 +146,29 @@ new class extends Component
         if (!in_array($this->status, $allowedTransitions[$currentStatus] ?? [$currentStatus])) {
             $this->addError('status', 'Use the Check-In / Check-Out actions to change this status.');
             return;
+        }
+
+        // Update Guest ID & Documents if modified
+        if ($this->guest_id) {
+            $existingGuest = Guest::find($this->guest_id);
+            if ($existingGuest) {
+                $frontPath = $this->id_card_front ? $this->id_card_front->store('guest-ids', 'public') : ($this->saveBase64Image($this->id_card_front_base64, 'guest-ids') ?: $existingGuest->id_card_front);
+                $backPath  = $this->id_card_back ? $this->id_card_back->store('guest-ids', 'public') : ($this->saveBase64Image($this->id_card_back_base64, 'guest-ids') ?: $existingGuest->id_card_back);
+                $photoPath = $this->guest_photo ? $this->guest_photo->store('guest-photos', 'public') : ($this->saveBase64Image($this->guest_photo_base64, 'guest-photos') ?: $existingGuest->guest_photo);
+
+                $existingGuest->update([
+                    'id_type'         => $this->id_type ?: $existingGuest->id_type,
+                    'id_number'       => $this->guest_id_number ?: $existingGuest->id_number,
+                    'passport_number' => $this->guest_id_number ?: $existingGuest->passport_number,
+                    'id_card_front'   => $frontPath,
+                    'id_card_back'    => $backPath,
+                    'guest_photo'     => $photoPath,
+                ]);
+
+                $this->existing_id_card_front = $frontPath;
+                $this->existing_id_card_back  = $backPath;
+                $this->existing_guest_photo   = $photoPath;
+            }
         }
 
         $service->saveReservation($this->reservation->id, [
