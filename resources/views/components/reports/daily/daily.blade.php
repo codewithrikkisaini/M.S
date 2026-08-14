@@ -232,6 +232,8 @@
                 <thead>
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500 text-xs">
                         <th class="font-bold">Customer Name</th>
+                        <th class="font-bold">ID Type</th>
+                        <th class="font-bold">ID Number</th>
                         <th class="font-bold">PNR</th>
                         <th class="font-bold">Room</th>
                         <th class="font-bold">Booking Time</th>
@@ -249,6 +251,24 @@
                             {{ $row['name'] }}
                             @if(isset($row['phone']) && $row['phone'] !== '—')
                                 <span class="block text-[10px] font-medium text-slate-400">{{ $row['phone'] }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if(!empty($row['id_type']) && $row['id_type'] !== '—')
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                    {{ $row['id_type'] }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 text-xs">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if(!empty($row['id_number']) && $row['id_number'] !== '—')
+                                <span class="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md text-[11px] border border-slate-200/80">
+                                    {{ $row['id_number'] }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 text-xs">—</span>
                             @endif
                         </td>
                         <td>
@@ -286,7 +306,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="py-10 text-center text-slate-400 text-xs font-semibold">No customer bookings found for this date.</td>
+                        <td colspan="11" class="py-10 text-center text-slate-400 text-xs font-semibold">No customer bookings found for this date.</td>
                     </tr>
                     @endforelse
                 </tbody>

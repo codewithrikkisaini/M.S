@@ -196,6 +196,42 @@
                                 </div>
                             </div>
 
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5">ID Type</label>
+                                    <div class="relative">
+                                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                                            <i class="fas fa-id-card text-blue-500 text-sm"></i>
+                                        </span>
+                                        <select x-model="bookingData.id_type" class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white shadow-sm transition-all cursor-pointer">
+                                            <option value="">Select ID Type...</option>
+                                            <option value="Aadhaar Card">🪪 Aadhaar Card</option>
+                                            <option value="Driving License">🪪 Driving License</option>
+                                            <option value="Passport">🛂 Passport</option>
+                                            <option value="Voter ID">🗳️ Voter ID</option>
+                                            <option value="Other">📄 Other Document</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5" x-text="bookingData.id_type ? (bookingData.id_type + ' Number') : 'ID Number'"></label>
+                                    <div class="relative">
+                                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                                            <i class="fas fa-hashtag text-blue-500 text-sm"></i>
+                                        </span>
+                                        <input type="text" x-model="bookingData.id_number" 
+                                            :placeholder="
+                                                bookingData.id_type === 'Aadhaar Card' ? 'e.g. 1234 5678 9012' : 
+                                                (bookingData.id_type === 'Driving License' ? 'e.g. DL-1420110012345' : 
+                                                (bookingData.id_type === 'Passport' ? 'e.g. P1234567' : 
+                                                (bookingData.id_type === 'Voter ID' ? 'e.g. ABC1234567' : 
+                                                'e.g. Aadhaar / License / Passport No')))
+                                            " 
+                                            class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white shadow-sm transition-all">
+                                    </div>
+                                </div>
+                            </div>
+
                             <div>
                                 <label class="block text-xs font-extrabold text-slate-700 mb-1.5">Special Request (Optional)</label>
                                 <input type="text" x-model="bookingData.special_requests" placeholder="e.g. Early check-in, Quiet room, High floor" class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-medium rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:bg-white shadow-sm transition-all">
@@ -586,7 +622,7 @@
                             <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                                 <i class="fas fa-user-circle text-blue-600"></i> Guest Information
                             </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs">
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs">
                                 <div>
                                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Guest Name</span>
                                     <span class="font-extrabold text-slate-900 text-sm" x-text="successResult?.guest_name"></span>
@@ -598,6 +634,14 @@
                                 <div>
                                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Phone / Mobile</span>
                                     <span class="font-bold text-slate-800" x-text="successResult?.guest_phone"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase block">ID Type</span>
+                                    <span class="font-extrabold text-indigo-700" x-text="successResult?.id_type || '—'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase block">ID Number</span>
+                                    <span class="font-mono font-extrabold text-slate-900" x-text="successResult?.id_number || '—'"></span>
                                 </div>
                             </div>
                         </div>
@@ -693,6 +737,8 @@
                 guest_name: "", 
                 guest_email: "", 
                 guest_phone: "", 
+                id_type: "",
+                id_number: "",
                 checkin_date: "{{ $checkin }}", 
                 checkout_date: "{{ $checkout }}", 
                 special_requests: "", 
@@ -739,6 +785,8 @@
                             guest_name: this.bookingData.guest_name,
                             guest_email: this.bookingData.guest_email,
                             guest_phone: this.bookingData.guest_phone,
+                            id_type: this.bookingData.id_type,
+                            id_number: this.bookingData.id_number,
                             checkin_date: this.bookingData.checkin_date,
                             checkout_date: this.bookingData.checkout_date,
                             special_requests: this.bookingData.special_requests,

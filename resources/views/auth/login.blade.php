@@ -184,6 +184,8 @@
                     Sign In to Dashboard
                 </button>
 
+
+
                 {{-- Public Hotel Registration Link --}}
                 <div class="mt-4 text-center">
                     <p class="text-xs text-slate-500">

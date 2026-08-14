@@ -36,19 +36,25 @@
             <div>
                 <div class="flex items-center gap-2">
                     <h2 class="text-xl font-extrabold text-white tracking-tight">{{ Auth::user()?->hotel?->name ?? 'Hotel' }}</h2>
-                    <span class="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-white/20">Front Desk Desk</span>
+                    <span class="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-white/20">Front Desk & Operations</span>
                 </div>
                 <p class="text-emerald-100 text-xs mt-1">
-                    Welcome to <strong>{{ Auth::user()?->hotel?->name ?? 'your hotel' }}</strong> Reception Staff Dashboard. Front-desk operations are isolated for your hotel.
+                    Welcome to <strong>{{ Auth::user()?->hotel?->name ?? 'your hotel' }}</strong> Reception Staff Dashboard. Front-desk, Housekeeping, and Maintenance operations are isolated for your hotel.
                 </p>
             </div>
         </div>
-        <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
-            <a href="{{ route('checkin.index') }}" class="bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2">
-                <i class="fas fa-sign-in-alt"></i> Guest Check-In
+        <div class="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end flex-wrap">
+            <a href="{{ route('checkin.index') }}" class="bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-extrabold px-3 py-2 rounded-xl shadow-md transition-all flex items-center gap-1.5">
+                <i class="fas fa-sign-in-alt"></i> Check-In
             </a>
-            <a href="{{ route('checkout.index') }}" class="bg-emerald-900/60 hover:bg-emerald-900 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 border border-white/20">
-                <i class="fas fa-sign-out-alt"></i> Guest Check-Out
+            <a href="{{ route('checkout.index') }}" class="bg-emerald-900/60 hover:bg-emerald-900 text-white text-xs font-extrabold px-3 py-2 rounded-xl shadow-md transition-all flex items-center gap-1.5 border border-white/20">
+                <i class="fas fa-sign-out-alt"></i> Check-Out
+            </a>
+            <a href="{{ route('housekeeping.index') }}" class="bg-teal-900/60 hover:bg-teal-900 text-white text-xs font-extrabold px-3 py-2 rounded-xl shadow-md transition-all flex items-center gap-1.5 border border-white/20">
+                <i class="fas fa-broom"></i> Housekeeping
+            </a>
+            <a href="{{ route('maintenance.index') }}" class="bg-indigo-900/60 hover:bg-indigo-900 text-white text-xs font-extrabold px-3 py-2 rounded-xl shadow-md transition-all flex items-center gap-1.5 border border-white/20">
+                <i class="fas fa-tools"></i> Maintenance
             </a>
         </div>
     </div>
@@ -433,6 +439,71 @@
                 </div>
             </div>
 
+            {{-- Housekeeping & Maintenance Status Widget --}}
+            <div class="pms-card shadow-sm border border-slate-100/80 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100">
+                            <i class="fas fa-broom-ball text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800">Operations Summary</h3>
+                            <p class="text-[10px] text-slate-400">Housekeeping & Maintenance status</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-1">
+                        <a href="{{ route('housekeeping.index') }}" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-1 rounded-md">
+                            Housekeeping &rarr;
+                        </a>
+                        <a href="{{ route('maintenance.index') }}" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded-md">
+                            Maintenance &rarr;
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Housekeeping Breakdown --}}
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-xs font-bold mb-1">
+                            <span class="text-slate-600 flex items-center gap-1.5"><i class="fas fa-broom text-emerald-500"></i> Housekeeping Status</span>
+                            <span class="text-slate-800">{{ $hkClean }} Clean / {{ $hkDirty }} Dirty / {{ $hkInspecting }} Inspecting</span>
+                        </div>
+                        <div class="flex h-2.5 rounded-full overflow-hidden bg-slate-100">
+                            @php
+                                $totalHk = max(1, $hkClean + $hkDirty + $hkInspecting);
+                                $cleanPct = round(($hkClean / $totalHk) * 100);
+                                $dirtyPct = round(($hkDirty / $totalHk) * 100);
+                                $inspectPct = round(($hkInspecting / $totalHk) * 100);
+                            @endphp
+                            <div class="bg-emerald-500 h-full" style="width: {{ $cleanPct }}%" title="Clean: {{ $hkClean }}"></div>
+                            <div class="bg-rose-500 h-full" style="width: {{ $dirtyPct }}%" title="Dirty: {{ $hkDirty }}"></div>
+                            <div class="bg-amber-400 h-full" style="width: {{ $inspectPct }}%" title="Inspecting: {{ $hkInspecting }}"></div>
+                        </div>
+                    </div>
+
+                    {{-- Maintenance Breakdown --}}
+                    <div>
+                        <div class="flex justify-between text-xs font-bold mb-1">
+                            <span class="text-slate-600 flex items-center gap-1.5"><i class="fas fa-tools text-blue-500"></i> Maintenance Tickets</span>
+                            <span class="text-slate-800">{{ $maintOpen }} Open / {{ $maintInProgress }} In Progress</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-100 flex-1 text-center">
+                                🔵 {{ $maintOpen }} Open
+                            </span>
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-100 flex-1 text-center">
+                                ⏳ {{ $maintInProgress }} In Progress
+                            </span>
+                            @if($maintCritical > 0)
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-red-50 text-red-700 border border-red-200 animate-pulse flex-1 text-center">
+                                🔥 {{ $maintCritical }} Critical
+                            </span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Operational Alerts banner (Housekeeping) --}}
             @if($housekeepingPending > 0)
                 <div class="rounded-xl p-4 bg-amber-50 border border-amber-200 text-amber-800 space-y-2.5 shadow-sm">
@@ -441,7 +512,7 @@
                         Housekeeping Attention Required:
                     </p>
                     <p class="text-[11px] text-amber-700 font-medium">
-                        Currently, there are <strong>{{ $housekeepingPending }}</strong> rooms flagged as pending cleaning, inspecting, or under maintenance. Check logs immediately.
+                        Currently, there are <strong>{{ $housekeepingPending }}</strong> rooms flagged as pending cleaning, inspecting, or under maintenance.
                     </p>
                     <a href="{{ route('housekeeping.index') }}" class="text-[11px] font-bold text-amber-800 hover:text-amber-950 flex items-center gap-1 w-max">
                         Go to Housekeeping panel &rarr;

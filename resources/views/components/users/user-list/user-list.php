@@ -138,6 +138,8 @@ new class extends Component
             ->latest()
             ->paginate(15);
 
-        return $this->view(['users' => $users, 'roles' => Role::all()]);
+        $roles = Role::whereIn('slug', ['receptionist', 'housekeeping', 'maintenance'])->get();
+
+        return $this->view(['users' => $users, 'roles' => $roles]);
     }
 };

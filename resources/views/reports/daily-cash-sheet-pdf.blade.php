@@ -103,15 +103,16 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width: 5%;">#</th>
-                    <th style="width: 20%;">Customer Name</th>
-                    <th style="width: 12%;">PNR / ID</th>
-                    <th style="width: 10%;">Room</th>
-                    <th style="width: 13%;">Booking Time</th>
-                    <th style="width: 13%;" class="text-right">Total (₹)</th>
-                    <th style="width: 13%;" class="text-right">Paid (₹)</th>
-                    <th style="width: 14%;" class="text-right">Due (₹)</th>
-                    <th style="width: 10%;" class="text-center">Payment</th>
+                    <th style="width: 4%;">#</th>
+                    <th style="width: 17%;">Customer Name</th>
+                    <th style="width: 11%;">ID Type</th>
+                    <th style="width: 12%;">ID Number</th>
+                    <th style="width: 10%;">PNR / ID</th>
+                    <th style="width: 7%;">Room</th>
+                    <th style="width: 9%;">Time</th>
+                    <th style="width: 10%;" class="text-right">Total (₹)</th>
+                    <th style="width: 10%;" class="text-right">Paid (₹)</th>
+                    <th style="width: 10%;" class="text-right">Due (₹)</th>
                 </tr>
             </thead>
             <tbody>
@@ -119,21 +120,18 @@
                 <tr>
                     <td class="text-center font-bold">{{ $idx + 1 }}</td>
                     <td class="font-bold">{{ $row['name'] }}</td>
+                    <td class="font-bold" style="color: #4f46e5;">{{ $row['id_type'] ?? '—' }}</td>
+                    <td class="font-bold">{{ $row['id_number'] ?? '—' }}</td>
                     <td class="font-bold" style="color: #3b82f6;">{{ $row['pnr'] }}</td>
                     <td class="text-center font-bold">{{ $row['room_number'] }}</td>
                     <td class="text-center">{{ $row['booking_time'] }}</td>
                     <td class="text-right font-bold">₹{{ number_format($row['total'], 2) }}</td>
                     <td class="text-right font-bold text-emerald">₹{{ number_format($row['paid'], 2) }}</td>
                     <td class="text-right font-bold {{ $row['due'] > 0 ? 'text-rose' : '' }}">₹{{ number_format($row['due'], 2) }}</td>
-                    <td class="text-center">
-                        <span class="badge {{ strtolower($row['payment_method']) == 'cash' ? 'badge-cash' : (strtolower($row['payment_method']) == 'upi' ? 'badge-upi' : 'badge-card') }}">
-                            {{ $row['payment_method'] }}
-                        </span>
-                    </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="text-center" style="padding: 20px; color: #94a3b8;">No customer bookings recorded for this date.</td>
+                    <td colspan="10" class="text-center" style="padding: 20px; color: #94a3b8;">No customer bookings recorded for this date.</td>
                 </tr>
                 @endforelse
             </tbody>

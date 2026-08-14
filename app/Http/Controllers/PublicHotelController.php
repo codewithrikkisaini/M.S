@@ -185,25 +185,33 @@ class PublicHotelController extends Controller
         $pnr = strtoupper(Str::random(6));
         $resId = null;
 
-        DB::transaction(function () use ($request, $hotel, $room, $checkin, $checkout, $pnr, $roomPrice, $totalPrice, &$resId) {
+        DB::transaction(function () use ($request, $hotel, $room, $checkin, $checkout, $pnr, $roomPrice, $totalPrice, &$resId, &$guestObj) {
             // 1. Create or update guest
+            $guestData = [
+                'hotel_id'    => $hotel->id,
+                'email'       => $request->guest_email,
+                'name'        => $request->guest_name,
+                'phone'       => $request->guest_phone,
+                'nationality' => 'Indian',
+            ];
+
+            if ($request->filled('id_type')) {
+                $guestData['id_type'] = $request->id_type;
+            }
+            if ($request->filled('id_number')) {
+                $guestData['id_number'] = $request->id_number;
+                $guestData['passport_number'] = $request->id_number;
+            }
+
             $guest = Guest::withoutGlobalScope('tenant')->where('email', $request->guest_email)->first();
             if (!$guest) {
-                $guest = Guest::create([
-                    'guest_id' => 'G-' . str_pad(rand(1000, 99999), 5, '0', STR_PAD_LEFT),
-                    'hotel_id' => $hotel->id,
-                    'email' => $request->guest_email,
-                    'name' => $request->guest_name,
-                    'phone' => $request->guest_phone,
-                    'nationality' => 'Indian',
-                ]);
+                $guestData['guest_id'] = 'G-' . str_pad(rand(1000, 99999), 5, '0', STR_PAD_LEFT);
+                $guest = Guest::create($guestData);
             } else {
-                $guest->update([
-                    'hotel_id' => $hotel->id,
-                    'name' => $request->guest_name,
-                    'phone' => $request->guest_phone,
-                ]);
+                $guest->update($guestData);
             }
+
+            $guestObj = $guest;
 
             // 2. Create Reservation
             $reservation = Reservation::create([
@@ -272,6 +280,8 @@ class PublicHotelController extends Controller
             'guest_name' => $request->guest_name,
             'guest_email' => $request->guest_email,
             'guest_phone' => $request->guest_phone,
+            'id_type' => $guestObj->id_type ?? '—',
+            'id_number' => $guestObj->id_number ?? $guestObj->passport_number ?? '—',
             'room_number' => $room->room_number,
             'room_type' => $room->roomType?->name ?: 'Standard Room',
             'hotel_name' => $hotel->name,

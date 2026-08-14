@@ -12,6 +12,8 @@ class RolesSeeder extends Seeder
         Role::updateOrCreate(['slug' => 'superadmin'], ['name' => 'Super Admin']);
         Role::updateOrCreate(['slug' => 'admin'], ['name' => 'Hotel Admin']);
         Role::updateOrCreate(['slug' => 'receptionist'], ['name' => 'Receptionist']);
+        Role::updateOrCreate(['slug' => 'housekeeping'], ['name' => 'Housekeeping Staff']);
+        Role::updateOrCreate(['slug' => 'maintenance'], ['name' => 'Maintenance Staff']);
     }
 }
 

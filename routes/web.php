@@ -98,6 +98,8 @@ Route::get('/setup-project', function () {
         $superadminRole = \App\Models\Role::firstOrCreate(['slug' => 'superadmin'], ['name' => 'Super Admin']);
         $adminRole = \App\Models\Role::firstOrCreate(['slug' => 'admin'], ['name' => 'Admin']);
         $receptionistRole = \App\Models\Role::firstOrCreate(['slug' => 'receptionist'], ['name' => 'Receptionist']);
+        $housekeepingRole = \App\Models\Role::firstOrCreate(['slug' => 'housekeeping'], ['name' => 'Housekeeping Staff']);
+        $maintenanceRole = \App\Models\Role::firstOrCreate(['slug' => 'maintenance'], ['name' => 'Maintenance Staff']);
         $output[] = "Roles seeded/verified.";
 
         // 4. Seed Hotels
@@ -163,6 +165,32 @@ Route::get('/setup-project', function () {
             ]
         );
         $output[] = "Receptionist user seeded/verified.";
+
+        // Housekeeping Staff
+        \App\Models\User::updateOrCreate(
+            ['email' => 'housekeeping@merahkie.com'],
+            [
+                'name' => 'John Doe',
+                'password' => \Illuminate\Support\Facades\Hash::make('123456'),
+                'role_id' => $housekeepingRole->id,
+                'status' => 'active',
+                'hotel_id' => $hotel->id
+            ]
+        );
+        $output[] = "Housekeeping user seeded/verified.";
+
+        // Maintenance Staff
+        \App\Models\User::updateOrCreate(
+            ['email' => 'maintenance@merahkie.com'],
+            [
+                'name' => 'Mike Johnson',
+                'password' => \Illuminate\Support\Facades\Hash::make('123456'),
+                'role_id' => $maintenanceRole->id,
+                'status' => 'active',
+                'hotel_id' => $hotel->id
+            ]
+        );
+        $output[] = "Maintenance user seeded/verified.";
 
         // 6. Seed Default Settings for Hotel
         $defaults = [

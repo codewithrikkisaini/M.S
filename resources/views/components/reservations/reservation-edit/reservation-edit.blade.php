@@ -22,7 +22,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
                         <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Guest <span class="text-red-500">*</span></label>
-                        <select wire:model="guest_id" class="pms-select text-xs">
+                        <select wire:model.live="guest_id" class="pms-select text-xs">
                             <option value="">Select guest...</option>
                             @foreach($guests as $g)
                                 <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->email }})</option>
@@ -31,17 +31,288 @@
                         @error('guest_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    {{-- Booking Type --}} 
-                    <div class="col-span-2"> 
-                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider"> Booking Type <span class="text-red-500">*</span></label> 
-                        <select wire:model="booking_type" class="pms-select text-xs"> 
-                            <option value="Walk in">🚶 Walk in</option> 
-                            <option value="Direct website">🌐 Direct website</option> 
-                            <option value="OTA">🏨 OTA (Booking.com/MMT/Agoda)</option> 
-                            <option value="Phone">📞 Phone</option> 
-                            <option value="Other">📌 Other</option> 
-                        </select> 
-                        @error('booking_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror 
+                    <div class="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/40 p-3.5 rounded-xl border border-slate-200/80">
+                        {{-- ID Type --}}
+                        <div>
+                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                ID Type
+                            </label>
+                            <select wire:model.live="id_type" class="pms-select text-xs">
+                                <option value="">Select ID Type...</option>
+                                <option value="Aadhaar Card">🪪 Aadhaar Card</option>
+                                <option value="Driving License">🪪 Driving License</option>
+                                <option value="Passport">🛂 Passport</option>
+                                <option value="Voter ID">🗳️ Voter ID</option>
+                                <option value="Other">📄 Other Document</option>
+                            </select>
+                            @error('id_type')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- ID Number --}}
+                        <div>
+                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                {{ $id_type ? ($id_type . ' Number') : 'ID / Document Number' }}
+                            </label>
+                            <input type="text" 
+                                   wire:model="guest_id_number" 
+                                   class="pms-input text-xs" 
+                                   placeholder="{{ $id_type === 'Aadhaar Card' ? 'e.g. 1234 5678 9012' : ($id_type === 'Driving License' ? 'e.g. DL-1420110012345' : ($id_type === 'Passport' ? 'e.g. P1234567' : ($id_type === 'Voter ID' ? 'e.g. ABC1234567' : 'Enter ID / Document No...'))) }}">
+                            @error('guest_id_number')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Booking Type --}} 
+                        <div> 
+                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider"> Booking Type <span class="text-red-500">*</span></label> 
+                            <select wire:model="booking_type" class="pms-select text-xs"> 
+                                <option value="Walk in">🚶 Walk in</option> 
+                                <option value="Direct website">🌐 Direct website</option> 
+                                <option value="OTA">🏨 OTA (Booking.com/MMT/Agoda)</option> 
+                                <option value="Phone">📞 Phone</option> 
+                                <option value="Other">📌 Other</option> 
+                            </select> 
+                            @error('booking_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror 
+                        </div>
+                    </div>
+
+                    {{-- ID & Guest Photo Attachments Section --}}
+                    <div class="col-span-2 bg-slate-50/70 p-4 rounded-xl border border-slate-200 mt-2"
+                         x-data="{
+                            showCamera: false,
+                            targetField: '',
+                            stream: null,
+                            startCamera(field) {
+                                this.targetField = field;
+                                this.showCamera = true;
+                                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                                    .then(s => {
+                                        this.stream = s;
+                                        this.$refs.videoElem.srcObject = s;
+                                    })
+                                    .catch(err => {
+                                        alert('Camera error: ' + err.message);
+                                        this.showCamera = false;
+                                    });
+                            },
+                            stopCamera() {
+                                if (this.stream) {
+                                    this.stream.getTracks().forEach(t => t.stop());
+                                    this.stream = null;
+                                }
+                                this.showCamera = false;
+                            },
+                            capture() {
+                                const video = this.$refs.videoElem;
+                                const canvas = document.createElement('canvas');
+                                canvas.width = video.videoWidth || 640;
+                                canvas.height = video.videoHeight || 480;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                                if (this.targetField === 'front') {
+                                    $wire.set('id_card_front_base64', dataUrl);
+                                } else if (this.targetField === 'back') {
+                                    $wire.set('id_card_back_base64', dataUrl);
+                                } else if (this.targetField === 'guest') {
+                                    $wire.set('guest_photo_base64', dataUrl);
+                                }
+                                this.stopCamera();
+                            }
+                         }">
+                        
+                        <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200/60">
+                            <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs">
+                                    <i class="fas fa-id-card"></i>
+                                </span> 
+                                Guest Photo & ID Document Verification (Front & Back)
+                            </h4>
+                            <span class="text-[10px] font-bold text-slate-400 bg-white px-2.5 py-1 rounded-full border border-slate-200">
+                                Official Identity Scans
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {{-- 1. ID Card Front --}}
+                            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between relative group">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block text-[11px] font-bold text-slate-800">ID Scan - Front</label>
+                                        @if($id_card_front_base64 || $id_card_front || $existing_id_card_front)
+                                            <span class="text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                <i class="fas fa-check-circle"></i> Ready
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 mb-3">Front side of Aadhaar / License / Passport</p>
+                                </div>
+                                
+                                @if($id_card_front_base64)
+                                    <div class="relative mb-3 group/img">
+                                        <img src="{{ $id_card_front_base64 }}" class="w-full h-28 object-cover rounded-lg border border-slate-200 shadow-inner">
+                                        <button type="button" wire:click="$set('id_card_front_base64', '')" class="absolute -top-2 -right-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-6 h-6 text-xs shadow-md flex items-center justify-center transition-transform hover:scale-110"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @elseif($id_card_front)
+                                    <div class="relative mb-3 group/img">
+                                        <img src="{{ $id_card_front->temporaryUrl() }}" class="w-full h-28 object-cover rounded-lg border border-slate-200 shadow-inner">
+                                        <button type="button" wire:click="$set('id_card_front', null)" class="absolute -top-2 -right-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-6 h-6 text-xs shadow-md flex items-center justify-center transition-transform hover:scale-110"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @elseif($existing_id_card_front)
+                                    <div class="relative mb-3 group/img">
+                                        <img src="{{ asset('storage/' . $existing_id_card_front) }}" class="w-full h-28 object-cover rounded-lg border border-slate-200 shadow-inner">
+                                    </div>
+                                @endif
+
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="startCamera('front')" class="flex-1 py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-2xs">
+                                        <i class="fas fa-camera text-xs"></i> Camera
+                                    </button>
+                                    <label class="flex-1 py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs">
+                                        <i class="fas fa-upload text-xs"></i> Upload
+                                        <input type="file" wire:model="id_card_front" accept="image/*" class="hidden">
+                                    </label>
+                                </div>
+                                @error('id_card_front') <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- 2. ID Card Back --}}
+                            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between relative group">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block text-[11px] font-bold text-slate-800">ID Scan - Back</label>
+                                        @if($id_card_back_base64 || $id_card_back || $existing_id_card_back)
+                                            <span class="text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                <i class="fas fa-check-circle"></i> Ready
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 mb-3">Back side of Aadhaar / License / Passport</p>
+                                </div>
+
+                                @if($id_card_back_base64)
+                                    <div class="relative mb-3 group/img">
+                                        <img src="{{ $id_card_back_base64 }}" class="w-full h-28 object-cover rounded-lg border border-slate-200 shadow-inner">
+                                        <button type="button" wire:click="$set('id_card_back_base64', '')" class="absolute -top-2 -right-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-6 h-6 text-xs shadow-md flex items-center justify-center transition-transform hover:scale-110"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @elseif($id_card_back)
+                                    <div class="relative mb-3 group/img">
+                                        <img src="{{ $id_card_back->temporaryUrl() }}" class="w-full h-28 object-cover rounded-lg border border-slate-200 shadow-inner">
+                                        <button type="button" wire:click="$set('id_card_back', null)" class="absolute -top-2 -right-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-6 h-6 text-xs shadow-md flex items-center justify-center transition-transform hover:scale-110"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @elseif($existing_id_card_back)
+                                    <div class="relative mb-3 group/img">
+                                        <img src="{{ asset('storage/' . $existing_id_card_back) }}" class="w-full h-28 object-cover rounded-lg border border-slate-200 shadow-inner">
+                                    </div>
+                                @endif
+
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="startCamera('back')" class="flex-1 py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-2xs">
+                                        <i class="fas fa-camera text-xs"></i> Camera
+                                    </button>
+                                    <label class="flex-1 py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs">
+                                        <i class="fas fa-upload text-xs"></i> Upload
+                                        <input type="file" wire:model="id_card_back" accept="image/*" class="hidden">
+                                    </label>
+                                </div>
+                                @error('id_card_back') <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- 3. Guest Photo --}}
+                            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between relative group">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block text-[11px] font-bold text-slate-800">Guest Live Photo</label>
+                                        @if($guest_photo_base64 || $guest_photo || $existing_guest_photo)
+                                            <span class="text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                <i class="fas fa-check-circle"></i> Ready
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 mb-3">Guest portrait photo at check-in</p>
+                                </div>
+
+                                @if($guest_photo_base64)
+                                    <div class="relative mb-3 group/img">
+                                        <img src="{{ $guest_photo_base64 }}" class="w-full h-28 object-cover rounded-lg border border-slate-200 shadow-inner">
+                                        <button type="button" wire:click="$set('guest_photo_base64', '')" class="absolute -top-2 -right-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-6 h-6 text-xs shadow-md flex items-center justify-center transition-transform hover:scale-110"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @elseif($guest_photo)
+                                    <div class="relative mb-3 group/img">
+                                        <img src="{{ $guest_photo->temporaryUrl() }}" class="w-full h-28 object-cover rounded-lg border border-slate-200 shadow-inner">
+                                        <button type="button" wire:click="$set('guest_photo', null)" class="absolute -top-2 -right-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-6 h-6 text-xs shadow-md flex items-center justify-center transition-transform hover:scale-110"><i class="fas fa-times"></i></button>
+                                    </div>
+                                @elseif($existing_guest_photo)
+                                    <div class="relative mb-3 group/img">
+                                        <img src="{{ asset('storage/' . $existing_guest_photo) }}" class="w-full h-28 object-cover rounded-lg border border-slate-200 shadow-inner">
+                                    </div>
+                                @endif
+
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="startCamera('guest')" class="flex-1 py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-2xs">
+                                        <i class="fas fa-camera text-xs"></i> Camera
+                                    </button>
+                                    <label class="flex-1 py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs">
+                                        <i class="fas fa-upload text-xs"></i> Upload
+                                        <input type="file" wire:model="guest_photo" accept="image/*" class="hidden">
+                                    </label>
+                                </div>
+                                @error('guest_photo') <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        {{-- WebCam Live Capture Scanner Modal --}}
+                        <div x-show="showCamera" style="display: none;" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+                            <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 text-center transition-all">
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-bold">
+                                            <i class="fas fa-expand"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider" x-text="targetField === 'front' ? 'Scan ID Document - FRONT Side' : (targetField === 'back' ? 'Scan ID Document - BACK Side' : 'Capture Guest Live Photo')"></h3>
+                                            <p class="text-[10px] text-slate-400">Position document clearly within the frame</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" @click="stopCamera()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs flex items-center justify-center">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+
+                                {{-- Camera Viewfinder with ID Card Scanner Overlay --}}
+                                <div class="relative bg-slate-900 rounded-2xl overflow-hidden shadow-inner aspect-4/3 flex items-center justify-center border border-slate-800">
+                                    <video x-ref="videoElem" autoplay playsinline class="w-full h-full object-cover"></video>
+                                    
+                                    {{-- ID Card Target Frame Overlay --}}
+                                    <template x-if="targetField !== 'guest'">
+                                        <div class="absolute inset-6 border-2 border-dashed border-indigo-400/80 rounded-xl pointer-events-none flex flex-col justify-between p-3">
+                                            <div class="flex justify-between">
+                                                <span class="w-4 h-4 border-t-2 border-l-2 border-indigo-500"></span>
+                                                <span class="w-4 h-4 border-t-2 border-r-2 border-indigo-500"></span>
+                                            </div>
+                                            <span class="text-[10px] font-black text-indigo-300 bg-indigo-950/60 px-2 py-1 rounded-md self-center backdrop-blur-xs uppercase tracking-widest">
+                                                ALIGN ID CARD HERE
+                                            </span>
+                                            <div class="flex justify-between">
+                                                <span class="w-4 h-4 border-b-2 border-l-2 border-indigo-500"></span>
+                                                <span class="w-4 h-4 border-b-2 border-r-2 border-indigo-500"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <div class="flex items-center justify-center gap-3 mt-5">
+                                    <button type="button" @click="stopCamera()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all">
+                                        Cancel
+                                    </button>
+                                    <button type="button" @click="capture()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl shadow-lg shadow-indigo-200 flex items-center gap-2 transition-all">
+                                        <i class="fas fa-camera"></i> Capture Photo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div>

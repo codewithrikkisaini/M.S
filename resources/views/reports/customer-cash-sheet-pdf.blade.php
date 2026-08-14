@@ -70,6 +70,14 @@
                         <td class="info-value">{{ $customer['guest_email'] }}</td>
                     </tr>
                     <tr>
+                        <td class="info-label">ID Type:</td>
+                        <td class="info-value" style="color: #4f46e5;">{{ $customer['id_type'] ?? '—' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">ID Number:</td>
+                        <td class="info-value">{{ $customer['id_number'] ?? '—' }}</td>
+                    </tr>
+                    <tr>
                         <td class="info-label">Guests Count:</td>
                         <td class="info-value">{{ $customer['guests_count'] }}</td>
                     </tr>
