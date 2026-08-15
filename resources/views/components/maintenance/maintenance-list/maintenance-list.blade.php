@@ -138,7 +138,7 @@
                             <th class="font-bold">Priority</th>
                             <th class="font-bold">Assigned Technician</th>
                             <th class="font-bold">Status</th>
-                            <th class="font-bold text-right">Actions</th>
+                            @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))<th class="font-bold text-right">Actions</th>@endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -162,11 +162,13 @@
                                     <option value="Completed" {{ $t->status === 'Completed' ? 'selected' : '' }}>✅ Completed</option>
                                 </select>
                             </td>
+                            @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))
                             <td class="text-right">
                                 <button wire:click="edit({{ $t->id }})" class="btn-icon text-indigo-500 hover:bg-indigo-50 border border-slate-100 shadow-sm cursor-pointer" title="Edit">
                                     <i class="fas fa-edit text-xs"></i>
                                 </button>
                             </td>
+                            @endif
                         </tr>
                         @empty
                         <tr>
@@ -220,7 +222,7 @@
                             <th class="font-bold">Assigned To</th>
                             <th class="font-bold">Status</th>
                             <th class="font-bold">Reported On</th>
-                            <th class="font-bold text-right">Actions</th>
+                            @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))<th class="font-bold text-right">Actions</th>@endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -248,12 +250,14 @@
                                 </select>
                             </td>
                             <td class="text-slate-500 text-xs font-medium">{{ \Carbon\Carbon::parse($t->created_at)->format('d M Y') }}</td>
+                            @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))
                             <td class="text-right">
                                 <div class="flex items-center justify-end gap-1.5">
                                     <button wire:click="edit({{ $t->id }})" class="btn-icon text-indigo-500 hover:bg-indigo-50 border border-slate-100 shadow-sm cursor-pointer" title="Edit"><i class="fas fa-edit text-xs"></i></button>
                                     <button wire:click="delete({{ $t->id }})" wire:confirm="Delete this ticket?" class="btn-icon text-red-500 hover:bg-red-50 border border-slate-100 shadow-sm cursor-pointer" title="Delete"><i class="fas fa-trash text-xs"></i></button>
                                 </div>
                             </td>
+                            @endif
                         </tr>
                         @empty
                         <tr>
