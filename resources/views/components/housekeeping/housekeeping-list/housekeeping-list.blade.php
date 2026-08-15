@@ -6,7 +6,7 @@
                 <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm shadow-xs">
                     <i class="fas fa-broom"></i>
                 </div>
-                <span>Housekeeping Dashboard</span>
+                <span>Housekeeping </span>
             </h1>
             <p class="text-xs text-slate-500 font-medium mt-1">
                 {{ Auth::user()?->hotel?->name ?? 'Hotel Management System' }} • Real-time room status tracking & audit controls
@@ -275,6 +275,8 @@
                 <thead>
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500">
                         <th class="font-bold">Room</th>
+                        <th class="font-bold">Bed Type</th>
+                        <th class="font-bold">Assigned To</th>
                         <th class="font-bold">Status</th>
                         <th class="font-bold">Quick Change</th>
                         <th class="font-bold">Updated By</th>
@@ -289,10 +291,19 @@
                         <td>
                             <div class="flex items-center gap-2">
                                 <span class="font-black text-slate-800 text-base tracking-tight bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 shadow-sm">{{ $rec->room->room_number ?? 'N/A' }}</span>
-                                @if($rec->room && $rec->room->roomType)
-                                    <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">{{ $rec->room->roomType->name }}</span>
-                                @endif
                             </div>
+                        </td>
+                        <td>
+                            @if($rec->room && $rec->room->bed_type)
+                                <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">{{ $rec->room->bed_type }}</span>
+                            @else
+                                <span class="text-[10px] font-medium text-slate-400">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            <span class="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                                {{ $rec->assigned_to ?: 'Unassigned' }}
+                            </span>
                         </td>
                         <td>
                             @php 
@@ -362,7 +373,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="py-12 text-center text-slate-400">
+                        <td colspan="@if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist') || Auth::user()->hasRole('housekeeping')) 9 @else 8 @endif" class="py-12 text-center text-slate-400">
                             <i class="fas fa-broom text-4xl text-slate-200 mb-3 block"></i>
                             <p class="text-sm font-medium">No records found.</p>
                         </td>
@@ -405,6 +416,15 @@
                     @endforeach
                 </select>
                 @error('room_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Assigned To</label>
+                <select wire:model="assigned_to" class="pms-select text-xs">
+                    <option value="">Select staff...</option>
+                    <option value="John">John</option>
+                    <option value="Harry">Harry</option>
+                    <option value="Tayo">Tayo</option>
+                </select>
             </div>
             <div>
                 <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Housekeeping Status <span class="text-red-500">*</span></label>

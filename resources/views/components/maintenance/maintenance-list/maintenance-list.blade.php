@@ -6,7 +6,7 @@
                 <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-sm shadow-xs">
                     <i class="fas fa-tools"></i>
                 </div>
-                <span>Maintenance Dashboard</span>
+                <span>Maintenance</span>
             </h1>
             <p class="text-xs text-slate-500 font-medium mt-1">
                 {{ Auth::user()?->hotel?->name ?? 'Hotel Management System' }} • Repair ticketing, room diagnostics & maintenance tracking
