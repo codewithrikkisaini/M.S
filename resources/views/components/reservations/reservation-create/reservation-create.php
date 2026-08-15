@@ -39,6 +39,9 @@ new class extends Component
     public string $guest_photo_base64 = '';
 
     public string $booking_type = 'Walk in';
+    public string $captcha_question = '';
+    public string $captcha_answer = '';
+    public string $captcha_input = '';
 
     public function mount(): void
     {
@@ -48,6 +51,17 @@ new class extends Component
         if ($roomId) {
             $this->room_ids = [(int)$roomId];
         }
+
+        $this->regenerateCaptcha();
+    }
+
+    public function regenerateCaptcha(): void
+    {
+        $first = random_int(3, 9);
+        $second = random_int(2, 8);
+        $this->captcha_question = $first . ' + ' . $second;
+        $this->captcha_answer = (string) ($first + $second);
+        $this->captcha_input = '';
     }
 
     public function updatedCheckInDate(): void { $this->room_ids = []; }
@@ -104,6 +118,7 @@ new class extends Component
             'payment_type'    => 'required|in:Cash,Card,UPI',
             'payment_amount'  => 'nullable|numeric|min:0',
             'booking_type'    => 'required|in:Walk in,Direct website,OTA,Phone,Other',
+            'captcha_input'   => 'required|numeric',
         ];
 
         if ($this->is_new_guest) {
@@ -120,6 +135,12 @@ new class extends Component
         }
 
         $this->validate($rules);
+
+        if ((string) $this->captcha_input !== (string) $this->captcha_answer) {
+            $this->regenerateCaptcha();
+            $this->addError('captcha_input', 'CAPTCHA answer is incorrect. Please try again.');
+            return;
+        }
 
         if ($this->is_new_guest) {
             $guest_id_str = 'G-' . str_pad(rand(1000, 99999), 5, '0', STR_PAD_LEFT);

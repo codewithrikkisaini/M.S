@@ -10,7 +10,7 @@ class Housekeeping extends Model
     use BelongsToTenant;
 
     protected $table = 'housekeeping';
-    protected $fillable = ['room_id', 'status', 'updated_by', 'notes', 'hotel_id'];
+    protected $fillable = ['room_id', 'status', 'updated_by', 'notes', 'hotel_id', 'assigned_to'];
 
     public function room()
     {
