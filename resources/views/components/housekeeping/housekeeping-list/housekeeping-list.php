@@ -14,7 +14,7 @@ new class extends Component
     public string $activeTab = 'dashboard'; // dashboard, room_status, cleaning_tasks, inspections, lost_found, task_history
     public bool $showDrawer = false, $isEditMode = false, $showLostFoundModal = false;
     public ?int $housekeepingId = null;
-    public string $room_id = '', $status = 'Clean', $notes = '';
+    public string $room_id = '', $status = 'Clean', $notes = '', $assigned_to = '';
 
     // Lost & Found fields & state
     public string $lf_item_name = '', $lf_room_id = '', $lf_founder = '', $lf_status = 'Stored in Safe', $lf_notes = '';
@@ -118,6 +118,7 @@ new class extends Component
         $this->room_id        = (string)$rec->room_id;
         $this->status         = $rec->status;
         $this->notes          = $rec->notes ?? '';
+        $this->assigned_to    = (string)($rec->assigned_to ?? '');
         $this->isEditMode     = true;
         $this->showDrawer     = true;
     }
@@ -127,18 +128,20 @@ new class extends Component
         $hotelId = Auth::user()?->hotel_id;
 
         $this->validate([
-            'room_id' => 'required|exists:rooms,id',
-            'status'  => 'required|in:Clean,Dirty,Inspecting',
+            'room_id'     => 'required|exists:rooms,id',
+            'status'      => 'required|in:Clean,Dirty,Inspecting',
+            'assigned_to' => 'nullable|string|max:255',
         ]);
 
         $room = Room::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->findOrFail($this->room_id);
 
         Housekeeping::updateOrCreate(['id' => $this->housekeepingId], [
-            'room_id'    => $this->room_id,
-            'status'     => $this->status,
-            'updated_by' => Auth::id(),
-            'notes'      => $this->notes ?: null,
-            'hotel_id'   => $hotelId ?? $room->hotel_id,
+            'room_id'     => $this->room_id,
+            'status'      => $this->status,
+            'updated_by'  => Auth::id(),
+            'notes'       => $this->notes ?: null,
+            'assigned_to' => $this->assigned_to ?: null,
+            'hotel_id'    => $hotelId ?? $room->hotel_id,
         ]);
 
         $this->resetFields();
@@ -183,6 +186,7 @@ new class extends Component
         $this->room_id        = '';
         $this->status         = 'Clean';
         $this->notes          = '';
+        $this->assigned_to    = '';
         $this->isEditMode     = false;
         $this->resetValidation();
     }
