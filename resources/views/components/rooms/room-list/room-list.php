@@ -40,21 +40,22 @@ new class extends Component
 
     public function updateHousekeepingStatus(int $roomId, string $status): void
     {
+        if (!in_array($status, ['Clean', 'Dirty', 'Inspecting'])) return;
+
         $room = Room::findOrFail($roomId);
+        $hotelId = $room->hotel_id ?? Auth::user()?->hotel_id;
 
         Housekeeping::updateOrCreate(
             ['room_id' => $roomId],
             [
                 'status' => $status,
                 'updated_by' => Auth::id(),
-                'hotel_id' => $room->hotel_id ?? Auth::user()?->hotel_id,
+                'hotel_id' => $hotelId,
                 'notes' => "Quick update from Room Directory by " . Auth::user()->name
             ]
         );
 
-        if ($status === 'Maintenance') {
-            $room->update(['status' => 'Maintenance']);
-        } elseif ($status === 'Clean' && $room->status === 'Maintenance') {
+        if ($status === 'Clean' && $room->status === 'Dirty') {
             $room->update(['status' => 'Available']);
         }
 
@@ -88,19 +89,30 @@ new class extends Component
         ]);
 
         $room = Room::findOrFail($this->selectedRoomId);
+        $hotelId = $room->hotel_id ?? Auth::user()?->hotel_id;
 
         $ticket = MaintenanceTicket::create([
-            'room_id' => $this->selectedRoomId,
-            'issue' => $this->ticketIssue,
-            'priority' => $this->ticketPriority,
-            'status' => $this->ticketStatus,
-            'notes' => $this->ticketNotes ?: null,
+            'room_id'     => $this->selectedRoomId,
+            'issue'       => $this->ticketIssue,
+            'priority'    => $this->ticketPriority,
+            'status'      => $this->ticketStatus,
+            'notes'       => $this->ticketNotes ?: null,
             'reported_by' => Auth::id(),
-            'hotel_id' => $room->hotel_id ?? Auth::user()?->hotel_id,
+            'hotel_id'    => $hotelId,
         ]);
 
-        if (in_array($this->ticketStatus, ['Open', 'In Progress']) && in_array($this->ticketPriority, ['High', 'Critical'])) {
+        if (in_array($this->ticketStatus, ['Open', 'In Progress'])) {
             $room->update(['status' => 'Maintenance']);
+
+            Housekeeping::updateOrCreate(
+                ['room_id' => $this->selectedRoomId],
+                [
+                    'status'     => 'Maintenance',
+                    'updated_by' => Auth::id(),
+                    'hotel_id'   => $hotelId,
+                    'notes'      => "Maintenance Ticket #{$ticket->id} created: " . $this->ticketIssue
+                ]
+            );
         }
 
         $this->showTicketModal = false;

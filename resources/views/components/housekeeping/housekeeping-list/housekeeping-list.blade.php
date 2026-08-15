@@ -202,15 +202,16 @@
                            placeholder="Search by room..."
                            class="pms-input pl-9 py-1.5 text-xs rounded-lg border border-slate-200">
                 </div>
-                <select wire:model.live="statusFilter" class="pms-select text-xs py-1.5 rounded-lg border border-slate-200 w-40">
-                    <option value="">All Statuses</option>
-                    <option>Clean</option>
-                    <option>Dirty</option>
-                    <option>Inspecting</option>
+                <select wire:model.live="statusFilter" class="pms-select text-xs py-1.5 rounded-lg border border-slate-200 w-52 font-bold text-slate-800 bg-white">
+                    <option value="">Active Housekeeping Work</option>
+                    <option value="Dirty">Dirty (Needs Cleaning)</option>
+                    <option value="Inspecting">Inspecting (Under Audit)</option>
+                    <option value="Clean">Clean (Completed)</option>
+                    <option value="ALL">All Rooms & Statuses</option>
                 </select>
                 @if($statusFilter)
                 <button wire:click="$set('statusFilter', '')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer shrink-0">
-                    Clear
+                    Reset
                 </button>
                 @endif
             </div>
