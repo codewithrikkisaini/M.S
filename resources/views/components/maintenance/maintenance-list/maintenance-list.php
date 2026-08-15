@@ -216,8 +216,8 @@ new class extends Component
             $this->ticketId = $insertedId;
         }
 
-        // Automatic Room & Housekeeping Sync Loop
-        if (in_array($this->status, ['Open', 'In Progress']) && in_array($this->priority, ['High', 'Critical'])) {
+        // Automatic Room Status Update
+        if (in_array($this->status, ['Open', 'In Progress'])) {
             $room->update(['status' => 'Maintenance']);
         } elseif (in_array($this->status, ['Completed', 'Cancelled'])) {
             $hasOtherActive = DB::table('maintenance_tickets')
@@ -269,7 +269,7 @@ new class extends Component
         $room = Room::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->find($ticket->room_id);
 
         if ($room) {
-            if (in_array($newStatus, ['Open', 'In Progress']) && in_array($ticket->priority, ['High', 'Critical'])) {
+            if (in_array($newStatus, ['Open', 'In Progress'])) {
                 $room->update(['status' => 'Maintenance']);
             } elseif (in_array($newStatus, ['Completed', 'Cancelled'])) {
                 $hasOtherActive = DB::table('maintenance_tickets')

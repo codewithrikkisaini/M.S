@@ -207,10 +207,12 @@
             </div>
 
             <form wire:submit.prevent="saveMaintenanceTicket" class="space-y-4">
+                <input type="hidden" wire:model="selectedRoomId">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Issue Description <span class="text-rose-500">*</span></label>
                     <textarea wire:model="ticketIssue" required rows="3" placeholder="Describe the maintenance or repair issue..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20"></textarea>
-                    @error('ticketIssue') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                    @error('ticketIssue') <span class="text-xs text-rose-600 mt-1 block font-bold">{{ $message }}</span> @enderror
+                    @error('selectedRoomId') <span class="text-xs text-rose-600 mt-1 block font-bold">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -240,8 +242,8 @@
                 </div>
 
                 <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 mt-6">
-                    <button type="button" wire:click="closeMaintenanceModal" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20">Submit Ticket</button>
+                    <button type="button" wire:click="closeMaintenanceModal" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>
+                    <button type="submit" wire:click="saveMaintenanceTicket" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 cursor-pointer">Submit Ticket</button>
                 </div>
             </form>
         </div>
