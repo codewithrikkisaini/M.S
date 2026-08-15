@@ -624,6 +624,22 @@
                                 <input type="number" step="0.01" min="0" wire:model.live.debounce.400ms="payment_amount" class="pms-input text-xs" placeholder="0.00">
                                 @error('payment_amount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                             </div>
+
+                            <div class="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <label class="pms-label text-[10px] font-black text-amber-700 uppercase tracking-wider mb-0">Security Check</label>
+                                    <button type="button" wire:click="regenerateCaptcha" class="text-[9px] font-bold text-amber-700 hover:text-amber-900 underline-offset-2 hover:underline">
+                                        Refresh
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm font-black text-slate-800 shadow-sm">
+                                        {{ $captcha_question }}
+                                    </div>
+                                    <input type="number" wire:model="captcha_input" class="pms-input text-xs w-24" placeholder="Answer" min="0">
+                                </div>
+                                @error('captcha_input') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
                         </div>
                     </div>
                 </div>
