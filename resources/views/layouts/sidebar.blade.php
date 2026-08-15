@@ -185,53 +185,53 @@
         @elseif(Auth::check() && Auth::user()->hasRole('maintenance'))
             {{-- Category: Maintenance --}}
             <div x-show="sidebarOpen" class="px-3 pb-1.5 pt-1">
-                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Maintenance</span>
+                <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest">MAINTENANCE</span>
             </div>
 
-            <a href="{{ route('maintenance.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('maintenance.*') ? 'active bg-blue-600 text-white shadow-md shadow-blue-600/20' : '' }}"
+            <a href="{{ route('maintenance.index', ['tab' => 'dashboard']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ (!request()->has('tab') || request()->get('tab') === 'dashboard') && request()->routeIs('maintenance.*') ? 'active bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'text-slate-300 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-th-large nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Dashboard</span>
             </a>
 
-            <a href="{{ route('maintenance.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('maintenance.index', ['tab' => 'tickets']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ request()->get('tab') === 'tickets' ? 'active bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-ticket-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Maintenance Tickets</span>
             </a>
 
-            <a href="{{ route('maintenance.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('maintenance.index', ['tab' => 'my_tasks']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ request()->get('tab') === 'my_tasks' ? 'active bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-tasks nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>My Tasks</span>
             </a>
 
-            <a href="{{ route('maintenance.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('maintenance.index', ['tab' => 'tickets', 'action' => 'create']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:bg-slate-900 hover:text-slate-100"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
-                <i class="fas fa-plus-circle nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <i class="fas fa-plus-circle nav-icon transition-transform duration-200 group-hover:scale-105 text-emerald-400"></i>
                 <span x-show="sidebarOpen" x-transition>Create Ticket</span>
             </a>
 
-            <a href="{{ route('maintenance.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('maintenance.index', ['tab' => 'preventive']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ request()->get('tab') === 'preventive' ? 'active bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-shield-alt nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Preventive Maintenance</span>
             </a>
 
-            <a href="{{ route('maintenance.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('maintenance.index', ['tab' => 'equipment']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ request()->get('tab') === 'equipment' ? 'active bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-toolbox nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Equipment</span>
             </a>
 
-            <a href="{{ route('maintenance.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100"
+            <a href="{{ route('maintenance.index', ['tab' => 'history']) }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 {{ request()->get('tab') === 'history' ? 'active bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-history nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>History</span>
