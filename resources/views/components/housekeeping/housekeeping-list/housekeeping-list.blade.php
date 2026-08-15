@@ -12,7 +12,7 @@
                     @elseif($activeTab === 'inspections') Quality Control & Inspections
                     @elseif($activeTab === 'lost_found') Lost & Found Items Registry
                     @elseif($activeTab === 'task_history') Housekeeping Task History Log
-                    @else Housekeeping Dashboard
+                    @else Housekeeping
                     @endif
                 </span>
             </h1>

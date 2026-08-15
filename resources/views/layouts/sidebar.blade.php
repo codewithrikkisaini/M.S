@@ -305,14 +305,14 @@
                class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('housekeeping.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-broom nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-                <span x-show="sidebarOpen" x-transition>Housekeeping Dashboard</span>
+                <span x-show="sidebarOpen" x-transition>Housekeeping</span>
             </a>
 
             <a href="{{ route('maintenance.index') }}" wire:navigate
                class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('maintenance.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-tools nav-icon transition-transform duration-200 group-hover:scale-105"></i>
-                <span x-show="sidebarOpen" x-transition>Maintenance Dashboard</span>
+                <span x-show="sidebarOpen" x-transition>Maintenance</span>
             </a>
 
             {{-- Category: Analytics --}}

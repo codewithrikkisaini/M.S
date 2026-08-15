@@ -7,7 +7,7 @@
                     <i class="fas {{ $activeTab === 'dashboard' ? 'fa-th-large' : ($activeTab === 'tickets' ? 'fa-ticket-alt' : ($activeTab === 'my_tasks' ? 'fa-tasks' : ($activeTab === 'preventive' ? 'fa-shield-alt' : ($activeTab === 'equipment' ? 'fa-toolbox' : 'fa-history')))) }}"></i>
                 </div>
                 <span>
-                    @if($activeTab === 'dashboard') Maintenance Operations Dashboard
+                    @if($activeTab === 'dashboard') Maintenance Operations
                     @elseif($activeTab === 'tickets') Maintenance Tickets Registry
                     @elseif($activeTab === 'my_tasks') My Work Orders & Assigned Tasks
                     @elseif($activeTab === 'preventive') Preventive Maintenance Schedules
