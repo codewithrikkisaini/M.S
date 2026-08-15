@@ -82,6 +82,10 @@
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $roleClass }}">
                                 {{ $user->role->name }}
                             </span>
+                            @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                                Unassigned
+                            </span>
                             @endif
                         </td>
                         <td>
@@ -156,12 +160,14 @@
                 @error('password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Assigned Role <span class="text-red-500">*</span></label>
-                <select wire:model="role_id" class="pms-select text-xs">
+                <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1">Assigned Role <span class="text-red-500">*</span></label>
+                <select wire:model="role_id" class="pms-select w-full bg-white text-slate-800 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-colors cursor-pointer">
                     <option value="">Select role...</option>
-                    @foreach($roles as $role)<option value="{{ $role->id }}">{{ $role->name }}</option>@endforeach
+                    @foreach($roles as $role)
+                        <option value="{{ $role->id }}">{{ $role->name }}</option>
+                    @endforeach
                 </select>
-                @error('role_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                @error('role_id') <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Account Status</label>
