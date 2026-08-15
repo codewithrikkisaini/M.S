@@ -229,7 +229,7 @@
                         <th class="font-bold">Updated By</th>
                         <th class="font-bold">Notes</th>
                         <th class="font-bold">Last Updated</th>
-                        @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist') || Auth::user()->hasRole('housekeeping'))<th class="font-bold text-right">Actions</th>@endif
+                        @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))<th class="font-bold text-right">Actions</th>@endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -304,7 +304,7 @@
                         </td>
                         <td class="text-slate-500 text-xs max-w-[200px] truncate" title="{{ $rec->notes }}">{{ $rec->notes ?? '—' }}</td>
                         <td class="text-slate-500 text-xs font-medium">{{ $rec->updated_at->format('d M Y, h:i A') }}</td>
-                        @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist') || Auth::user()->hasRole('housekeeping'))
+                        @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))
                         <td class="text-right">
                             <div class="flex items-center justify-end gap-1.5">
                                 <button wire:click="edit({{ $rec->id }})" class="btn-icon text-indigo-500 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-100 shadow-sm cursor-pointer" title="Edit">
