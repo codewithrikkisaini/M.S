@@ -37,7 +37,7 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $user = Auth::user();
 
             if ($user->hotel_id) {
@@ -54,7 +54,7 @@ class AuthController extends Controller
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();
                     return back()->withErrors([
-                        'email' => '❌ Your hotel registration ("' . $hotel->name . '") was rejected. Please contact support.',
+                        'email' => 'Your hotel registration ("' . $hotel->name . '") was rejected. Please contact support.',
                     ])->onlyInput('email');
                 }
             }
@@ -78,6 +78,14 @@ class AuthController extends Controller
                 return redirect()->intended(route('receptionist.dashboard'))->with('status', 'Welcome back!');
             }
 
+            if ($user->hasRole('housekeeping')) {
+                return redirect()->intended(route('housekeeping.index'))->with('status', 'Welcome back!');
+            }
+
+            if ($user->hasRole('maintenance')) {
+                return redirect()->intended(route('maintenance.index'))->with('status', 'Welcome back!');
+            }
+
             return redirect()->intended(route('dashboard'))->with('status', 'Logged in successfully!');
         }
 
@@ -85,8 +93,6 @@ class AuthController extends Controller
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
     }
-
-
 
     public function logout(Request $request)
     {

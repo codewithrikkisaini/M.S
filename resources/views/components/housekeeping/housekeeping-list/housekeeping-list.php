@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\Attributes\Url;
 use App\Models\Housekeeping;
 use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
@@ -10,8 +11,10 @@ new class extends Component
 {
     use WithPagination;
 
-    public string $search = '', $statusFilter = '';
+    #[Url(as: 'tab')]
     public string $activeTab = 'dashboard'; // dashboard, room_status, cleaning_tasks, inspections, lost_found, task_history
+
+    public string $search = '', $statusFilter = '';
     public bool $showDrawer = false, $isEditMode = false, $showLostFoundModal = false;
     public ?int $housekeepingId = null;
     public string $room_id = '', $status = 'Clean', $notes = '', $assigned_to = '';
@@ -49,10 +52,13 @@ new class extends Component
         ],
     ];
 
-    protected $queryString = [
-        'activeTab' => ['except' => 'dashboard', 'as' => 'tab'],
-        'statusFilter' => ['except' => ''],
-    ];
+    public function mount(): void
+    {
+        $tab = request()->get('tab');
+        if ($tab && in_array($tab, ['dashboard', 'room_status', 'cleaning_tasks', 'inspections', 'lost_found', 'task_history'])) {
+            $this->setTab($tab);
+        }
+    }
 
     public function addLostFound(): void
     {
@@ -170,7 +176,7 @@ new class extends Component
 
     public function delete(int $id): void
     {
-        if (Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist')) {
+        if (Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist') || Auth::user()->hasRole('housekeeping')) {
             $hotelId = Auth::user()?->hotel_id;
             $rec = Housekeeping::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->findOrFail($id);
             $rec->delete();

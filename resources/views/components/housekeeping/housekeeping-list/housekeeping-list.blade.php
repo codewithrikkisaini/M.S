@@ -1,95 +1,44 @@
 <div>
-    {{-- Page Title Header --}}
-    <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    {{-- Dynamic Page Title Header with + Add Entry Button --}}
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
             <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm shadow-xs">
-                    <i class="fas fa-broom"></i>
+                    <i class="fas {{ $activeTab === 'room_status' ? 'fa-bed' : ($activeTab === 'cleaning_tasks' ? 'fa-tasks' : ($activeTab === 'inspections' ? 'fa-clipboard-check' : ($activeTab === 'lost_found' ? 'fa-box-open' : ($activeTab === 'task_history' ? 'fa-history' : 'fa-broom')))) }}"></i>
                 </div>
-                <span>Housekeeping </span>
+                <span>
+                    @if($activeTab === 'room_status') Room Status Overview
+                    @elseif($activeTab === 'cleaning_tasks') Cleaning Tasks Pending
+                    @elseif($activeTab === 'inspections') Quality Control & Inspections
+                    @elseif($activeTab === 'lost_found') Lost & Found Items Registry
+                    @elseif($activeTab === 'task_history') Housekeeping Task History Log
+                    @else Housekeeping
+                    @endif
+                </span>
             </h1>
             <p class="text-xs text-slate-500 font-medium mt-1">
-                {{ Auth::user()?->hotel?->name ?? 'Hotel Management System' }} • Real-time room status tracking & audit controls
+                {{ Auth::user()?->hotel?->name ?? 'Hotel Management System' }} • Real-time room cleanliness tracking & staff audit controls
             </p>
         </div>
-    </div>
 
-    {{-- Housekeeping Sub-Navigation Bar (Matching Sidebar Items) --}}
-    <div class="mb-6 border-b border-slate-200/80 flex items-center gap-1 overflow-x-auto no-scrollbar pb-px">
-        <button wire:click="setTab('dashboard')"
-                class="px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer {{ $activeTab === 'dashboard' ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50' }}">
-            <i class="fas fa-th-large text-xs"></i>
-            <span>Dashboard</span>
-        </button>
-
-        <button wire:click="setTab('room_status')"
-                class="px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer {{ $activeTab === 'room_status' ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50' }}">
-            <i class="fas fa-bed text-xs"></i>
-            <span>Room Status</span>
-        </button>
-
-        <button wire:click="setTab('cleaning_tasks')"
-                class="px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer {{ $activeTab === 'cleaning_tasks' ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50' }}">
-            <i class="fas fa-tasks text-xs"></i>
-            <span>Cleaning Tasks</span>
-            @if(($counts['dirty'] ?? 0) > 0)
-                <span class="bg-rose-100 text-rose-700 text-[10px] font-black px-1.5 py-0.5 rounded-full">{{ $counts['dirty'] }}</span>
-            @endif
-        </button>
-
-        <button wire:click="setTab('inspections')"
-                class="px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer {{ $activeTab === 'inspections' ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50' }}">
-            <i class="fas fa-clipboard-check text-xs"></i>
-            <span>Inspections</span>
-            @if(($counts['inspecting'] ?? 0) > 0)
-                <span class="bg-amber-100 text-amber-700 text-[10px] font-black px-1.5 py-0.5 rounded-full">{{ $counts['inspecting'] }}</span>
-            @endif
-        </button>
-
-        <button wire:click="setTab('lost_found')"
-                class="px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer {{ $activeTab === 'lost_found' ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50' }}">
-            <i class="fas fa-box-open text-xs"></i>
-            <span>Lost & Found</span>
-        </button>
-
-        <button wire:click="setTab('task_history')"
-                class="px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer {{ $activeTab === 'task_history' ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 shadow-xs' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50' }}">
-            <i class="fas fa-history text-xs"></i>
-            <span>Task History</span>
-        </button>
-    </div>
-
-    {{-- Dedicated Housekeeping Dashboard Welcome Banner --}}
-    <div class="mb-6 bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-800 rounded-2xl p-5 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-emerald-500/30">
-        <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
-                <i class="fas fa-sparkles text-2xl text-white"></i>
-            </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h2 class="text-xl font-extrabold text-white tracking-tight">Housekeeping Dashboard</h2>
-                    <span class="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-white/20">{{ Auth::user()?->hotel?->name ?? 'Hotel' }}</span>
-                </div>
-                <p class="text-emerald-100 text-xs mt-1">
-                    Manage room cleanliness, staff audit logs, and inspection workflows for <strong>{{ Auth::user()?->hotel?->name ?? 'your hotel' }}</strong>.
-                </p>
-            </div>
-        </div>
-        <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
+        <div class="flex items-center gap-2">
             @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist') || Auth::user()->hasRole('housekeeping'))
-            <button wire:click="openCreate" class="bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
-                <i class="fas fa-plus"></i> Add Entry
-            </button>
+                @if($activeTab === 'lost_found')
+                <button wire:click="$set('showLostFoundModal', true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fas fa-plus"></i> Register Found Item
+                </button>
+                @else
+                <button wire:click="openCreate" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fas fa-plus"></i> Add Entry
+                </button>
+                @endif
             @endif
-            <a href="{{ route('dashboard') }}" class="bg-emerald-900/60 hover:bg-emerald-900 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 border border-white/20">
-                <i class="fas fa-th-large"></i> Dashboard
-            </a>
         </div>
     </div>
 
-    {{-- Status Overview Cards (5 Executive Cards) --}}
+    {{-- Executive Summary Cards (Shown ONLY for non-admin staff, DELETED for Hotel Admin) --}}
+    @if(!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('superadmin'))
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-6">
-        {{-- Total Rooms --}}
         <div class="pms-card p-4 text-left border border-slate-100/80 hover:shadow-sm transition-all">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
@@ -102,8 +51,7 @@
             </div>
         </div>
 
-        {{-- Clean & Ready --}}
-        <button wire:click="$set('statusFilter', '{{ $statusFilter === 'Clean' ? '' : 'Clean' }}')"
+        <button wire:click="setTab('room_status'); $set('statusFilter', '{{ $statusFilter === 'Clean' ? '' : 'Clean' }}')"
                 class="pms-card p-4 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $statusFilter === 'Clean' ? 'ring-2 ring-emerald-600 border-emerald-100 shadow-md bg-emerald-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
@@ -116,9 +64,8 @@
             </div>
         </button>
 
-        {{-- Dirty / Needs Cleaning --}}
-        <button wire:click="$set('statusFilter', '{{ $statusFilter === 'Dirty' ? '' : 'Dirty' }}')"
-                class="pms-card p-4 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $statusFilter === 'Dirty' ? 'ring-2 ring-rose-600 border-rose-100 shadow-md bg-rose-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
+        <button wire:click="setTab('cleaning_tasks')"
+                class="pms-card p-4 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $activeTab === 'cleaning_tasks' ? 'ring-2 ring-rose-600 border-rose-100 shadow-md bg-rose-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
                     <i class="fas fa-exclamation-circle text-base"></i>
@@ -130,9 +77,8 @@
             </div>
         </button>
 
-        {{-- Under Inspection --}}
-        <button wire:click="$set('statusFilter', '{{ $statusFilter === 'Inspecting' ? '' : 'Inspecting' }}')"
-                class="pms-card p-4 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $statusFilter === 'Inspecting' ? 'ring-2 ring-amber-600 border-amber-100 shadow-md bg-amber-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
+        <button wire:click="setTab('inspections')"
+                class="pms-card p-4 text-left hover:shadow-md transition-all duration-200 cursor-pointer border {{ $activeTab === 'inspections' ? 'ring-2 ring-amber-600 border-amber-100 shadow-md bg-amber-50/10' : 'border-slate-100/80 hover:border-slate-200' }}">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
                     <i class="fas fa-search text-base"></i>
@@ -144,7 +90,6 @@
             </div>
         </button>
 
-        {{-- Pending Turnaround --}}
         <div class="pms-card p-4 text-left border border-slate-100/80 hover:shadow-sm transition-all">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 flex items-center justify-center shrink-0">
@@ -157,8 +102,9 @@
             </div>
         </div>
     </div>
+    @endif
 
-    {{-- Main Content Views based on activeTab --}}
+    {{-- Main Content Views --}}
     @if($activeTab === 'lost_found')
     {{-- Lost & Found View --}}
     <div class="pms-card shadow-sm border border-slate-100/80">
@@ -231,7 +177,7 @@
 
     @else
 
-    {{-- Standard Housekeeping Cleanliness Register View --}}
+    {{-- Cleanliness / Room Status / Task History Register View --}}
     <div class="pms-card shadow-sm border border-slate-100/80">
         <div class="pms-card-header flex-wrap gap-4">
             <div class="flex items-center gap-2.5">
@@ -373,7 +319,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="@if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist') || Auth::user()->hasRole('housekeeping')) 9 @else 8 @endif" class="py-12 text-center text-slate-400">
+                        <td colspan="7" class="py-12 text-center text-slate-400">
                             <i class="fas fa-broom text-4xl text-slate-200 mb-3 block"></i>
                             <p class="text-sm font-medium">No records found.</p>
                         </td>
@@ -447,6 +393,7 @@
             </button>
         </div>
     </div>
+
     {{-- Lost & Found Item Registration Modal --}}
     <div x-show="$wire.showLostFoundModal" class="drawer-overlay" @click="$wire.showLostFoundModal = false"
          x-transition:enter="transition-opacity ease-linear duration-200"
