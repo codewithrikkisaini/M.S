@@ -202,15 +202,19 @@ new class extends Component
         $hotelId = Auth::user()?->hotel_id;
 
         $query = Housekeeping::with(['room', 'updater'])
-            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-            ->whereIn('status', ['Clean', 'Dirty', 'Inspecting']);
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId));
+
+        if ($this->statusFilter === 'ALL') {
+            $query->whereIn('status', ['Clean', 'Dirty', 'Inspecting']);
+        } elseif ($this->statusFilter && in_array($this->statusFilter, ['Clean', 'Dirty', 'Inspecting'])) {
+            $query->where('status', $this->statusFilter);
+        } else {
+            // Default: Show ONLY active Housekeeping rooms (Dirty, Inspecting)
+            $query->whereIn('status', ['Dirty', 'Inspecting']);
+        }
 
         if ($this->search) {
             $query->whereHas('room', fn ($q) => $q->where('room_number', 'like', "%{$this->search}%"));
-        }
-
-        if ($this->statusFilter && in_array($this->statusFilter, ['Clean', 'Dirty', 'Inspecting'])) {
-            $query->where('status', $this->statusFilter);
         }
 
         // Group status count optimization for housekeeping cleanliness statuses scoped by hotel_id
