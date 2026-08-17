@@ -421,9 +421,9 @@
                 <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Assigned To</label>
                 <select wire:model="assigned_to" class="pms-select text-xs">
                     <option value="">Select staff...</option>
-                    <option value="John">John</option>
-                    <option value="Harry">Harry</option>
-                    <option value="Tayo">Tayo</option>
+                    @foreach($housekeepingStaff as $staff)
+                        <option value="{{ $staff->name }}">{{ $staff->name }}</option>
+                    @endforeach
                 </select>
             </div>
             <div>

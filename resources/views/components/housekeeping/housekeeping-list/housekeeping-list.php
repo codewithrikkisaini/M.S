@@ -4,6 +4,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Housekeeping;
 use App\Models\Room;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 new class extends Component
@@ -218,6 +219,12 @@ new class extends Component
             ->orderBy('room_number')
             ->get();
 
+        $housekeepingStaff = User::query()
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+            ->whereHas('role', fn($q) => $q->where('slug', 'housekeeping'))
+            ->orderBy('name')
+            ->get();
+
         $totalRoomsTracked = Room::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->count();
         $cleanCount = $statusCounts['Clean'] ?? 0;
         $dirtyCount = $statusCounts['Dirty'] ?? 0;
@@ -226,6 +233,7 @@ new class extends Component
         return $this->view([
             'records' => $query->latest()->paginate(10),
             'rooms'   => $rooms,
+            'housekeepingStaff' => $housekeepingStaff,
             'counts'  => [
                 'total'      => $totalRoomsTracked,
                 'clean'      => $cleanCount,
