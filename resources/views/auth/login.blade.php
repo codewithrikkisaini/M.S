@@ -170,6 +170,33 @@
                     </div>
                 </div>
 
+                {{-- Local CAPTCHA --}}
+                @php
+                    $captchaQuestion = session('login_captcha.question', '2 + 2');
+                @endphp
+                <div>
+                    <label for="captcha" class="pms-label">Security check</label>
+                    <div class="mt-1 flex items-center gap-3">
+                        <div class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-700 shadow-sm">
+                            {{ $captchaQuestion }}
+                        </div>
+                        <button type="button" onclick="window.location.reload()" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-2.5 py-2.5 text-slate-600 hover:border-indigo-300 hover:text-indigo-600 transition-colors" aria-label="Refresh captcha">
+                            <i class="fas fa-rotate text-sm"></i>
+                        </button>
+                    </div>
+                    <input id="captcha"
+                           type="number"
+                           name="captcha"
+                           value="{{ old('captcha') }}"
+                           inputmode="numeric"
+                           autocomplete="off"
+                           class="pms-input mt-2 w-full @error('captcha') border-red-500/55 @enderror"
+                           placeholder="Enter the result">
+                    @error('captcha')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 {{-- Remember me --}}
                 <div class="flex items-center gap-2.5">
                     <input id="remember" type="checkbox" name="remember"
