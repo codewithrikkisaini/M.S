@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\Attributes\Url;
 use App\Models\Housekeeping;
 use App\Models\Room;
 use App\Models\User;
@@ -11,8 +12,10 @@ new class extends Component
 {
     use WithPagination;
 
-    public string $search = '', $statusFilter = '';
+    #[Url(as: 'tab')]
     public string $activeTab = 'dashboard'; // dashboard, room_status, cleaning_tasks, inspections, lost_found, task_history
+
+    public string $search = '', $statusFilter = '';
     public bool $showDrawer = false, $isEditMode = false, $showLostFoundModal = false;
     public ?int $housekeepingId = null;
     public string $room_id = '', $status = 'Clean', $notes = '', $assigned_to = '';
@@ -50,10 +53,13 @@ new class extends Component
         ],
     ];
 
-    protected $queryString = [
-        'activeTab' => ['except' => 'dashboard', 'as' => 'tab'],
-        'statusFilter' => ['except' => ''],
-    ];
+    public function mount(): void
+    {
+        $tab = request()->get('tab');
+        if ($tab && in_array($tab, ['dashboard', 'room_status', 'cleaning_tasks', 'inspections', 'lost_found', 'task_history'])) {
+            $this->setTab($tab);
+        }
+    }
 
     public function addLostFound(): void
     {
@@ -171,7 +177,7 @@ new class extends Component
 
     public function delete(int $id): void
     {
-        if (Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist')) {
+        if (Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist') || Auth::user()->hasRole('housekeeping')) {
             $hotelId = Auth::user()?->hotel_id;
             $rec = Housekeeping::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->findOrFail($id);
             $rec->delete();
@@ -197,15 +203,19 @@ new class extends Component
         $hotelId = Auth::user()?->hotel_id;
 
         $query = Housekeeping::with(['room', 'updater'])
-            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-            ->whereIn('status', ['Clean', 'Dirty', 'Inspecting']);
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId));
+
+        if ($this->statusFilter === 'ALL') {
+            $query->whereIn('status', ['Clean', 'Dirty', 'Inspecting']);
+        } elseif ($this->statusFilter && in_array($this->statusFilter, ['Clean', 'Dirty', 'Inspecting'])) {
+            $query->where('status', $this->statusFilter);
+        } else {
+            // Default: Show ONLY active Housekeeping rooms (Dirty, Inspecting)
+            $query->whereIn('status', ['Dirty', 'Inspecting']);
+        }
 
         if ($this->search) {
             $query->whereHas('room', fn ($q) => $q->where('room_number', 'like', "%{$this->search}%"));
-        }
-
-        if ($this->statusFilter && in_array($this->statusFilter, ['Clean', 'Dirty', 'Inspecting'])) {
-            $query->where('status', $this->statusFilter);
         }
 
         // Group status count optimization for housekeeping cleanliness statuses scoped by hotel_id

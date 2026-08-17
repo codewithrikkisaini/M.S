@@ -138,7 +138,26 @@ new class extends Component
             ->latest()
             ->paginate(15);
 
-        $roles = Role::whereIn('slug', ['receptionist', 'housekeeping', 'maintenance'])->get();
+        Role::firstOrCreate(['slug' => 'superadmin'], ['name' => 'Super Admin']);
+        $adminRole = Role::firstOrCreate(['slug' => 'admin'], ['name' => 'Admin']);
+        if ($adminRole->name !== 'Admin') {
+            $adminRole->update(['name' => 'Admin']);
+        }
+        Role::firstOrCreate(['slug' => 'receptionist'], ['name' => 'Receptionist']);
+        Role::firstOrCreate(['slug' => 'housekeeping'], ['name' => 'Housekeeping Staff']);
+        Role::firstOrCreate(['slug' => 'maintenance'], ['name' => 'Maintenance Staff']);
+
+        Role::whereNull('slug')->get()->each(function ($r) {
+            $r->update(['slug' => \Illuminate\Support\Str::slug($r->name)]);
+        });
+
+        $roles = Role::where(function ($q) {
+            $q->whereNull('slug')->orWhere('slug', '!=', 'superadmin');
+        })->get();
+
+        if ($roles->isEmpty()) {
+            $roles = Role::all();
+        }
 
         return $this->view(['users' => $users, 'roles' => $roles]);
     }

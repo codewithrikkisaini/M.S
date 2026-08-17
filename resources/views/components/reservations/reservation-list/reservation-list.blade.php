@@ -199,6 +199,7 @@
                                     <i class="fas fa-file-pdf text-[10px] text-red-500"></i> Invoice
                                 </a>
                                 @endif
+                                @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))
                                 <a href="{{ route('reservations.edit', $res->id) }}" class="btn-icon text-indigo-500 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-100 shadow-sm" title="Edit">
                                     <i class="fas fa-edit text-xs"></i>
                                 </a>
@@ -206,6 +207,7 @@
                                         class="btn-icon text-red-500 hover:bg-red-50 border border-slate-100 hover:border-red-100 shadow-sm cursor-pointer" title="Delete">
                                     <i class="fas fa-trash text-xs"></i>
                                 </button>
+                                @endif
                             </div>
                         </td>
                     </tr>

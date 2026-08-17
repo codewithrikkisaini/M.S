@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\Attributes\Url;
 use App\Models\Room;
 use App\Models\User;
 use App\Models\Housekeeping;
@@ -12,17 +13,143 @@ new class extends Component
 {
     use WithPagination;
 
+    #[Url(as: 'tab')]
+    public string $activeTab = 'dashboard'; // dashboard, tickets, my_tasks, preventive, equipment, history
+
     public string $search = '', $priorityFilter = '', $statusFilter = '';
     public bool $showDrawer = false, $isEditMode = false;
     public ?int $ticketId = null;
     public string $room_id = '', $issue = '', $priority = 'Medium',
                   $assigned_to = '', $status = 'Open', $notes = '';
 
+    public array $preventiveSchedules = [
+        [
+            'id' => 1,
+            'title' => 'Central HVAC System Servicing & Filter Replace',
+            'equipment' => 'HVAC Unit #1 (Main Block)',
+            'frequency' => 'Quarterly',
+            'last_completed' => '15 Jun 2026',
+            'next_due' => '15 Sep 2026',
+            'assigned_to' => 'Vikram Singh (HVAC Specialist)',
+            'status' => 'Scheduled',
+        ],
+        [
+            'id' => 2,
+            'title' => 'Elevator Safety Inspection & Lubrication',
+            'equipment' => 'Otis Passenger Elevator A',
+            'frequency' => 'Monthly',
+            'last_completed' => '01 Aug 2026',
+            'next_due' => '01 Sep 2026',
+            'assigned_to' => 'Otis Service Team',
+            'status' => 'Pending Inspection',
+        ],
+        [
+            'id' => 3,
+            'title' => 'Diesel Generator 500kVA Fuel & Battery Check',
+            'equipment' => 'Kirloskar Silent Generator',
+            'frequency' => 'Bi-Weekly',
+            'last_completed' => '10 Aug 2026',
+            'next_due' => '24 Aug 2026',
+            'assigned_to' => 'Ramesh Kumar (Electrical Lead)',
+            'status' => 'Operational',
+        ],
+        [
+            'id' => 4,
+            'title' => 'Commercial Water Boiler & Pump Pressure Flush',
+            'equipment' => 'Thermax Central Boiler B',
+            'frequency' => 'Monthly',
+            'last_completed' => '20 Jul 2026',
+            'next_due' => '20 Aug 2026',
+            'assigned_to' => 'Plumbing Maintenance',
+            'status' => 'Due Soon',
+        ],
+    ];
+
+    public array $equipmentList = [
+        [
+            'id' => 1,
+            'tag_number' => 'EQ-HVAC-001',
+            'name' => 'Central VRF Air Conditioning Unit',
+            'category' => 'HVAC & Climate',
+            'location' => 'Rooftop - Main Building',
+            'status' => 'Good Condition',
+            'installed_date' => '12 Jan 2024',
+        ],
+        [
+            'id' => 2,
+            'tag_number' => 'EQ-GEN-002',
+            'name' => '500 kVA Diesel Generator Set',
+            'category' => 'Power Backup',
+            'location' => 'Basement Utility Room',
+            'status' => 'Operational',
+            'installed_date' => '05 Mar 2023',
+        ],
+        [
+            'id' => 3,
+            'tag_number' => 'EQ-BLR-003',
+            'name' => 'Commercial Gas Water Heater Boiler',
+            'category' => 'Plumbing & Heating',
+            'location' => 'Service Block - Plant Room',
+            'status' => 'Requires Servicing',
+            'installed_date' => '18 Nov 2022',
+        ],
+        [
+            'id' => 4,
+            'tag_number' => 'EQ-ELV-004',
+            'name' => '10-Passenger Hydraulic Elevator',
+            'category' => 'Vertical Transport',
+            'location' => 'Main Lobby Shaft A',
+            'status' => 'Good Condition',
+            'installed_date' => '10 Aug 2021',
+        ],
+        [
+            'id' => 5,
+            'tag_number' => 'EQ-WTR-005',
+            'name' => 'RO Industrial Water Purification Plant',
+            'category' => 'Water Treatment',
+            'location' => 'Basement - Pump Room',
+            'status' => 'Operational',
+            'installed_date' => '02 Feb 2025',
+        ],
+    ];
+
+    public function mount(): void
+    {
+        $tab = request()->get('tab');
+        if ($tab && in_array($tab, ['dashboard', 'tickets', 'my_tasks', 'preventive', 'equipment', 'history'])) {
+            $this->activeTab = $tab;
+        }
+
+        if (request()->get('action') === 'create') {
+            $this->openCreate();
+        }
+    }
+
+    public function setTab(string $tab): void
+    {
+        if (in_array($tab, ['dashboard', 'tickets', 'my_tasks', 'preventive', 'equipment', 'history'])) {
+            $this->activeTab = $tab;
+            $this->resetPage();
+            $this->statusFilter = '';
+            $this->priorityFilter = '';
+        }
+    }
+
     public function updatedSearch(): void { $this->resetPage(); }
+    public function updatedStatusFilter(): void { $this->resetPage(); }
+    public function updatedPriorityFilter(): void { $this->resetPage(); }
 
     public function openCreate(): void
     {
         $this->resetFields();
+        $this->showDrawer = true;
+    }
+
+    public function openCreateForAsset(string $assetName): void
+    {
+        $this->resetFields();
+        $this->issue = "Maintenance / Inspection required for asset: {$assetName}";
+        $this->priority = 'High';
         $this->showDrawer = true;
     }
 
@@ -89,12 +216,10 @@ new class extends Component
             $this->ticketId = $insertedId;
         }
 
-        // Automatic Room & Housekeeping Sync Loop
-        if (in_array($this->status, ['Open', 'In Progress']) && in_array($this->priority, ['High', 'Critical'])) {
-            // Put room under maintenance
+        // Automatic Room Status Update
+        if (in_array($this->status, ['Open', 'In Progress'])) {
             $room->update(['status' => 'Maintenance']);
         } elseif (in_array($this->status, ['Completed', 'Cancelled'])) {
-            // Check if there are any OTHER active tickets for this room
             $hasOtherActive = DB::table('maintenance_tickets')
                 ->where('room_id', $this->room_id)
                 ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
@@ -103,12 +228,10 @@ new class extends Component
                 ->exists();
                 
             if (!$hasOtherActive) {
-                // Restore room to Available if it was Maintenance
                 if ($room->status === 'Maintenance') {
                     $room->update(['status' => 'Available']);
                 }
                 
-                // Put room in "Inspecting" housekeeping status to verify clean state
                 Housekeeping::updateOrCreate(
                     ['room_id' => $this->room_id],
                     [
@@ -146,7 +269,7 @@ new class extends Component
         $room = Room::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->find($ticket->room_id);
 
         if ($room) {
-            if (in_array($newStatus, ['Open', 'In Progress']) && in_array($ticket->priority, ['High', 'Critical'])) {
+            if (in_array($newStatus, ['Open', 'In Progress'])) {
                 $room->update(['status' => 'Maintenance']);
             } elseif (in_array($newStatus, ['Completed', 'Cancelled'])) {
                 $hasOtherActive = DB::table('maintenance_tickets')
@@ -217,20 +340,40 @@ new class extends Component
     public function render(): mixed
     {
         $hotelId = Auth::user()?->hotel_id;
+        $userId  = Auth::id();
 
         $query = DB::table('maintenance_tickets')
             ->join('rooms', 'rooms.id', '=', 'maintenance_tickets.room_id')
             ->leftJoin('users', 'users.id', '=', 'maintenance_tickets.assigned_to')
             ->select('maintenance_tickets.*', 'rooms.room_number', 'users.name as assignee_name')
-            ->when($hotelId, fn ($q) => $q->where('maintenance_tickets.hotel_id', $hotelId))
-            ->when($this->search, fn ($q) => $q->where(function ($qq) {
+            ->when($hotelId, fn ($q) => $q->where('maintenance_tickets.hotel_id', $hotelId));
+
+        if ($this->activeTab === 'my_tasks') {
+            $query->where('maintenance_tickets.assigned_to', $userId);
+        } elseif ($this->activeTab === 'history') {
+            $query->whereIn('maintenance_tickets.status', ['Completed', 'Cancelled']);
+        } elseif ($this->activeTab === 'dashboard') {
+            // Dashboard shows active tickets (Open / In Progress)
+            $query->whereIn('maintenance_tickets.status', ['Open', 'In Progress']);
+        }
+
+        if ($this->search) {
+            $query->where(function ($qq) {
                 $qq->where('rooms.room_number', 'like', "%{$this->search}%")
                    ->orWhere('maintenance_tickets.issue', 'like', "%{$this->search}%");
-            }))
-            ->when($this->priorityFilter, fn ($q) => $q->where('maintenance_tickets.priority', $this->priorityFilter))
-            ->when($this->statusFilter, fn ($q) => $q->where('maintenance_tickets.status', $this->statusFilter))
-            ->orderByRaw("CASE priority WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END")
-            ->orderBy('maintenance_tickets.created_at', 'desc');
+            });
+        }
+
+        if ($this->priorityFilter) {
+            $query->where('maintenance_tickets.priority', $this->priorityFilter);
+        }
+
+        if ($this->statusFilter) {
+            $query->where('maintenance_tickets.status', $this->statusFilter);
+        }
+
+        $query->orderByRaw("CASE priority WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END")
+              ->orderBy('maintenance_tickets.created_at', 'desc');
 
         $tickets = $query->paginate(15);
 
@@ -257,13 +400,23 @@ new class extends Component
             ->where('status', '!=', 'Completed')
             ->count();
 
+        $myTasksCount = DB::table('maintenance_tickets')
+            ->when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
+            ->where('assigned_to', $userId)
+            ->where('status', '!=', 'Completed')
+            ->count();
+
         $counts = [
-            'total'      => $totalTickets,
-            'open'       => $statusCounts['Open'] ?? 0,
-            'assigned'   => $assignedCount,
-            'inprogress' => $statusCounts['In Progress'] ?? 0,
-            'urgent'     => $urgentCount,
-            'completed'  => $statusCounts['Completed'] ?? 0,
+            'total'          => $totalTickets,
+            'open'           => $statusCounts['Open'] ?? 0,
+            'assigned'       => $assignedCount,
+            'inprogress'     => $statusCounts['In Progress'] ?? 0,
+            'in_progress'    => $statusCounts['In Progress'] ?? 0,
+            'urgent'         => $urgentCount,
+            'critical'       => $urgentCount,
+            'completed'      => $statusCounts['Completed'] ?? 0,
+            'my_tasks'       => $myTasksCount,
+            'preventive_due' => 1,
         ];
 
         $rooms = Room::when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))

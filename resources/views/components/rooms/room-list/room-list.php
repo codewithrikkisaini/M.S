@@ -40,21 +40,22 @@ new class extends Component
 
     public function updateHousekeepingStatus(int $roomId, string $status): void
     {
+        if (!in_array($status, ['Clean', 'Dirty', 'Inspecting'])) return;
+
         $room = Room::findOrFail($roomId);
+        $hotelId = $room->hotel_id ?? Auth::user()?->hotel_id;
 
         Housekeeping::updateOrCreate(
             ['room_id' => $roomId],
             [
                 'status' => $status,
                 'updated_by' => Auth::id(),
-                'hotel_id' => $room->hotel_id ?? Auth::user()?->hotel_id,
+                'hotel_id' => $hotelId,
                 'notes' => "Quick update from Room Directory by " . Auth::user()->name
             ]
         );
 
-        if ($status === 'Maintenance') {
-            $room->update(['status' => 'Maintenance']);
-        } elseif ($status === 'Clean' && $room->status === 'Maintenance') {
+        if ($status === 'Clean' && $room->status === 'Dirty') {
             $room->update(['status' => 'Available']);
         }
 
@@ -63,9 +64,10 @@ new class extends Component
 
     public function openMaintenanceModal(int $roomId): void
     {
+        $this->resetValidation();
         $room = Room::findOrFail($roomId);
         $this->selectedRoomId = $room->id;
-        $this->selectedRoomNumber = $room->room_number;
+        $this->selectedRoomNumber = (string)$room->room_number;
         $this->ticketIssue = '';
         $this->ticketPriority = 'Medium';
         $this->ticketStatus = 'Open';
@@ -76,34 +78,45 @@ new class extends Component
     public function closeMaintenanceModal(): void
     {
         $this->showTicketModal = false;
+        $this->resetValidation();
     }
 
     public function saveMaintenanceTicket(): void
     {
         $this->validate([
-            'selectedRoomId' => 'required|exists:rooms,id',
-            'ticketIssue' => 'required|string|max:500',
+            'selectedRoomId' => 'required',
+            'ticketIssue'    => 'required|string|max:500',
             'ticketPriority' => 'required|in:Low,Medium,High,Critical',
-            'ticketStatus' => 'required|in:Open,In Progress,Completed,Cancelled',
+            'ticketStatus'   => 'required|in:Open,In Progress,Completed,Cancelled',
         ]);
 
-        $room = Room::findOrFail($this->selectedRoomId);
+        $roomId = $this->selectedRoomId;
+        $room = Room::find($roomId);
+
+        if (!$room) {
+            $this->dispatch('toast', message: 'Room not found.', type: 'error');
+            return;
+        }
+
+        $hotelId = $room->hotel_id ?? Auth::user()?->hotel_id;
 
         $ticket = MaintenanceTicket::create([
-            'room_id' => $this->selectedRoomId,
-            'issue' => $this->ticketIssue,
-            'priority' => $this->ticketPriority,
-            'status' => $this->ticketStatus,
-            'notes' => $this->ticketNotes ?: null,
+            'room_id'     => $roomId,
+            'issue'       => $this->ticketIssue,
+            'priority'    => $this->ticketPriority ?: 'Medium',
+            'status'      => $this->ticketStatus ?: 'Open',
+            'notes'       => $this->ticketNotes ?: null,
             'reported_by' => Auth::id(),
-            'hotel_id' => $room->hotel_id ?? Auth::user()?->hotel_id,
+            'hotel_id'    => $hotelId,
         ]);
 
-        if (in_array($this->ticketStatus, ['Open', 'In Progress']) && in_array($this->ticketPriority, ['High', 'Critical'])) {
+        if (in_array($this->ticketStatus, ['Open', 'In Progress'])) {
             $room->update(['status' => 'Maintenance']);
         }
 
         $this->showTicketModal = false;
+        $this->ticketIssue = '';
+        $this->ticketNotes = '';
         $this->dispatch('toast', message: "Maintenance ticket created for Room #{$room->room_number}.", type: 'success');
     }
 
