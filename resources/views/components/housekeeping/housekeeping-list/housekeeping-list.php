@@ -233,10 +233,16 @@ new class extends Component
         $dirtyCount = $statusCounts['Dirty'] ?? 0;
         $inspectingCount = $statusCounts['Inspecting'] ?? 0;
 
+        $staffUsers = \App\Models\User::with('role')
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+            ->orderBy('name')
+            ->get();
+
         return $this->view([
-            'records' => $query->latest()->paginate(10),
-            'rooms'   => $rooms,
-            'counts'  => [
+            'records'    => $query->latest()->paginate(10),
+            'rooms'      => $rooms,
+            'staffUsers' => $staffUsers,
+            'counts'     => [
                 'total'      => $totalRoomsTracked,
                 'clean'      => $cleanCount,
                 'dirty'      => $dirtyCount,
