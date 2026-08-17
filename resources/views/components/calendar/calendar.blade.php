@@ -419,6 +419,15 @@
                                     @endforeach
                                 </select>
                                 @error('modalGuestId') <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p> @enderror
+                                @if($modalIsBlacklisted)
+                                <div class="mt-2 p-2.5 bg-red-50 border border-red-200 rounded-lg">
+                                    <p class="text-[10px] font-bold text-red-700"><i class="fas fa-ban mr-1"></i> Guest Blacklisted</p>
+                                    <p class="text-[10px] text-red-500 mt-0.5">This guest cannot make new reservations.</p>
+                                    @if($modalBlacklistReason)
+                                    <p class="text-[9px] text-red-400 mt-0.5 font-semibold">Reason: {{ $modalBlacklistReason }}</p>
+                                    @endif
+                                </div>
+                                @endif
                             @else
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/50 p-4 rounded-xl border border-dashed border-slate-250 mt-1">
                                     <div>
@@ -468,7 +477,13 @@
                         {{-- Footer Buttons --}}
                         <div class="border-t border-slate-100 pt-4 flex justify-end gap-3">
                             <button type="button" @click="show = false" class="btn-secondary rounded-lg px-4 py-2 text-xs font-bold transition-all">Cancel</button>
+                            @if($modalIsBlacklisted)
+                            <button disabled class="btn-primary rounded-lg px-5 py-2 text-xs font-bold transition-all shadow-sm opacity-50 cursor-not-allowed">
+                                <i class="fas fa-ban mr-1"></i> Booking Blocked
+                            </button>
+                            @else
                             <button type="submit" class="btn-primary rounded-lg px-5 py-2 text-xs font-bold transition-all shadow-sm">Save Reservation</button>
+                            @endif
                         </div>
 
                     </form>

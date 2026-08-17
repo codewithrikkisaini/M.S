@@ -275,11 +275,20 @@
             </a>
 
             <a href="{{ route('guests.index') }}" wire:navigate
-               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('guests.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('guests.index') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
                :class="sidebarOpen ? '' : 'justify-center px-0'">
                 <i class="fas fa-users nav-icon transition-transform duration-200 group-hover:scale-105"></i>
                 <span x-show="sidebarOpen" x-transition>Guests</span>
             </a>
+
+            @if(Auth::check() && (Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist')))
+            <a href="{{ route('guests.blacklist.index') }}" wire:navigate
+               class="sidebar-link group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('guests.blacklist.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}"
+               :class="sidebarOpen ? '' : 'justify-center px-0'">
+                <i class="fas fa-ban nav-icon transition-transform duration-200 group-hover:scale-105"></i>
+                <span x-show="sidebarOpen" x-transition>Blacklisted Guests</span>
+            </a>
+            @endif
 
             {{-- Category: Operations --}}
             <div x-show="sidebarOpen" class="px-3 pt-5 pb-1.5">
@@ -513,9 +522,16 @@
             </a>
             
             <a href="{{ route('guests.index') }}" wire:navigate @click="mobileSidebarOpen = false"
-               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('guests.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('guests.index') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
                 <i class="fas fa-users nav-icon"></i><span>Guests</span>
             </a>
+
+            @if(Auth::check() && (Auth::user()->hasRole('admin') || Auth::user()->hasRole('superadmin') || Auth::user()->hasRole('receptionist')))
+            <a href="{{ route('guests.blacklist.index') }}" wire:navigate @click="mobileSidebarOpen = false"
+               class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 text-sm font-semibold transition-all duration-200 hover:bg-slate-900 hover:text-slate-100 {{ request()->routeIs('guests.blacklist.*') ? 'active bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : '' }}">
+                <i class="fas fa-ban nav-icon"></i><span>Blacklisted Guests</span>
+            </a>
+            @endif
             
             <div class="px-3 pt-4 pb-1"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Operations</span></div>
             

@@ -71,6 +71,11 @@
                                     <span class="text-xs font-black text-white">{{ $initials }}</span>
                                 </div>
                                 <span class="font-bold text-slate-800 text-sm leading-none">{{ $guest->name }}</span>
+                                @if($guest->blacklists->contains('status', 'active'))
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-50 text-red-600 border border-red-200 ml-1" title="This guest is blacklisted">
+                                        <i class="fas fa-ban mr-0.5"></i> BLACKLISTED
+                                    </span>
+                                @endif
                             </div>
                         </td>
                         <td>

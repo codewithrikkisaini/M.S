@@ -20,4 +20,14 @@ class Guest extends Model
     {
         return $this->hasMany(Reservation::class);
     }
+
+    public function blacklists()
+    {
+        return $this->hasMany(\App\Models\GuestBlacklist::class);
+    }
+
+    public function isBlacklisted(): bool
+    {
+        return $this->blacklists()->active()->exists();
+    }
 }

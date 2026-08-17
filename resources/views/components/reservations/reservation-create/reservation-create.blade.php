@@ -57,7 +57,24 @@
                             </div>
                         @endif
                     </div>
-                    
+
+                    {{-- Blacklist Warning --}}
+                    @if($is_blacklisted)
+                    <div class="col-span-2 p-4 bg-red-50 border-2 border-red-300 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+                                <i class="fas fa-ban text-red-600 text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-black text-red-800">Guest Blacklisted</p>
+                                <p class="text-xs text-red-600 mt-0.5">This guest is currently blacklisted and cannot make new reservations.</p>
+                                @if($blacklist_reason)
+                                <p class="text-[10px] text-red-500 mt-1 font-semibold">Reason: {{ $blacklist_reason }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     
                     <div class="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/40 p-3.5 rounded-xl border border-slate-200/80">
                         {{-- ID Type --}}
@@ -645,10 +662,20 @@
                 </div>
 
                 <div class="flex flex-col gap-2.5 pt-5 border-t border-slate-100 mt-4">
+                    @if($is_blacklisted)
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-center">
+                        <p class="text-xs font-bold text-red-700"><i class="fas fa-ban mr-1"></i> Booking Not Allowed</p>
+                        <p class="text-[10px] text-red-500 mt-0.5">This guest is blacklisted. Release the blacklist before creating a reservation.</p>
+                    </div>
+                    <button disabled class="btn-primary w-full justify-center rounded-lg shadow-sm text-xs py-2 font-bold opacity-50 cursor-not-allowed">
+                        <i class="fas fa-ban mr-1"></i> Booking Blocked
+                    </button>
+                    @else
                     <button wire:click="save" wire:loading.attr="disabled" class="btn-primary w-full justify-center rounded-lg shadow-sm text-xs py-2 font-bold cursor-pointer">
                         <span wire:loading wire:target="save" class="mr-1"><i class="fas fa-spinner fa-spin"></i></span>
                         Create Booking
                     </button>
+                    @endif
                     <a href="{{ route('reservations.index') }}" class="btn-secondary w-full justify-center rounded-lg text-xs py-2 font-bold text-center">Cancel</a>
                 </div>
             </div>
