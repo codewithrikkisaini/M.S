@@ -7,6 +7,25 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    private function generateCaptcha(): array
+    {
+        $first = random_int(2, 9);
+        $second = random_int(2, 9);
+
+        return [
+            'question' => $first . ' + ' . $second,
+            'answer' => (string) ($first + $second),
+        ];
+    }
+
+    private function refreshCaptcha(): array
+    {
+        $captcha = $this->generateCaptcha();
+        session(['login_captcha' => $captcha]);
+
+        return $captcha;
+    }
+
     public function showLoginForm()
     {
         if (Auth::check()) {
@@ -27,15 +46,34 @@ class AuthController extends Controller
         }
 
         $hotelName = \App\Models\Setting::where('key', 'hotel_name')->value('value') ?? 'Lodgiko PMS';
-        return view('auth.login', compact('hotelName'));
+        $captcha = session('login_captcha') ?? $this->refreshCaptcha();
+
+        return view('auth.login', compact('hotelName', 'captcha'));
     }
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+        try {
+            $validated = $request->validate([
+                'email' => ['required', 'email'],
+                'password' => ['required'],
+                'captcha' => ['required', 'numeric', function ($attribute, $value, $fail) {
+                    $expected = session('login_captcha.answer');
+
+                    if ($expected === null || (string) $value !== (string) $expected) {
+                        $fail('CAPTCHA answer is incorrect.');
+                    }
+                }],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->refreshCaptcha();
+            throw $e;
+        }
+
+        $credentials = [
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+        ];
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $user = Auth::user();
@@ -46,6 +84,7 @@ class AuthController extends Controller
                     Auth::logout();
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();
+                    $this->refreshCaptcha();
                     return back()->withErrors([
                         'email' => 'Your hotel is waiting for Super Admin approval. Please wait until your hotel is approved.',
                     ])->onlyInput('email');
@@ -53,6 +92,7 @@ class AuthController extends Controller
                     Auth::logout();
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();
+                    $this->refreshCaptcha();
                     return back()->withErrors([
                         'email' => 'Your hotel registration ("' . $hotel->name . '") was rejected. Please contact support.',
                     ])->onlyInput('email');
@@ -63,6 +103,7 @@ class AuthController extends Controller
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
+                $this->refreshCaptcha();
                 return back()->withErrors([
                     'email' => 'Your account is currently inactive or pending approval.',
                 ])->onlyInput('email');
@@ -88,6 +129,8 @@ class AuthController extends Controller
 
             return redirect()->intended(route('dashboard'))->with('status', 'Logged in successfully!');
         }
+
+        $this->refreshCaptcha();
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',

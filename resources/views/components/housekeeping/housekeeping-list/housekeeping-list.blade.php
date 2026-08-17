@@ -368,13 +368,9 @@
                 <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Assigned To</label>
                 <select wire:model="assigned_to" class="pms-select text-xs">
                     <option value="">Select staff...</option>
-                    @if(isset($staffUsers) && count($staffUsers) > 0)
-                        @foreach($staffUsers as $staff)
-                            <option value="{{ $staff->name }}">{{ $staff->name }} ({{ $staff->role->name ?? 'Staff' }})</option>
-                        @endforeach
-                    @else
-                        <option value="Housekeeping Staff">Housekeeping Staff</option>
-                    @endif
+                    @foreach($housekeepingStaff as $staff)
+                        <option value="{{ $staff->name }}">{{ $staff->name }}</option>
+                    @endforeach
                 </select>
             </div>
             <div>
