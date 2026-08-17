@@ -20,7 +20,7 @@ new class extends Component
 
     public function render(): mixed
     {
-        $guests = Guest::where(function ($q) {
+        $guests = Guest::with('blacklists')->where(function ($q) {
                 $q->where('name', 'like', "%{$this->search}%")
                   ->orWhere('email', 'like', "%{$this->search}%")
                   ->orWhere('guest_id', 'like', "%{$this->search}%")

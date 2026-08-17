@@ -7,6 +7,7 @@ use App\Models\Room;
 use App\Models\Reservation;
 use App\Models\Payment;
 use App\Services\ReservationService;
+use App\Services\GuestBlacklistService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -43,6 +44,10 @@ new class extends Component
     public string $captcha_answer = '';
     public string $captcha_input = '';
 
+    // Blacklist check
+    public bool $is_blacklisted = false;
+    public string $blacklist_reason = '';
+
     public function mount(): void
     {
         $this->check_in_date = request()->query('check_in_date', '');
@@ -70,11 +75,22 @@ new class extends Component
 
     public function updatedGuestId($value): void
     {
+        $this->is_blacklisted = false;
+        $this->blacklist_reason = '';
+
         if ($value) {
             $guest = Guest::find($value);
             if ($guest) {
                 $this->id_type = $guest->id_type ?? '';
                 $this->guest_id_number = $guest->id_number ?? $guest->passport_number ?? '';
+
+                // Check blacklist
+                $blacklistService = app(GuestBlacklistService::class);
+                $match = $blacklistService->isGuestBlacklisted($guest);
+                if ($match) {
+                    $this->is_blacklisted = true;
+                    $this->blacklist_reason = $match->reason;
+                }
             }
         }
     }
@@ -105,6 +121,29 @@ new class extends Component
 
     public function save(ReservationService $service): void
     {
+        $blacklistService = app(GuestBlacklistService::class);
+
+        // HARD BACKEND BLACKLIST CHECK — does NOT depend on frontend $is_blacklisted flag
+        // This runs fresh on every submit for EVERY role (Admin, Reception, Super Admin)
+        if (!$this->is_new_guest && !empty($this->guest_id)) {
+            $guest = Guest::find($this->guest_id);
+            if ($guest) {
+                $match = $blacklistService->isGuestBlacklisted($guest);
+                if ($match) {
+                    $this->is_blacklisted = true;
+                    $this->blacklist_reason = $match->reason;
+                    $this->addError('guest_id', 'This guest is currently blacklisted and cannot make new reservations. Reason: ' . $match->reason);
+                    return;
+                }
+            }
+        }
+
+        // Prevent saving if frontend already flagged guest as blacklisted
+        if ($this->is_blacklisted) {
+            $this->addError('guest_id', 'This guest is currently blacklisted and cannot make new reservations. Reason: ' . $this->blacklist_reason);
+            return;
+        }
+
         $rules = [
             'room_ids'        => 'required|array|min:1',
             'room_ids.*'      => 'integer|exists:rooms,id',
@@ -143,6 +182,21 @@ new class extends Component
         }
 
         if ($this->is_new_guest) {
+            // HARD BACKEND BLACKLIST CHECK for new guest identity
+            $nameParts = explode(' ', trim($this->new_guest_name), 2);
+            $firstName = $nameParts[0] ?? '';
+            $lastName = $nameParts[1] ?? '';
+            $match = $blacklistService->isIdentityBlacklisted(
+                $firstName,
+                $lastName,
+                $this->guest_id_number ?: null,
+                null
+            );
+            if ($match) {
+                $this->addError('new_guest_name', 'This guest identity is currently blacklisted and cannot make new reservations. Reason: ' . $match->reason);
+                return;
+            }
+
             $guest_id_str = 'G-' . str_pad(rand(1000, 99999), 5, '0', STR_PAD_LEFT);
             while (Guest::where('guest_id', $guest_id_str)->exists()) {
                 $guest_id_str = 'G-' . str_pad(rand(1000, 99999), 5, '0', STR_PAD_LEFT);
@@ -189,20 +243,28 @@ new class extends Component
         }
 
 
-        $reservation = $service->saveReservation(null, [
-            'guest_id'       => $this->guest_id,
-            'room_ids'       => $this->room_ids,
-            'check_in_date'  => $this->check_in_date,
-            'check_out_date' => $this->check_out_date,
-            'adults'         => $this->adults,
-            'children'       => $this->children,
-            'discount_type'  => $this->discount_type,
-            'discount_value' => $this->discount_value !== '' ? $this->discount_value : 0,
-            'tax_rate'       => $this->tax_rate !== '' ? $this->tax_rate : 18,
-            'special_notes'  => $this->special_notes,
-            'booking_type' => $this->booking_type,
-            'status'         => 'Confirmed',
-        ], false);
+        try {
+            $reservation = $service->saveReservation(null, [
+                'guest_id'       => $this->guest_id,
+                'room_ids'       => $this->room_ids,
+                'check_in_date'  => $this->check_in_date,
+                'check_out_date' => $this->check_out_date,
+                'adults'         => $this->adults,
+                'children'       => $this->children,
+                'discount_type'  => $this->discount_type,
+                'discount_value' => $this->discount_value !== '' ? $this->discount_value : 0,
+                'tax_rate'       => $this->tax_rate !== '' ? $this->tax_rate : 18,
+                'special_notes'  => $this->special_notes,
+                'booking_type' => $this->booking_type,
+                'status'         => 'Confirmed',
+            ], false);
+        } catch (\App\Exceptions\GuestBlacklistedException $e) {
+            $this->addError('guest_id', $e->getMessage());
+            return;
+        } catch (\Exception $e) {
+            $this->addError('guest_id', $e->getMessage());
+            return;
+        }
 
         if ($this->payment_amount !== '' && (float) $this->payment_amount > 0) {
             Payment::create([
