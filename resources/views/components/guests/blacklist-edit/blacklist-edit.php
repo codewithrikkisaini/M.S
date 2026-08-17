@@ -65,7 +65,7 @@ new class extends Component
         $this->validate([
             'first_name'   => 'required|string|max:255',
             'last_name'    => 'required|string|max:255',
-            'id_type'      => 'nullable|in:Passport,Driver\'s License,Aadhaar Card,Voter ID,Other',
+            'id_type'      => 'nullable|string|max:100',
             'id_number'    => 'nullable|string|max:100',
             'date_of_birth'=> 'nullable|date|before:today',
             'reason'       => 'required|string|max:2000',
