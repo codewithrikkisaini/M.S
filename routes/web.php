@@ -440,6 +440,12 @@ Route::middleware('auth')->group(function () {
     Route::livewire('/guests/create', 'guests.guest-create')->name('guests.create');
     Route::livewire('/guests/{guest}/edit', 'guests.guest-edit')->name('guests.edit');
 
+    // Guest Blacklist
+    Route::livewire('/guests/blacklisted', 'guests.blacklist-list')->name('guests.blacklist.index');
+    Route::livewire('/guests/blacklist/create', 'guests.blacklist-create')->name('guests.blacklist.create');
+    Route::livewire('/guests/blacklist/{blacklist}/edit', 'guests.blacklist-edit')->name('guests.blacklist.edit');
+    Route::get('/guests/blacklist/{document}/download', [\App\Http\Controllers\BlacklistDocumentController::class, 'download'])->name('guests.blacklist.document.download');
+
     // Operations
     Route::livewire('/check-in', 'check-in')->name('checkin.index');
     Route::livewire('/check-out', 'check-out')->name('checkout.index');

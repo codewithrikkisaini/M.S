@@ -176,6 +176,34 @@ class PublicHotelController extends Controller
             return response()->json(['success' => false, 'message' => 'Online bookings for this hotel are currently paused or pending approval.'], 422);
         }
 
+        // Blacklist check — prevent booking if guest identity matches active blacklist
+        $blacklistService = app(\App\Services\GuestBlacklistService::class);
+        $nameParts = explode(' ', trim($request->guest_name), 2);
+        $firstName = $nameParts[0] ?? '';
+        $lastName = $nameParts[1] ?? '';
+        $idNumber = $request->id_number ?? null;
+
+        // Check existing guest first
+        $existingGuest = Guest::withoutGlobalScope('tenant')->where('email', $request->guest_email)->first();
+        if ($existingGuest) {
+            $match = $blacklistService->isGuestBlacklisted($existingGuest);
+            if ($match) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking Not Allowed: This guest is currently blacklisted and cannot make new reservations.',
+                ], 422);
+            }
+        } else {
+            // Check by identity for new guests
+            $match = $blacklistService->isIdentityBlacklisted($firstName, $lastName, $idNumber);
+            if ($match) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking Not Allowed: This guest identity is currently blacklisted and cannot make new reservations.',
+                ], 422);
+            }
+        }
+
         $checkin = $request->checkin_date ?: date('Y-m-d');
         $checkout = $request->checkout_date ?: date('Y-m-d', strtotime('+1 day'));
         $days = max(1, (strtotime($checkout) - strtotime($checkin)) / 86400);
