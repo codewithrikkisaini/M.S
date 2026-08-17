@@ -185,6 +185,11 @@ new class extends Component
             'status'   => 'required|in:Open,In Progress,Completed,Cancelled',
         ]);
 
+        if ($this->assigned_to && !$this->isMaintenanceStaff((int) $this->assigned_to, $hotelId)) {
+            $this->addError('assigned_to', 'Select a maintenance staff member from this hotel.');
+            return;
+        }
+
         $roomQuery = Room::query();
         if ($hotelId) {
             $roomQuery->where('hotel_id', $hotelId);
@@ -247,6 +252,48 @@ new class extends Component
         $this->resetFields();
         $this->showDrawer = false;
         $this->dispatch('toast', message: 'Ticket saved.', type: 'success');
+    }
+
+    public function assignStaff(int $ticketId, string $staffId): void
+    {
+        if (!(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))) {
+            $this->dispatch('toast', message: 'Only an administrator can assign maintenance work.', type: 'error');
+            return;
+        }
+
+        $hotelId = Auth::user()?->hotel_id;
+        $assigneeId = $staffId !== '' ? (int) $staffId : null;
+
+        if ($assigneeId && !$this->isMaintenanceStaff($assigneeId, $hotelId)) {
+            $this->dispatch('toast', message: 'Please select a valid maintenance staff member.', type: 'error');
+            return;
+        }
+
+        $ticketQuery = DB::table('maintenance_tickets')->where('id', $ticketId);
+        if ($hotelId) {
+            $ticketQuery->where('hotel_id', $hotelId);
+        }
+
+        if (!$ticketQuery->exists()) {
+            $this->dispatch('toast', message: 'Maintenance ticket was not found.', type: 'error');
+            return;
+        }
+
+        $ticketQuery->update([
+            'assigned_to' => $assigneeId,
+            'updated_at' => now(),
+        ]);
+
+        $this->dispatch('toast', message: $assigneeId ? 'Maintenance work assigned successfully.' : 'Maintenance work is now unassigned.', type: 'success');
+    }
+
+    private function isMaintenanceStaff(int $userId, ?int $hotelId): bool
+    {
+        return User::query()
+            ->whereKey($userId)
+            ->when($hotelId, fn ($query) => $query->where('hotel_id', $hotelId))
+            ->whereHas('role', fn ($query) => $query->where('slug', 'maintenance'))
+            ->exists();
     }
 
     public function updateTicketStatus(int $id, string $newStatus): void
@@ -423,7 +470,8 @@ new class extends Component
             ->orderBy('room_number')
             ->get();
 
-        $users = User::when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
+        $users = User::with('role')
+            ->when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
             ->orderBy('name')
             ->get();
 

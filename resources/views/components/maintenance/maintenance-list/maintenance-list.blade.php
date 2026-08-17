@@ -154,7 +154,19 @@
                                     {{ $t->priority }}
                                 </span>
                             </td>
-                            <td class="text-xs font-semibold text-slate-700">{{ $t->assignee_name ?? 'Unassigned' }}</td>
+                            <td>
+                                @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))
+                                    <select wire:change="assignStaff({{ $t->id }}, $event.target.value)"
+                                            class="text-xs font-semibold rounded-lg border border-slate-200 bg-white px-2 py-1.5 cursor-pointer min-w-36">
+                                        <option value="">Unassigned</option>
+                                        @foreach($users as $user)
+                                            <option value="{{ $user->id }}" {{ (int) $t->assigned_to === $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <span class="text-xs font-semibold text-slate-700">{{ $t->assignee_name ?? 'Unassigned' }}</span>
+                                @endif
+                            </td>
                             <td>
                                 <select wire:change="updateTicketStatus({{ $t->id }}, $event.target.value)" class="text-xs font-bold rounded-lg border px-2 py-1 cursor-pointer {{ $t->status === 'Open' ? 'bg-blue-50 text-blue-700 border-blue-200' : ($t->status === 'In Progress' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200') }}">
                                     <option value="Open" {{ $t->status === 'Open' ? 'selected' : '' }}>🔵 Open</option>
@@ -240,7 +252,19 @@
                                     {{ $t->priority }}
                                 </span>
                             </td>
-                            <td><span class="text-xs font-semibold text-slate-700">{{ $t->assignee_name ?? '—' }}</span></td>
+                            <td>
+                                @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))
+                                    <select wire:change="assignStaff({{ $t->id }}, $event.target.value)"
+                                            class="text-xs font-semibold rounded-lg border border-slate-200 bg-white px-2 py-1.5 cursor-pointer min-w-36">
+                                        <option value="">Unassigned</option>
+                                        @foreach($users as $user)
+                                            <option value="{{ $user->id }}" {{ (int) $t->assigned_to === $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <span class="text-xs font-semibold text-slate-700">{{ $t->assignee_name ?? '—' }}</span>
+                                @endif
+                            </td>
                             <td>
                                 <select wire:change="updateTicketStatus({{ $t->id }}, $event.target.value)" class="text-xs font-bold rounded-lg border px-2 py-1 cursor-pointer transition-all focus:outline-none {{ $t->status === 'Open' ? 'bg-blue-50 text-blue-700 border-blue-200' : ($t->status === 'In Progress' ? 'bg-amber-50 text-amber-700 border-amber-200' : ($t->status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200')) }}">
                                     <option value="Open" {{ $t->status === 'Open' ? 'selected' : '' }}>🔵 Open</option>
@@ -521,8 +545,9 @@
                 <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Assign To Staff</label>
                 <select wire:model="assigned_to" class="pms-select text-xs">
                     <option value="">Unassigned</option>
-                    @foreach($users as $user)<option value="{{ $user->id }}">{{ $user->name }}</option>@endforeach
+                    @foreach($users as $user)<option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role->name ?? 'Staff' }})</option>@endforeach
                 </select>
+                @error('assigned_to') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Internal Notes</label>

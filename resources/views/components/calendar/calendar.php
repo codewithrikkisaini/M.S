@@ -6,6 +6,7 @@ use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Payment;
 use App\Services\ReservationService;
+use App\Services\GuestBlacklistService;
 use Carbon\Carbon;
 
 new class extends Component {
@@ -30,6 +31,10 @@ new class extends Component {
     public string $modalSpecialNotes = '';
     public string $modalPaymentType = 'Cash';
     public string $modalPaymentAmount = '';
+
+    // Blacklist check
+    public bool $modalIsBlacklisted = false;
+    public string $modalBlacklistReason = '';
 
     public function mount(): void
     {
@@ -82,8 +87,28 @@ new class extends Component {
         $this->modalSpecialNotes = '';
         $this->modalPaymentType = 'Cash';
         $this->modalPaymentAmount = '';
+        $this->modalIsBlacklisted = false;
+        $this->modalBlacklistReason = '';
 
         $this->showModal = true;
+    }
+
+    public function updatedModalGuestId($value): void
+    {
+        $this->modalIsBlacklisted = false;
+        $this->modalBlacklistReason = '';
+
+        if ($value) {
+            $guest = Guest::find($value);
+            if ($guest) {
+                $blacklistService = app(GuestBlacklistService::class);
+                $match = $blacklistService->isGuestBlacklisted($guest);
+                if ($match) {
+                    $this->modalIsBlacklisted = true;
+                    $this->modalBlacklistReason = $match->reason;
+                }
+            }
+        }
     }
 
     public function closeBookingModal(): void
@@ -123,6 +148,30 @@ new class extends Component {
             return;
         }
 
+        // BLACKLIST ENFORCEMENT — applies to ALL roles (Admin, Reception, Super Admin)
+        $blacklistService = app(GuestBlacklistService::class);
+        if (!$this->modalIsNewGuest) {
+            $guest = Guest::find($this->modalGuestId);
+            if ($guest) {
+                $match = $blacklistService->isGuestBlacklisted($guest);
+                if ($match) {
+                    $this->modalIsBlacklisted = true;
+                    $this->modalBlacklistReason = $match->reason;
+                    $this->addError('modalGuestId', 'This guest is blacklisted and cannot make new reservations. Reason: ' . $match->reason);
+                    return;
+                }
+            }
+        } else {
+            $nameParts = explode(' ', trim($this->modalNewGuestName), 2);
+            $firstName = $nameParts[0] ?? '';
+            $lastName = $nameParts[1] ?? '';
+            $match = $blacklistService->isIdentityBlacklisted($firstName, $lastName);
+            if ($match) {
+                $this->addError('modalNewGuestName', 'This guest identity is blacklisted and cannot make new reservations. Reason: ' . $match->reason);
+                return;
+            }
+        }
+
         // Create guest if new
         $guestId = $this->modalGuestId;
         if ($this->modalIsNewGuest) {
@@ -140,19 +189,27 @@ new class extends Component {
         }
 
         // Save reservation
-        $reservation = $service->saveReservation(null, [
-            'guest_id' => $guestId,
-            'room_ids' => [$this->modalRoomId],
-            'check_in_date' => $this->modalCheckInDate,
-            'check_out_date' => $this->modalCheckOutDate,
-            'adults' => $this->modalAdults,
-            'children' => $this->modalChildren,
-            'discount_type' => 'Fixed',
-            'discount_value' => 0,
-            'tax_rate' => 18,
-            'special_notes' => $this->modalSpecialNotes,
-            'status' => 'Confirmed',
-        ], false);
+        try {
+            $reservation = $service->saveReservation(null, [
+                'guest_id' => $guestId,
+                'room_ids' => [$this->modalRoomId],
+                'check_in_date' => $this->modalCheckInDate,
+                'check_out_date' => $this->modalCheckOutDate,
+                'adults' => $this->modalAdults,
+                'children' => $this->modalChildren,
+                'discount_type' => 'Fixed',
+                'discount_value' => 0,
+                'tax_rate' => 18,
+                'special_notes' => $this->modalSpecialNotes,
+                'status' => 'Confirmed',
+            ], false);
+        } catch (\App\Exceptions\GuestBlacklistedException $e) {
+            $this->addError('modalGuestId', $e->getMessage());
+            return;
+        } catch (\Exception $e) {
+            $this->addError('modalGuestId', $e->getMessage());
+            return;
+        }
 
         // Add payment if provided
         if ($this->modalPaymentAmount !== '' && (float) $this->modalPaymentAmount > 0) {

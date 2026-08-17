@@ -4,10 +4,12 @@ namespace App\Services;
 
 use App\Repositories\ReservationRepositoryInterface;
 use App\Models\Room;
+use App\Models\GuestBlacklist;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingAccepted;
 use App\Services\NotificationService;
+use App\Services\GuestBlacklistService;
 
 class ReservationService
 {
@@ -25,6 +27,28 @@ class ReservationService
 
     public function saveReservation($id, $data, $isEditMode)
     {
+        // BLACKLIST ENFORCEMENT — applies to ALL roles (Admin, Reception, Super Admin)
+        // This is the AUTHORITATIVE backend check. No role can bypass this.
+        if (!$isEditMode && !empty($data['guest_id'])) {
+            $guestId = (int) $data['guest_id'];
+            $guest = \App\Models\Guest::find($guestId);
+            if ($guest) {
+                $blacklistService = app(GuestBlacklistService::class);
+                $match = $blacklistService->isGuestBlacklisted($guest);
+                if ($match) {
+                    \Illuminate\Support\Facades\Log::warning('Blacklist booking blocked', [
+                        'guest_id' => $guestId,
+                        'user_id' => auth()->id(),
+                        'hotel_id' => auth()->user()?->hotel_id,
+                        'blacklist_id' => $match->id,
+                    ]);
+                    throw new \App\Exceptions\GuestBlacklistedException(
+                        'This guest is currently blacklisted and cannot make new reservations. Reason: ' . $match->reason
+                    );
+                }
+            }
+        }
+
         return DB::transaction(function () use ($id, $data, $isEditMode) {
             $roomIds = $data['room_ids'];
             unset($data['room_ids']);

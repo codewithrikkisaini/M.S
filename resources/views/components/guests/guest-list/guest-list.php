@@ -9,6 +9,20 @@ new class extends Component
     use WithPagination;
 
     public string $search = '';
+    public bool $showIdModal = false;
+    public ?\App\Models\Guest $selectedGuest = null;
+
+    public function openIdModal(int $guestId): void
+    {
+        $this->selectedGuest = Guest::find($guestId);
+        $this->showIdModal = true;
+    }
+
+    public function closeIdModal(): void
+    {
+        $this->showIdModal = false;
+        $this->selectedGuest = null;
+    }
 
     public function updatedSearch(): void { $this->resetPage(); }
 
@@ -20,7 +34,7 @@ new class extends Component
 
     public function render(): mixed
     {
-        $guests = Guest::where(function ($q) {
+        $guests = Guest::with('blacklists')->where(function ($q) {
                 $q->where('name', 'like', "%{$this->search}%")
                   ->orWhere('email', 'like', "%{$this->search}%")
                   ->orWhere('guest_id', 'like', "%{$this->search}%")
