@@ -158,6 +158,9 @@ new class extends Component
             'payment_amount'  => 'nullable|numeric|min:0',
             'booking_type'    => 'required|in:Walk in,Direct website,OTA,Phone,Other',
             'captcha_input'   => 'required|numeric',
+            'id_card_front'   => 'nullable|image|max:4096',
+            'id_card_back'    => 'nullable|image|max:4096',
+            'guest_photo'     => 'nullable|image|max:4096',
         ];
 
         if ($this->is_new_guest) {
@@ -166,9 +169,6 @@ new class extends Component
             $rules['new_guest_phone'] = 'nullable|string|max:20';
             $rules['id_type']         = 'nullable|in:Driving License,Aadhaar Card,Passport,Voter ID,Other';
             $rules['guest_id_number'] = 'nullable|string|max:100';
-            $rules['id_card_front']   = 'nullable|image|max:4096';
-            $rules['id_card_back']    = 'nullable|image|max:4096';
-            $rules['guest_photo']     = 'nullable|image|max:4096';
         } else {
             $rules['guest_id'] = 'required|exists:guests,id';
         }
@@ -220,12 +220,20 @@ new class extends Component
             ]);
             $this->guest_id = (string)$guest->id;
         } else {
-            if ($this->guest_id && ($this->id_type || $this->guest_id_number)) {
+            if ($this->guest_id) {
                 $existingGuest = Guest::find($this->guest_id);
                 if ($existingGuest) {
+                    $frontPath = $this->id_card_front ? $this->id_card_front->store('guest-ids', 'public') : ($this->saveBase64Image($this->id_card_front_base64, 'guest-ids') ?: $existingGuest->id_card_front);
+                    $backPath  = $this->id_card_back ? $this->id_card_back->store('guest-ids', 'public') : ($this->saveBase64Image($this->id_card_back_base64, 'guest-ids') ?: $existingGuest->id_card_back);
+                    $photoPath = $this->guest_photo ? $this->guest_photo->store('guest-photos', 'public') : ($this->saveBase64Image($this->guest_photo_base64, 'guest-photos') ?: $existingGuest->guest_photo);
+
                     $existingGuest->update([
-                        'id_type'   => $this->id_type ?: $existingGuest->id_type,
-                        'id_number' => $this->guest_id_number ?: $existingGuest->id_number,
+                        'id_type'         => $this->id_type ?: $existingGuest->id_type,
+                        'id_number'       => $this->guest_id_number ?: $existingGuest->id_number,
+                        'passport_number' => $this->guest_id_number ?: $existingGuest->passport_number,
+                        'id_card_front'   => $frontPath,
+                        'id_card_back'    => $backPath,
+                        'guest_photo'     => $photoPath,
                     ]);
                 }
             }

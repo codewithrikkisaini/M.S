@@ -292,9 +292,15 @@
                                             ];
                                             $gradient = $gradients[$initials] ?? 'from-slate-400 to-slate-600';
                                         @endphp
-                                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br {{ $gradient }} flex items-center justify-center shrink-0 shadow-sm border border-white">
-                                            <span class="text-xs font-black text-white">{{ $initials }}</span>
-                                        </div>
+                                        @if(optional($res->guest)->guest_photo)
+                                            <img src="{{ asset('storage/' . $res->guest->guest_photo) }}" class="w-8 h-8 rounded-xl object-cover shadow-sm border border-indigo-200">
+                                        @elseif(optional($res->guest)->id_card_front)
+                                            <img src="{{ asset('storage/' . $res->guest->id_card_front) }}" class="w-8 h-8 rounded-xl object-cover shadow-sm border border-indigo-200">
+                                        @else
+                                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br {{ $gradient }} flex items-center justify-center shrink-0 shadow-sm border border-white">
+                                                <span class="text-xs font-black text-white">{{ $initials }}</span>
+                                            </div>
+                                        @endif
                                         <div>
                                             <span class="font-bold text-slate-800 text-sm block">{{ $res->guest->name ?? 'N/A' }}</span>
                                             <span class="text-[10px] text-slate-400">{{ $res->guest->email ?? '' }}</span>

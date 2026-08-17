@@ -9,6 +9,20 @@ use Carbon\Carbon;
 new class extends Component
 {
     public string $search = '';
+    public bool $showIdModal = false;
+    public ?\App\Models\Guest $selectedGuest = null;
+
+    public function openIdModal(int $guestId): void
+    {
+        $this->selectedGuest = \App\Models\Guest::find($guestId);
+        $this->showIdModal = true;
+    }
+
+    public function closeIdModal(): void
+    {
+        $this->showIdModal = false;
+        $this->selectedGuest = null;
+    }
 
     public function checkIn(int $id, ReservationService $service): void
     {

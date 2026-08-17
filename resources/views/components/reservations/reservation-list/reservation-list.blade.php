@@ -40,6 +40,7 @@
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500">
                         <th class="font-bold"># ID</th>
                         <th class="font-bold">Guest</th>
+                        <th class="font-bold">Image</th>
                         <th class="font-bold">ID Type</th>
                         <th class="font-bold">ID Number</th>
                         <th class="font-bold">Room(s)</th>
@@ -56,43 +57,36 @@
                     <tr class="hover:bg-slate-50/40 transition-colors">
                         <td class="text-slate-400 text-xs font-semibold">#{{ $res->id }}</td>
                         <td>
-                            <div class="flex items-center gap-3">
-                                @if(optional($res->guest)->id)
-                                    <button wire:click="openIdModal({{ $res->guest->id }})" class="shrink-0 cursor-pointer" title="View Guest Verification Documents">
-                                        @if($res->guest->guest_photo)
-                                            <img src="{{ asset('storage/' . $res->guest->guest_photo) }}" class="w-9 h-9 rounded-xl object-cover shadow-sm border border-indigo-200 hover:scale-105 transition-all">
-                                        @else
-                                            @php
-                                                $initials = strtoupper(substr($res->guest->name ?? 'G', 0, 1));
-                                                $gradients = [
-                                                    'A' => 'from-indigo-400 to-indigo-600', 'B' => 'from-emerald-400 to-emerald-600',
-                                                    'C' => 'from-blue-400 to-blue-600', 'D' => 'from-rose-400 to-rose-600',
-                                                    'E' => 'from-amber-400 to-amber-600', 'F' => 'from-orange-400 to-orange-600',
-                                                    'G' => 'from-teal-400 to-teal-600', 'H' => 'from-purple-400 to-purple-600',
-                                                    'I' => 'from-pink-400 to-pink-600', 'J' => 'from-cyan-400 to-cyan-600',
-                                                ];
-                                                $gradient = $gradients[$initials] ?? 'from-slate-400 to-slate-600';
-                                            @endphp
-                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br {{ $gradient }} flex items-center justify-center shadow-sm border border-white hover:scale-105 transition-all">
-                                                <span class="text-xs font-black text-white">{{ $initials }}</span>
-                                            </div>
-                                        @endif
-                                    </button>
-                                @endif
-                                <div>
-                                    <span class="font-bold text-slate-800 text-sm block leading-none mb-1">{{ $res->guest->name ?? 'N/A' }}</span>
-                                    <div class="flex items-center gap-1.5 mt-0.5">
-                                        <span class="text-[10px] text-slate-400 block">{{ $res->guest->email ?? $res->guest->phone ?? '' }}</span>
-                                        @if(optional($res->guest)->id_card_front || optional($res->guest)->id_card_back || optional($res->guest)->guest_photo)
-                                            <button wire:click="openIdModal({{ $res->guest->id }})"
-                                                    class="text-[9px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 px-1.5 py-0.5 rounded font-bold transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs"
-                                                    title="Click to view Guest Photo & ID Scans">
-                                                <i class="fas fa-camera text-indigo-500"></i> Docs
-                                            </button>
-                                        @endif
-                                    </div>
+                            <div>
+                                <span class="font-bold text-slate-800 text-sm block leading-none mb-1">{{ $res->guest->name ?? 'N/A' }}</span>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="text-[10px] text-slate-400 block">{{ $res->guest->email ?? $res->guest->phone ?? '' }}</span>
+                                    @if(optional($res->guest)->id_card_front || optional($res->guest)->id_card_back || optional($res->guest)->guest_photo)
+                                        <button wire:click="openIdModal({{ $res->guest->id }})"
+                                                class="text-[9px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 px-1.5 py-0.5 rounded font-bold transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs"
+                                                title="Click to view Guest Photo & ID Scans">
+                                            <i class="fas fa-camera text-indigo-500"></i> Docs
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
+                        </td>
+                        <td>
+                            @php
+                                // Prefer the selected front-ID image. If it was not provided,
+                                // use the live photo or the back-ID image as a useful fallback.
+                                $selectedImage = optional($res->guest)->id_card_front
+                                    ?: (optional($res->guest)->guest_photo ?: optional($res->guest)->id_card_back);
+                            @endphp
+                            @if($selectedImage && optional($res->guest)->id)
+                                <button wire:click="openIdModal({{ $res->guest->id }})" title="View selected guest image"
+                                        class="block cursor-pointer group">
+                                    <img src="{{ asset('storage/' . $selectedImage) }}" alt="Guest verification image"
+                                         class="w-12 h-12 rounded-lg object-cover border border-slate-200 shadow-sm group-hover:scale-105 group-hover:border-indigo-300 transition-all">
+                                </button>
+                            @else
+                                <span class="text-slate-400 text-xs">—</span>
+                            @endif
                         </td>
                         <td>
                             @if(optional($res->guest)->id_type)
@@ -213,7 +207,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="11" class="py-12 text-center text-slate-400">
+                        <td colspan="12" class="py-12 text-center text-slate-400">
                             <i class="fas fa-calendar-times text-4xl text-slate-200 mb-3 block"></i>
                             <p class="text-sm font-medium text-slate-400">No reservations found.</p>
                         </td>
@@ -321,4 +315,3 @@
     </div>
     @endif
 </div>
-
