@@ -41,8 +41,8 @@
         guest_name: '', 
         guest_email: '', 
         guest_phone: '', 
-        checkin_date: '{{ date('Y-m-d') }}', 
-        checkout_date: '{{ date('Y-m-d', strtotime('+1 day')) }}', 
+        checkin_date: '{{ $checkInDate ?? date('Y-m-d') }}', 
+        checkout_date: '{{ $checkOutDate ?? date('Y-m-d', strtotime('+1 day')) }}', 
         special_requests: '', 
         payment_method: 'Cash' 
     },
@@ -136,9 +136,9 @@
 
             <!-- Right Actions -->
             <div class="flex items-center gap-3">
-                <a href="#available-rooms" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+                <button type="button" onclick="openBookingModal()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
                     <i class="fas fa-calendar-check text-xs"></i> Book Room
-                </a>
+                </button>
 
                 <!-- Mobile Hamburger Button -->
                 <button @click="mobileMenu = !mobileMenu" class="md:hidden w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 hover:bg-slate-200 transition-all">
@@ -458,7 +458,7 @@
                         </div>
                         
                         <div class="pt-2">
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            <button type="button" onclick="openBookingModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
                                 <i class="fas fa-search text-xs"></i> Check Availability
                             </button>
                         </div>
@@ -804,5 +804,7 @@
             </div>
         </div>
     </footer>
+
+    @include('components.booking.booking-search')
 </body>
 </html>

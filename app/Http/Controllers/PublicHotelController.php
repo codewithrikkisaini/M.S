@@ -8,24 +8,85 @@ use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Payment;
 use App\Models\ActivityLog;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PublicHotelController extends Controller
 {
-    public function show($slug)
+    public function search(Request $request)
     {
-        $roomQuery = function ($q) {
+        $validated = $request->validate([
+            'check_in' => ['required', 'date_format:Y-m-d'],
+            'check_out' => ['required', 'date_format:Y-m-d', 'after:check_in'],
+            'rooms' => ['nullable', 'integer', 'min:1'],
+            'adults' => ['nullable', 'integer', 'min:1'],
+            'children' => ['nullable', 'integer', 'min:0'],
+            'hotel_id' => ['nullable', 'exists:hotels,id'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'hotel' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $query = Hotel::where('status', 'approved');
+
+        if (!empty($validated['hotel_id'])) {
+            $hotel = $query->where('id', $validated['hotel_id'])->first();
+        } elseif (!empty($validated['city'])) {
+            $hotel = $query->where('city', 'like', '%' . trim($validated['city']) . '%')->first();
+        } elseif (!empty($validated['hotel'])) {
+            $hotel = $query->where('name', 'like', '%' . trim($validated['hotel']) . '%')->first();
+        } else {
+            $hotel = $query->first();
+        }
+
+        if (!$hotel) {
+            return back()->withErrors(['hotel' => 'No hotel matched your search.'])->withInput();
+        }
+
+        $params = [
+            'check_in' => $validated['check_in'],
+            'check_out' => $validated['check_out'],
+            'rooms' => (int) ($validated['rooms'] ?? 1),
+            'adults' => (int) ($validated['adults'] ?? 1),
+            'children' => (int) ($validated['children'] ?? 0),
+        ];
+
+        if ($request->boolean('accessible_room')) {
+            $params['accessible_room'] = 1;
+        }
+
+        if ($request->boolean('use_points')) {
+            $params['use_points'] = 1;
+        }
+
+        if ($request->filled('special_rate')) {
+            $params['special_rate'] = $request->special_rate;
+        }
+
+        return redirect()->route('hotel.show', ['slug' => $hotel->slug ?: $hotel->id])->withInput($params);
+    }
+
+    public function show(Request $request, $slug)
+    {
+        $checkInDate = Carbon::parse($request->query('check_in', date('Y-m-d')))->format('Y-m-d');
+        $checkOutDate = Carbon::parse($request->query('check_out', date('Y-m-d', strtotime('+1 day'))))->format('Y-m-d');
+
+        if ($checkOutDate <= $checkInDate) {
+            $checkOutDate = Carbon::parse($checkInDate)->addDay()->format('Y-m-d');
+        }
+
+        $roomQuery = function ($q) use ($checkInDate, $checkOutDate) {
             $q->withoutGlobalScope('tenant')
               ->where('status', 'Available')
               ->whereDoesntHave('activeMaintenanceTickets')
               ->whereDoesntHave('housekeeping', function ($hk) {
                   $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
               })
-              ->whereDoesntHave('reservations', function ($res) {
+              ->whereDoesntHave('reservations', function ($res) use ($checkInDate, $checkOutDate) {
                   $res->whereIn('reservations.status', ['Confirmed', 'Checked-In', 'Pending'])
-                      ->where('check_out_date', '>=', date('Y-m-d'));
+                      ->where('reservations.check_in_date', '<', $checkOutDate)
+                      ->where('reservations.check_out_date', '>', $checkInDate);
               })
               ->with('roomType');
         };
@@ -60,7 +121,7 @@ class PublicHotelController extends Controller
             abort(404, 'Hotel not found');
         }
 
-        return view('hotel.show', compact('hotel'));
+        return view('hotel.show', compact('hotel', 'checkInDate', 'checkOutDate'));
     }
 
     public function reserveRoom(Request $request, $slug, $roomId = null)
