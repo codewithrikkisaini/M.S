@@ -11,14 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('settings', function (Blueprint $table) {
-            $table->id();
-            $table->string('key')->unique();
-            $table->text('value')->nullable();
-            $table->string('type')->default('string'); // string, boolean, json
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('settings')) {
+            Schema::create('settings', function (Blueprint $table) {
+                $table->id();
+                $table->string('key')->unique();
+                $table->text('value')->nullable();
+                $table->string('type')->default('string'); // string, boolean, json
+                $table->text('description')->nullable();
+                $table->timestamps();
+            });
+        } else {
+            Schema::table('settings', function (Blueprint $table) {
+                if (!Schema::hasColumn('settings', 'type')) {
+                    $table->string('type')->default('string')->after('value');
+                }
+                if (!Schema::hasColumn('settings', 'description')) {
+                    $table->text('description')->nullable()->after('type');
+                }
+            });
+        }
     }
 
     /**
@@ -26,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('settings');
+        // Keep settings table intact on rollback
     }
 };
