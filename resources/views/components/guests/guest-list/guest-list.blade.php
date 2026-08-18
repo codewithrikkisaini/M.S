@@ -56,39 +56,15 @@
                             <span class="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 shadow-sm">{{ $guest->guest_id }}</span>
                         </td>
                         <td>
-                            <div class="flex items-center gap-3">
-                                <button type="button" wire:click="openIdModal({{ $guest->id }})" class="shrink-0 cursor-pointer" title="Click to view Guest Photo & Verification Docs">
-                                    @if($guest->guest_photo)
-                                        <img src="{{ asset('storage/' . $guest->guest_photo) }}" class="w-8 h-8 rounded-xl object-cover shadow-sm border border-indigo-200 hover:scale-105 transition-all">
-                                    @elseif($guest->id_card_front)
-                                        <img src="{{ asset('storage/' . $guest->id_card_front) }}" class="w-8 h-8 rounded-xl object-cover shadow-sm border border-indigo-200 hover:scale-105 transition-all">
-                                    @else
-                                        @php
-                                            $initials = strtoupper(substr($guest->name, 0, 1));
-                                            $gradients = [
-                                                'A' => 'from-indigo-400 to-indigo-600', 'B' => 'from-emerald-400 to-emerald-600',
-                                                'C' => 'from-blue-400 to-blue-600', 'D' => 'from-rose-400 to-rose-600',
-                                                'E' => 'from-amber-400 to-amber-600', 'F' => 'from-orange-400 to-orange-600',
-                                                'G' => 'from-teal-400 to-teal-600', 'H' => 'from-purple-400 to-purple-600',
-                                                'I' => 'from-pink-400 to-pink-600', 'J' => 'from-cyan-400 to-cyan-600',
-                                            ];
-                                            $gradient = $gradients[$initials] ?? 'from-slate-400 to-slate-600';
-                                        @endphp
-                                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br {{ $gradient }} flex items-center justify-center shrink-0 shadow-sm border border-white hover:scale-105 transition-all">
-                                            <span class="text-xs font-black text-white">{{ $initials }}</span>
-                                        </div>
-                                    @endif
-                                </button>
-                                <div>
-                                    <span class="font-bold text-slate-800 text-sm leading-none block mb-0.5">{{ $guest->name }}</span>
-                                    @if($guest->id_card_front || $guest->id_card_back || $guest->guest_photo)
-                                        <button type="button" wire:click="openIdModal({{ $guest->id }})"
-                                                class="text-[9px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 px-1.5 py-0.2 rounded font-bold transition-all cursor-pointer inline-flex items-center gap-1"
-                                                title="Click to view Guest Photo & ID Scans">
-                                            <i class="fas fa-camera text-indigo-500"></i> Docs
-                                        </button>
-                                    @endif
-                                </div>
+                            <div>
+                                <span class="font-bold text-slate-800 text-sm leading-none block mb-0.5">{{ $guest->name }}</span>
+                                @if($guest->id_card_front || $guest->id_card_back || $guest->guest_photo)
+                                    <button type="button" wire:click="openIdModal({{ $guest->id }})"
+                                            class="text-[9px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 px-1.5 py-0.2 rounded font-bold transition-all cursor-pointer inline-flex items-center gap-1 mt-0.5"
+                                            title="Click to view Guest Photo & ID Scans">
+                                        <i class="fas fa-camera text-indigo-500"></i> Docs
+                                    </button>
+                                @endif
                             </div>
                         </td>
                         <td>

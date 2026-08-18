@@ -106,20 +106,24 @@
                         <td class="text-right">
                             <div class="flex items-center justify-end gap-1.5">
                                 @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))
+                                    <a href="{{ route('guests.blacklist.edit', $blacklist->id) }}" class="btn-icon text-indigo-500 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-100 shadow-sm" title="Edit">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </a>
                                     @if($blacklist->status === 'active')
-                                        <a href="{{ route('guests.blacklist.edit', $blacklist->id) }}" class="btn-icon text-indigo-500 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-100 shadow-sm" title="Edit">
-                                            <i class="fas fa-edit text-xs"></i>
-                                        </a>
                                         <button wire:click="remove({{ $blacklist->id }})" wire:confirm="Remove blacklist for {{ $blacklist->first_name }} {{ $blacklist->last_name }}? This guest will be allowed to book again."
                                                 class="btn-icon text-green-500 hover:bg-green-50 border border-slate-100 hover:border-green-100 shadow-sm cursor-pointer" title="Remove Blacklist">
                                             <i class="fas fa-undo text-xs"></i>
                                         </button>
                                     @else
                                         <button wire:click="restore({{ $blacklist->id }})" wire:confirm="Restore blacklist for {{ $blacklist->first_name }} {{ $blacklist->last_name }}?"
-                                                class="btn-icon text-red-500 hover:bg-red-50 border border-slate-100 hover:border-red-100 shadow-sm cursor-pointer" title="Restore Blacklist">
+                                                class="btn-icon text-amber-500 hover:bg-amber-50 border border-slate-100 hover:border-amber-100 shadow-sm cursor-pointer" title="Restore Blacklist">
                                             <i class="fas fa-redo text-xs"></i>
                                         </button>
                                     @endif
+                                    <button wire:click="delete({{ $blacklist->id }})" wire:confirm="Permanently delete blacklist record for {{ $blacklist->first_name }} {{ $blacklist->last_name }}?"
+                                            class="btn-icon text-red-500 hover:bg-red-50 border border-slate-100 hover:border-red-100 shadow-sm cursor-pointer" title="Delete Permanently">
+                                        <i class="fas fa-trash text-xs"></i>
+                                    </button>
                                 @endif
                             </div>
                         </td>

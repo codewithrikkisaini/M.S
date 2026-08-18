@@ -26,6 +26,11 @@ Route::get('/git-check', function () {
 });
 
 Route::get('/clear-records', function () {
+    if (!app()->environment('local')) {
+        if (!auth()->check() || (!auth()->user()->hasRole('superadmin') && !auth()->user()->hasRole('admin'))) {
+            abort(403, 'Unauthorized. This action is disabled in production unless authorized by Super Admin.');
+        }
+    }
     try {
         \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
         \App\Models\Reservation::query()->delete();
