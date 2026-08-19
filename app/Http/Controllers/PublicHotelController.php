@@ -64,17 +64,22 @@ class PublicHotelController extends Controller
             $params['special_rate'] = $request->special_rate;
         }
 
-        return redirect()->route('hotel.show', ['slug' => $hotel->slug ?: $hotel->id])->withInput($params);
+        return redirect()->route('hotel.show', array_merge(['slug' => $hotel->slug ?: $hotel->id], $params));
     }
 
     public function show(Request $request, $slug)
     {
-        $checkInDate = Carbon::parse($request->query('check_in', date('Y-m-d')))->format('Y-m-d');
-        $checkOutDate = Carbon::parse($request->query('check_out', date('Y-m-d', strtotime('+1 day'))))->format('Y-m-d');
+        $checkInDate = Carbon::parse($request->query('check_in', old('check_in', date('Y-m-d'))))->format('Y-m-d');
+        $checkOutDate = Carbon::parse($request->query('check_out', old('check_out', date('Y-m-d', strtotime('+1 day')))))->format('Y-m-d');
 
         if ($checkOutDate <= $checkInDate) {
             $checkOutDate = Carbon::parse($checkInDate)->addDay()->format('Y-m-d');
         }
+
+        $adults = (int) $request->query('adults', old('adults', 1));
+        $children = (int) $request->query('children', old('children', 0));
+        $totalGuests = max(1, $adults + $children);
+        $roomsCount = (int) $request->query('rooms', old('rooms', 1));
 
         $roomQuery = function ($q) use ($checkInDate, $checkOutDate) {
             $q->withoutGlobalScope('tenant')
@@ -126,7 +131,7 @@ class PublicHotelController extends Controller
             ->with('roomType')
             ->get();
 
-        return view('hotel.show', compact('hotel', 'allRooms', 'checkInDate', 'checkOutDate'));
+        return view('hotel.show', compact('hotel', 'allRooms', 'checkInDate', 'checkOutDate', 'adults', 'children', 'totalGuests', 'roomsCount'));
     }
 
     public function reserveRoom(Request $request, $slug, $roomId = null)

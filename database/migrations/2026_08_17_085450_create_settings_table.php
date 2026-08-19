@@ -14,14 +14,19 @@ return new class extends Migration
         if (!Schema::hasTable('settings')) {
             Schema::create('settings', function (Blueprint $table) {
                 $table->id();
-                $table->string('key')->unique();
+                $table->foreignId('hotel_id')->nullable()->constrained('hotels')->nullOnDelete();
+                $table->string('key');
                 $table->text('value')->nullable();
                 $table->string('type')->default('string'); // string, boolean, json
                 $table->text('description')->nullable();
                 $table->timestamps();
+                $table->unique(['hotel_id', 'key'], 'settings_hotel_id_key_unique');
             });
         } else {
             Schema::table('settings', function (Blueprint $table) {
+                if (!Schema::hasColumn('settings', 'hotel_id')) {
+                    $table->foreignId('hotel_id')->nullable()->after('id')->constrained('hotels')->nullOnDelete();
+                }
                 if (!Schema::hasColumn('settings', 'type')) {
                     $table->string('type')->default('string')->after('value');
                 }

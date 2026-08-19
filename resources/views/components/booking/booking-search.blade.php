@@ -10,7 +10,10 @@
 
         <h2>Select Dates and Guests</h2>
 
-        <form action="{{ url('/booking/search') }}" method="GET">
+        <form action="{{ isset($hotel) ? route('hotel.show', ['slug' => $hotel->slug ?: $hotel->id]) : url('/booking/search') }}" method="GET" id="bookingSearchModalForm" onsubmit="return handleBookingSearchSubmit(event)">
+            @if(isset($hotel))
+                <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
+            @endif
 
             <div class="booking-fields">
 
@@ -868,6 +871,30 @@
         const childText = childValue > 0 ? ', ' + childValue + ' Child' + (childValue > 1 ? 'ren' : '') : '';
 
         document.getElementById('guestSummary').innerText = roomValue + ' ' + roomText + ', ' + adultValue + ' ' + adultText + childText;
+    }
+
+    function handleBookingSearchSubmit(e) {
+        if (typeof window.applyBookingSearchFilter === 'function') {
+            if (e) e.preventDefault();
+            const checkIn = document.getElementById('check_in')?.value;
+            const checkOut = document.getElementById('check_out')?.value;
+            const rooms = Number(document.getElementById('roomsInput')?.value || 1);
+            const adults = Number(document.getElementById('adultsInput')?.value || 1);
+            const children = Number(document.getElementById('childrenInput')?.value || 0);
+
+            window.applyBookingSearchFilter({
+                checkIn: checkIn,
+                checkOut: checkOut,
+                rooms: rooms,
+                adults: adults,
+                children: children,
+                totalGuests: adults + children
+            });
+
+            closeBookingModal();
+            return false;
+        }
+        return true;
     }
 
     function selectRate(rate) {
