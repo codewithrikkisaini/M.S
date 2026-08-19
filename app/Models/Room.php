@@ -20,8 +20,8 @@ class Room extends Model
         }
 
         if (filter_var($img, FILTER_VALIDATE_URL) || \Illuminate\Support\Str::startsWith($img, ['http://', 'https://'])) {
-            if (preg_match('/https?:\/\/localhost(:\d+)?\/(storage\/)?(.*)/i', $img, $matches)) {
-                $img = ltrim($matches[3], '/');
+            if (preg_match('/https?:\/\/(localhost|127\.0\.0\.1|::1)(:\d+)?\/(storage\/)?(.*)/i', $img, $matches)) {
+                $img = ltrim($matches[4] ?? $matches[3] ?? '', '/');
             } else {
                 return $img;
             }
@@ -85,6 +85,30 @@ class Room extends Model
     {
         $all = $this->images;
         return $all[0] ?? 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';
+    }
+
+    public function getCapacityAttribute(): int
+    {
+        if (isset($this->attributes['capacity']) && $this->attributes['capacity'] > 0) {
+            return (int) $this->attributes['capacity'];
+        }
+
+        $bedType = strtolower($this->bed_type ?? '');
+        $typeName = strtolower($this->roomType->name ?? '');
+
+        if (str_contains($bedType, '2 double') || str_contains($bedType, '2 king') || str_contains($bedType, '2 queen') || str_contains($bedType, 'double double') || str_contains($bedType, 'family') || str_contains($typeName, 'family') || str_contains($typeName, 'apartment') || str_contains($typeName, 'suite')) {
+            return 4;
+        }
+        if (str_contains($bedType, 'triple') || str_contains($typeName, 'triple')) {
+            return 3;
+        }
+        if (str_contains($bedType, 'single') || str_contains($typeName, 'single')) {
+            return 1;
+        }
+        if (str_contains($bedType, 'quad') || str_contains($typeName, 'quad')) {
+            return 4;
+        }
+        return 2;
     }
 
     public function roomType()

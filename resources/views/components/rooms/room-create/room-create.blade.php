@@ -25,127 +25,156 @@
         </div>
 
         <form wire:submit.prevent="saveRoom" class="space-y-6">
-            {{-- Row 1: Room Number, Floor, Room Status --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div>
-                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Number <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model.live="room_number" class="pms-input text-sm font-extrabold text-slate-800" placeholder="e.g. 101, 102, 201">
-                    @error('room_number') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <div>
-                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Floor <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="floor" class="pms-input text-sm font-semibold" placeholder="e.g. 1">
-                    @error('floor') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <div>
-                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Status <span class="text-red-500">*</span></label>
-                    <select wire:model="status" class="pms-input text-sm font-semibold">
-                        <option value="Available">Available</option>
-                        <option value="Occupied">Occupied</option>
-                        <option value="Reserved">Reserved</option>
-                        <option value="Maintenance">Maintenance</option>
-                    </select>
-                    @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-            </div>
-
-            {{-- Row 1.5: Bed Type & Room Option --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
-                <div>
-                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
-                    <select wire:model.live="bed_type" class="pms-input text-sm font-bold text-slate-800">
-                        @foreach($this->bedTypes as $bedType)
-                            <option value="{{ $bedType }}">{{ $bedType }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-0">Room Option / Feature</label>
-                        @if(!empty($room_option) && count($room_option) > 0)
-                        <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
-                            <i class="fas fa-check-circle text-indigo-500"></i> Multiple Select ({{ count($room_option) }} selected)
-                        </span>
-                        @endif
+            {{-- Section 1: Room Media & Overview (Main Images & Description) --}}
+            <div class="space-y-5">
+                <div class="flex items-center gap-2 mb-2 pb-3 border-b border-slate-50">
+                    <div class="w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100">
+                        <i class="fas fa-images text-xs"></i>
                     </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
-                        @foreach($this->availableOptions as $opt)
-                            <label class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer transition-all shadow-2xs group">
-                                <input type="checkbox" wire:model.live="room_option" value="{{ $opt }}" class="w-4 h-4 text-indigo-600 rounded-md border-slate-300 focus:ring-indigo-500 focus:ring-offset-0 transition-colors">
-                                <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-900 transition-colors leading-tight">{{ $opt }}</span>
-                            </label>
-                        @endforeach
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800">1. Room Media & Overview</h4>
+                        <p class="text-[11px] text-slate-400">Add room photos, select main thumbnail, and provide room description</p>
                     </div>
                 </div>
-            </div>
 
-            {{-- Room Description Section --}}
-            <div class="pt-4 border-t border-slate-100 space-y-2">
-                <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                    <i class="fas fa-align-left mr-1 text-indigo-500"></i> Room Description
-                </label>
-                <textarea wire:model="description" rows="2" class="pms-input text-sm font-medium" placeholder="Enter detailed room description, features, amenities, or notes..."></textarea>
-                <p class="text-[10px] text-slate-400">Provide any additional description or details for this room.</p>
-                @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            {{-- Room Multiple Images Section --}}
-            <div class="pt-4 border-t border-slate-100 space-y-3">
-                <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider block">
-                    <i class="fas fa-images mr-1 text-indigo-500"></i> Room Photos / Image Gallery (Select Multiple)
-                </label>
-
-                <div class="border-2 border-dashed border-indigo-100 hover:border-indigo-300 bg-indigo-50/40 rounded-2xl p-4 transition-all">
-                    <label class="block text-xs font-bold text-indigo-900 mb-1">
-                        <i class="fas fa-cloud-upload-alt text-indigo-600 mr-1"></i> Upload Image Files (Multiple)
+                {{-- Room Photos Section --}}
+                <div class="space-y-3">
+                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                        <i class="fas fa-camera mr-1 text-indigo-500"></i> Room Photos / Image Gallery (Select Multiple)
                     </label>
-                    <input type="file" wire:model="photos" multiple accept="image/*" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
-                    <p class="text-[10px] text-slate-400 mt-1">Select one or multiple photos from your device (JPG, PNG, WEBP).</p>
-                    @error('photos.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    <div wire:loading wire:target="photos" class="text-xs text-indigo-600 font-bold mt-1">
-                        <i class="fas fa-spinner fa-spin mr-1"></i> Uploading photos...
-                    </div>
-                </div>
 
-                @php
-                    $uploadedImages = [];
-                    if (!empty($photos)) {
-                        foreach ($photos as $pIdx => $p) {
-                            try {
-                                $uploadedImages[] = [
-                                    'src' => $p->temporaryUrl(),
-                                    'index' => $pIdx
-                                ];
-                            } catch (\Exception $e) {}
-                        }
-                    }
-                @endphp
-
-                @if(count($uploadedImages) > 0)
-                <div class="mt-3 bg-white p-3 rounded-2xl border border-slate-200">
-                    <p class="text-[11px] font-extrabold text-slate-700 mb-2 flex items-center justify-between">
-                        <span><i class="fas fa-eye text-emerald-500 mr-1"></i> Selected Gallery Photos Preview ({{ count($uploadedImages) }} photo{{ count($uploadedImages) > 1 ? 's' : '' }})</span>
-                        <span class="text-[10px] font-semibold text-slate-400">First photo will be main thumbnail</span>
-                    </p>
-                    <div class="flex flex-wrap gap-3">
-                        @foreach($uploadedImages as $idx => $img)
-                        <div class="relative w-24 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm group">
-                            <img src="{{ $img['src'] }}" class="w-full h-full object-cover">
-                            @if($idx === 0)
-                            <span class="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow">Main</span>
-                            @endif
-                            <button type="button" wire:click="removeUploadedImage({{ $img['index'] }})" class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                <i class="fas fa-times text-[8px]"></i>
-                            </button>
+                    <div class="border-2 border-dashed border-indigo-100 hover:border-indigo-300 bg-indigo-50/40 rounded-2xl p-4 transition-all">
+                        <label class="block text-xs font-bold text-indigo-900 mb-1">
+                            <i class="fas fa-cloud-upload-alt text-indigo-600 mr-1"></i> Upload Image Files (Multiple)
+                        </label>
+                        <input type="file" wire:model="photos" multiple accept="image/*" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
+                        <p class="text-[10px] text-slate-400 mt-1">Select one or multiple photos from your device (JPG, PNG, WEBP).</p>
+                        @error('photos.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <div wire:loading wire:target="photos" class="text-xs text-indigo-600 font-bold mt-1">
+                            <i class="fas fa-spinner fa-spin mr-1"></i> Uploading photos...
                         </div>
-                        @endforeach
+                    </div>
+
+                    @php
+                        $uploadedImages = [];
+                        if (!empty($photos)) {
+                            $photoList = is_array($photos) ? $photos : [$photos];
+                            foreach ($photoList as $pIdx => $p) {
+                                if ($p && is_object($p) && method_exists($p, 'temporaryUrl')) {
+                                    try {
+                                        $uploadedImages[] = [
+                                            'src' => $p->temporaryUrl(),
+                                            'index' => $pIdx
+                                        ];
+                                    } catch (\Exception $e) {}
+                                }
+                            }
+                        }
+                    @endphp
+
+                    @if(count($uploadedImages) > 0)
+                    <div class="mt-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+                        <p class="text-[11px] font-extrabold text-slate-700 mb-2.5 flex items-center justify-between">
+                            <span><i class="fas fa-eye text-emerald-500 mr-1"></i> Selected Gallery Photos Preview ({{ count($uploadedImages) }} photo{{ count($uploadedImages) > 1 ? 's' : '' }})</span>
+                            <span class="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">First photo will be main thumbnail</span>
+                        </p>
+                        <div class="flex flex-wrap gap-3">
+                            @foreach($uploadedImages as $idx => $img)
+                            <div class="relative w-24 h-20 rounded-xl overflow-hidden border-2 {{ $idx === 0 ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-slate-200' }} shadow-sm group">
+                                <img src="{{ $img['src'] }}" class="w-full h-full object-cover">
+                                @if($idx === 0)
+                                <span class="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow">Main</span>
+                                @endif
+                                <button type="button" wire:click="removeUploadedImage({{ $img['index'] }})" class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                    <i class="fas fa-times text-[8px]"></i>
+                                </button>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                </div>
+
+                {{-- Room Description Section --}}
+                <div class="space-y-1.5">
+                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                        <i class="fas fa-align-left mr-1 text-indigo-500"></i> Room Description
+                    </label>
+                    <textarea wire:model="description" rows="3" class="pms-input text-sm font-medium" placeholder="Enter detailed room description, features, amenities, or notes..."></textarea>
+                    <p class="text-[10px] text-slate-400">Provide an overview of the room features, view, and unique guest experience.</p>
+                    @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
+            {{-- Section 2: Room Identity & Inventory Setup --}}
+            <div class="pt-6 border-t border-slate-100 space-y-5">
+                <div class="flex items-center gap-2 mb-2 pb-3 border-b border-slate-50">
+                    <div class="w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100">
+                        <i class="fas fa-door-open text-xs"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800">2. Room Identity & Configuration</h4>
+                        <p class="text-[11px] text-slate-400">Set room numbers, floor assignment, and bed/feature options</p>
                     </div>
                 </div>
-                @endif
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Number(s) <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model.live="room_number" class="pms-input text-sm font-extrabold text-slate-800" placeholder="e.g. 101, 102, 201-205">
+                        <p class="text-[10px] text-slate-400 mt-1">Single room or comma/range (e.g. 101, 102-105)</p>
+                        @error('room_number') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Floor <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="floor" class="pms-input text-sm font-semibold" placeholder="e.g. 1">
+                        <p class="text-[10px] text-slate-400 mt-1">Default floor number</p>
+                        @error('floor') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Status <span class="text-red-500">*</span></label>
+                        <select wire:model="status" class="pms-input text-sm font-bold">
+                            <option value="Available">Available</option>
+                            <option value="Occupied">Occupied</option>
+                            <option value="Reserved">Reserved</option>
+                            <option value="Maintenance">Maintenance</option>
+                        </select>
+                        @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-3">
+                    <div>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
+                        <select wire:model.live="bed_type" class="pms-input text-sm font-bold text-slate-800">
+                            @foreach($this->bedTypes as $bedType)
+                                <option value="{{ $bedType }}">{{ $bedType }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-0">Room Option / Feature</label>
+                            @if(!empty($room_option) && count($room_option) > 0)
+                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
+                                <i class="fas fa-check-circle text-indigo-500"></i> Multiple Select ({{ count($room_option) }} selected)
+                            </span>
+                            @endif
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
+                            @foreach($this->availableOptions as $opt)
+                                <label class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer transition-all shadow-2xs group">
+                                    <input type="checkbox" wire:model.live="room_option" value="{{ $opt }}" class="w-4 h-4 text-indigo-600 rounded-md border-slate-300 focus:ring-indigo-500 focus:ring-offset-0 transition-colors">
+                                    <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-900 transition-colors leading-tight">{{ $opt }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Row 2: Room Type Selector & Custom Name --}}
