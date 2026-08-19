@@ -33,7 +33,7 @@
                             <select wire:model="guest_id" class="pms-select text-xs">
                                 <option value="">Select guest...</option>
                                 @foreach($guests as $g)
-                                    <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->email }})</option>
+                                    <option value="{{ $g->id }}">{{ $g->name }}</option>
                                 @endforeach
                             </select>
                             @error('guest_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -124,6 +124,9 @@
                     </div>
 
                     {{-- ID & Guest Photo Attachments Section --}}
+<<<<<<< HEAD
+                    <div class="col-span-2 bg-slate-50/70 p-4 rounded-xl border border-slate-200 mt-2">
+=======
                     <div class="col-span-2 bg-slate-50/70 p-4 rounded-xl border border-slate-200 mt-2"
                          x-data="{
                             showCamera: false,
@@ -234,6 +237,7 @@
                                 this.stopCamera();
                             }
                          }">
+>>>>>>> 69db85840fcc1cae6b7e35a7e3d62d99aaafe6d4
                         
                         {{-- Hidden Native Camera File Inputs for 100% Mobile Compatibility Fallback --}}
                         <input type="file" x-ref="nativeInputFront" wire:model="id_card_front" accept="image/*" capture="environment" class="hidden">
@@ -280,10 +284,14 @@
                                 @endif
 
                                 <div class="flex items-center gap-2">
+<<<<<<< HEAD
+                                    <label class="w-full py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs">
+=======
                                     <button type="button" @click="startCamera('front', 'environment')" class="flex-1 py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer" title="Scan with Camera (Front/Back)">
                                         <i class="fas fa-camera text-xs"></i> Camera
                                     </button>
                                     <label class="flex-1 py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs" title="Upload from Gallery/Files">
+>>>>>>> 69db85840fcc1cae6b7e35a7e3d62d99aaafe6d4
                                         <i class="fas fa-upload text-xs"></i> Upload
                                         <input type="file" wire:model="id_card_front" accept="image/*" class="hidden">
                                     </label>
@@ -318,10 +326,14 @@
                                 @endif
 
                                 <div class="flex items-center gap-2">
+<<<<<<< HEAD
+                                    <label class="w-full py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs">
+=======
                                     <button type="button" @click="startCamera('back', 'environment')" class="flex-1 py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer" title="Scan with Camera (Front/Back)">
                                         <i class="fas fa-camera text-xs"></i> Camera
                                     </button>
                                     <label class="flex-1 py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs" title="Upload from Gallery/Files">
+>>>>>>> 69db85840fcc1cae6b7e35a7e3d62d99aaafe6d4
                                         <i class="fas fa-upload text-xs"></i> Upload
                                         <input type="file" wire:model="id_card_back" accept="image/*" class="hidden">
                                     </label>
@@ -356,10 +368,14 @@
                                 @endif
 
                                 <div class="flex items-center gap-2">
+<<<<<<< HEAD
+                                    <label class="w-full py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs">
+=======
                                     <button type="button" @click="startCamera('guest', 'user')" class="flex-1 py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer" title="Take Guest Photo (Front/Back Camera)">
                                         <i class="fas fa-camera text-xs"></i> Camera
                                     </button>
                                     <label class="flex-1 py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs" title="Upload from Gallery/Files">
+>>>>>>> 69db85840fcc1cae6b7e35a7e3d62d99aaafe6d4
                                         <i class="fas fa-upload text-xs"></i> Upload
                                         <input type="file" wire:model="guest_photo" accept="image/*" class="hidden">
                                     </label>
@@ -368,6 +384,8 @@
                             </div>
                         </div>
 
+<<<<<<< HEAD
+=======
                         {{-- WebCam Live Capture Scanner Modal with Front/Back Switch --}}
                         <div x-show="showCamera" style="display: none;" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
                             <div class="bg-white rounded-3xl p-5 md:p-6 max-w-lg w-full shadow-2xl border border-slate-100 text-center transition-all">
@@ -463,6 +481,7 @@
                                 </div>
                             </div>
                         </div>
+>>>>>>> 69db85840fcc1cae6b7e35a7e3d62d99aaafe6d4
                     </div>
 
 

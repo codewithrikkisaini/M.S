@@ -29,6 +29,54 @@
     </script>
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        body {
+            background: #f3f4f6;
+        }
+
+        .lodgiko-shell {
+            max-width: 1200px;
+        }
+
+        .lodgiko-topbar {
+            background: rgba(255,255,255,0.96);
+            border-bottom: 1px solid rgba(148,163,184,0.18);
+        }
+
+        .lodgiko-brand {
+            letter-spacing: -0.08em;
+        }
+
+        .lodgiko-nav a {
+            color: #334155;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.01em;
+        }
+
+        .lodgiko-nav a:hover {
+            color: #0f172a;
+        }
+
+        .lodgiko-cta {
+            border-radius: 14px;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+        }
+
+        .hero-media {
+            border-radius: 28px;
+        }
+
+        .hero-tile {
+            border-radius: 22px;
+        }
+
+        .booking-panel {
+            border-radius: 26px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+        }
+    </style>
 </head>
 <body class="antialiased bg-slate-50 text-slate-800" x-data="{ 
     showModal: false, 
@@ -41,8 +89,8 @@
         guest_name: '', 
         guest_email: '', 
         guest_phone: '', 
-        checkin_date: '{{ date('Y-m-d') }}', 
-        checkout_date: '{{ date('Y-m-d', strtotime('+1 day')) }}', 
+        checkin_date: '{{ $checkInDate ?? date('Y-m-d') }}', 
+        checkout_date: '{{ $checkOutDate ?? date('Y-m-d', strtotime('+1 day')) }}', 
         special_requests: '', 
         payment_method: 'Cash' 
     },
@@ -105,42 +153,32 @@
 }">
 
     <!-- Navbar Header with Navigation Menu -->
-    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm" x-data="{ mobileMenu: false }">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <!-- Brand Logo -->
-              <a href="/" class="flex items-center gap-2">
-                 <img src="{{ asset('images/lodgiko.png') }}"
-                    alt="Merahkie Logo"
-                    class="h-12 w-auto">
-                <!-- <div class="flex flex-col">
-                    <span class="text-xl font-black tracking-tight text-slate-900 leading-none">MERAHKIE</span>
-                    <span class="text-[10px] font-bold tracking-widest text-blue-600 uppercase mt-1">Bookings</span>
-                </div> -->
+    <header class="lodgiko-topbar sticky top-0 z-50 backdrop-blur-md" x-data="{ mobileMenu: false }">
+        <div class="lodgiko-shell mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2 shrink-0">
+                <img src="{{ asset('images/lodgiko.png') }}" alt="Lodgiko Logo" class="h-11 w-auto">
             </a>
 
-            <!-- Navigation Links (Home, Hotels, About, FAQ) -->
-            <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-                <a href="/" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                    <i class="fas fa-home text-xs text-blue-500"></i> Home
+            <nav class="lodgiko-nav hidden md:flex items-center justify-center gap-8 flex-1">
+                <a href="/" class="inline-flex items-center gap-2">
+                    <i class="fas fa-home text-[10px]"></i> Home
                 </a>
-                <a href="/#hotels" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                    <i class="fas fa-hotel text-xs text-blue-500"></i> Hotels
+                <a href="/#hotels" class="inline-flex items-center gap-2">
+                    <i class="fas fa-hotel text-[10px]"></i> Hotels
                 </a>
-                <a href="#about-property" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                    <i class="fas fa-info-circle text-xs text-blue-500"></i> About
+                <a href="#about-property" class="inline-flex items-center gap-2">
+                    <i class="fas fa-info-circle text-[10px]"></i> About
                 </a>
-                <a href="#faq-section" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                    <i class="fas fa-question-circle text-xs text-blue-500"></i> FAQ
+                <a href="#faq-section" class="inline-flex items-center gap-2">
+                    <i class="fas fa-question-circle text-[10px]"></i> FAQ
                 </a>
             </nav>
 
-            <!-- Right Actions -->
             <div class="flex items-center gap-3">
-                <a href="#available-rooms" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+                <button type="button" onclick="openBookingModal()" class="lodgiko-cta px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-all flex items-center gap-2 cursor-pointer">
                     <i class="fas fa-calendar-check text-xs"></i> Book Room
-                </a>
+                </button>
 
-                <!-- Mobile Hamburger Button -->
                 <button @click="mobileMenu = !mobileMenu" class="md:hidden w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 hover:bg-slate-200 transition-all">
                     <i class="fas" :class="mobileMenu ? 'fa-times' : 'fa-bars'"></i>
                 </button>
@@ -164,92 +202,82 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Breadcrumb & Title -->
-        <div class="mb-6">
-            <nav class="flex text-xs font-medium text-slate-400 gap-2 mb-2">
-                <a href="/" class="hover:text-blue-600">Home</a>
+    <main class="lodgiko-shell mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-7">
+            <nav class="flex items-center gap-2 text-[11px] font-medium text-slate-400 mb-4">
+                <a href="/" class="hover:text-blue-600 transition-colors">Home</a>
                 <span>/</span>
                 <span class="text-slate-600">{{ $hotel->city }}</span>
                 <span>/</span>
                 <span class="text-slate-900 font-bold">{{ $hotel->name }}</span>
             </nav>
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ $hotel->name }}</h1>
-                    <p class="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                    <h1 class="text-3xl sm:text-4xl lg:text-[3rem] font-black text-slate-900 tracking-[-0.05em] leading-[0.95]">{{ $hotel->name }}</h1>
+                    <p class="mt-3 text-sm sm:text-base text-slate-500 flex items-center gap-2">
                         <i class="fas fa-map-marker-alt text-blue-500"></i>
-                        {{ $hotel->address }}, {{ $hotel->city }}, {{ $hotel->state }}, {{ $hotel->country }}
+                        <span>{{ $hotel->city }}, {{ $hotel->country }}</span>
                     </p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="text-right">
-                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Rating</span>
-                        <span class="text-lg font-bold text-amber-500"><i class="fas fa-star mr-1"></i>4.8 / 5</span>
+
+                <div class="inline-flex items-center gap-2 bg-white border border-amber-200 rounded-full px-4 py-2 shadow-sm">
+                    <span class="text-amber-500 text-base"><i class="fas fa-star"></i></span>
+                    <span class="text-sm font-bold text-slate-800">4.8 / 5</span>
+                    <span class="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">Rating</span>
+                </div>
+            </div>
+        </div>
+
+        @php
+            $images = $hotel->images;
+            $defaultImages = [
+                'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
+                'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=900&q=80',
+                'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=900&q=80',
+                'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=900&q=80'
+            ];
+        @endphp
+
+        <div class="mb-10 overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.08)]">
+            <div class="grid grid-cols-1 lg:grid-cols-[1.8fr_1fr] gap-4 p-3 sm:p-4">
+                <div class="hero-media overflow-hidden bg-slate-200">
+                    @if($images && $images->count() > 0)
+                        <img src="{{ $images[0]->url }}" onerror="this.onerror=null; this.src='{{ $defaultImages[0] }}';" class="h-[420px] sm:h-[560px] w-full object-cover">
+                    @else
+                        <img src="{{ $defaultImages[0] }}" class="h-[420px] sm:h-[560px] w-full object-cover">
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    @foreach(($images && $images->count() > 0 ? $images->slice(1, 3) : [
+                        ['url' => $defaultImages[1]],
+                        ['url' => $defaultImages[2]],
+                    ]) as $idx => $img)
+                        <div class="hero-tile overflow-hidden bg-slate-200 {{ $idx === 2 ? 'col-span-2' : '' }}">
+                            <img src="{{ $img->url ?? $defaultImages[$idx + 1] }}" onerror="this.onerror=null; this.src='{{ $defaultImages[($idx + 1) % count($defaultImages)] }}';" class="h-[180px] sm:h-[220px] w-full object-cover">
+                        </div>
+                    @endforeach
+
+                    <div class="hero-tile relative col-span-2 overflow-hidden bg-slate-200">
+                        <img src="{{ $defaultImages[3] }}" class="h-[180px] sm:h-[220px] w-full object-cover blur-[1px] brightness-75">
+                        <div class="absolute inset-0 flex items-center justify-center bg-slate-900/25 text-base font-bold text-white">
+                            + View All Photos
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Image Gallery Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 rounded-3xl overflow-hidden shadow-lg border border-slate-200">
-            @php
-                $images = $hotel->images;
-                $defaultImages = [
-                    'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
-                    'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=600&q=80',
-                    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80',
-                    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=600&q=80'
-                ];
-            @endphp
-
-            @if($images && $images->count() > 0)
-                <div class="md:col-span-2 aspect-[4/3] md:aspect-auto bg-slate-200">
-                    <img src="{{ $images[0]->url }}" onerror="this.onerror=null; this.src='{{ $defaultImages[0] }}';" class="w-full h-full object-cover">
-                </div>
-                <div class="md:col-span-2 grid grid-cols-2 gap-4">
-                    @foreach($images->slice(1, 4) as $idx => $img)
-                        <div class="aspect-video bg-slate-100 overflow-hidden">
-                            <img src="{{ $img->url }}" onerror="this.onerror=null; this.src='{{ $defaultImages[($idx + 1) % count($defaultImages)] }}';" class="w-full h-full object-cover">
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="md:col-span-2 aspect-[4/3] md:aspect-auto">
-                    <img src="{{ $defaultImages[0] }}" class="w-full h-full object-cover">
-                </div>
-                <div class="md:col-span-2 grid grid-cols-2 gap-4">
-                    <div class="aspect-video bg-slate-100 overflow-hidden">
-                        <img src="{{ $defaultImages[1] }}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="aspect-video bg-slate-100 overflow-hidden">
-                        <img src="{{ $defaultImages[2] }}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="aspect-video bg-slate-100 overflow-hidden">
-                        <img src="{{ $defaultImages[3] }}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="aspect-video bg-slate-100 overflow-hidden relative group cursor-pointer">
-                        <img src="{{ $defaultImages[0] }}" class="w-full h-full object-cover blur-sm">
-                        <div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center text-white font-bold text-sm">
-                            + View All Photos
-                        </div>
-                    </div>
-                </div>
-            @endif
-        </div>
-
         <!-- Content Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <!-- Left Column: Hotel Info & Available Rooms -->
-            <div class="lg:col-span-2 space-y-10">
-                <!-- Overview -->
-                <section id="about-property" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm scroll-mt-24">
-                    <h2 class="text-xl font-bold text-slate-900 mb-3">About the Property</h2>
+        <div class="grid grid-cols-1 xl:grid-cols-[1.8fr_0.95fr] gap-8">
+            <div class="space-y-10">
+                <section id="about-property" class="bg-white border border-slate-200 rounded-[28px] p-6 shadow-[0_12px_30px_rgba(15,23,42,0.05)] scroll-mt-24">
+                    <h2 class="text-2xl font-black text-slate-900 mb-3">About the Property</h2>
                     <p class="text-sm text-slate-600 leading-relaxed">
                         Welcome to {{ $hotel->name }}. Located in {{ $hotel->city }}, this property offers modern accommodations with luxury amenities, 24/7 room service, and top-rated hospitality. Perfect for both business travelers and vacationing families.
                     </p>
 
-                    <!-- Amenities Icons -->
                     <div class="mt-6 border-t border-slate-100 pt-6">
                         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Popular Amenities</h3>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -430,39 +458,40 @@
                 </section>
             </div>
 
-            <!-- Right Column: Booking Widget / Summary -->
-            <div class="lg:col-span-1">
-                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl sticky top-28">
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">Book Your Stay</h3>
-                    <p class="text-xs text-slate-500 mb-6">Select dates and number of guests to reserve instantly.</p>
-                    
+            <div class="xl:pl-2">
+                <div class="booking-panel bg-white border border-slate-200 p-5 sticky top-28">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-black text-slate-900">Book Your Stay</h3>
+                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700"><i class="fas fa-check-circle"></i> Best Rate</span>
+                    </div>
+
                     <form action="{{ route('booking-engine', ['hotel_id' => $hotel->id]) }}" method="GET" class="space-y-4">
                         <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
-                        
+
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Check-in Date</label>
-                            <input type="date" name="checkin" value="{{ date('Y-m-d') }}" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Check-in</label>
+                            <input type="date" name="checkin" value="{{ $checkInDate ?? date('Y-m-d') }}" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Check-out Date</label>
-                            <input type="date" name="checkout" value="{{ date('Y-m-d', strtotime('+1 day')) }}" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Check-out</label>
+                            <input type="date" name="checkout" value="{{ $checkOutDate ?? date('Y-m-d', strtotime('+1 day')) }}" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Guests</label>
-                            <select name="guests" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Guests</label>
+                            <select name="guests" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                 <option value="1">1 Guest</option>
                                 <option value="2" selected>2 Guests</option>
                                 <option value="3">3 Guests</option>
                                 <option value="4">4 Guests</option>
                             </select>
                         </div>
-                        
+
                         <div class="pt-2">
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            <button type="button" onclick="openBookingModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
                                 <i class="fas fa-search text-xs"></i> Check Availability
                             </button>
                         </div>
-                        <p class="text-[10px] text-center text-slate-500 mt-3"><i class="fas fa-shield-alt text-emerald-500 mr-1"></i> Best Rate Guaranteed</p>
+                        <p class="text-[10px] text-center text-slate-500 mt-3"><i class="fas fa-shield-alt text-emerald-500 mr-1"></i> Free cancellation available</p>
                     </form>
                 </div>
             </div>
@@ -804,5 +833,7 @@
             </div>
         </div>
     </footer>
+
+    @include('components.booking.booking-search')
 </body>
 </html>
