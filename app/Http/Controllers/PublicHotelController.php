@@ -121,7 +121,12 @@ class PublicHotelController extends Controller
             abort(404, 'Hotel not found');
         }
 
-        return view('hotel.show', compact('hotel', 'checkInDate', 'checkOutDate'));
+        $allRooms = Room::withoutGlobalScope('tenant')
+            ->where('hotel_id', $hotel->id)
+            ->with('roomType')
+            ->get();
+
+        return view('hotel.show', compact('hotel', 'allRooms', 'checkInDate', 'checkOutDate'));
     }
 
     public function reserveRoom(Request $request, $slug, $roomId = null)

@@ -38,6 +38,32 @@ new class extends Component
         $this->dispatch('toast', message: 'Guest blacklist restored.', type: 'success');
     }
 
+    public function delete(int $id): void
+    {
+        abort_unless($this->isAdmin(), 403);
+
+        $blacklist = GuestBlacklist::with('documents')->findOrFail($id);
+        
+        // Delete associated document files
+        foreach ($blacklist->documents as $doc) {
+            $fullPath = $doc->getFullStoragePath();
+            if (\Illuminate\Support\Facades\Storage::disk($doc->disk)->exists($fullPath)) {
+                \Illuminate\Support\Facades\Storage::disk($doc->disk)->delete($fullPath);
+            }
+            $doc->delete();
+        }
+
+        $name = "{$blacklist->first_name} {$blacklist->last_name}";
+        $blacklist->delete();
+
+        \App\Models\ActivityLog::log(
+            'Blacklist Deleted',
+            "Blacklist record for {$name} has been permanently deleted."
+        );
+
+        $this->dispatch('toast', message: 'Blacklist record deleted permanently.', type: 'success');
+    }
+
     public function render(): mixed
     {
         $query = GuestBlacklist::with(['guest', 'blacklister'])

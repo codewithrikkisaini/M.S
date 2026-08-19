@@ -246,17 +246,11 @@ new class extends Component
             ->get();
 
         return $this->view([
-<<<<<<< HEAD
-            'records' => $query->latest()->paginate(10),
-            'rooms'   => $rooms,
+            'records'           => $query->latest()->paginate(10),
+            'rooms'             => $rooms,
+            'staffUsers'        => $staffUsers,
             'housekeepingStaff' => $housekeepingStaff,
-            'counts'  => [
-=======
-            'records'    => $query->latest()->paginate(10),
-            'rooms'      => $rooms,
-            'staffUsers' => $staffUsers,
-            'counts'     => [
->>>>>>> 2b2eea4aac9694aa11eea59a7fb3b78e81a066f6
+            'counts'            => [
                 'total'      => $totalRoomsTracked,
                 'clean'      => $cleanCount,
                 'dirty'      => $dirtyCount,

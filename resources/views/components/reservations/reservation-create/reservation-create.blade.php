@@ -124,8 +124,126 @@
                     </div>
 
                     {{-- ID & Guest Photo Attachments Section --}}
+<<<<<<< HEAD
                     <div class="col-span-2 bg-slate-50/70 p-4 rounded-xl border border-slate-200 mt-2">
+=======
+                    <div class="col-span-2 bg-slate-50/70 p-4 rounded-xl border border-slate-200 mt-2"
+                         x-data="{
+                            showCamera: false,
+                            targetField: '',
+                            stream: null,
+                            facingMode: 'environment',
+                            hasMultipleCameras: true,
+                            isLoading: false,
+                            cameraError: '',
+                            
+                            async startCamera(field, preferredMode = null) {
+                                this.targetField = field;
+                                this.cameraError = '';
+                                this.facingMode = preferredMode || (field === 'guest' ? 'user' : 'environment');
+                                this.showCamera = true;
+                                await this.initStream();
+                            },
+
+                            async initStream() {
+                                this.isLoading = true;
+                                this.cameraError = '';
+                                if (this.stream) {
+                                    this.stream.getTracks().forEach(t => t.stop());
+                                    this.stream = null;
+                                }
+
+                                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                                    this.isLoading = false;
+                                    this.cameraError = 'Live webcam not supported on this browser/insecure HTTP. Use Native Mobile Camera.';
+                                    return;
+                                }
+
+                                try {
+                                    const constraints = {
+                                        video: {
+                                            facingMode: { ideal: this.facingMode },
+                                            width: { ideal: 1280 },
+                                            height: { ideal: 720 }
+                                        },
+                                        audio: false
+                                    };
+                                    this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                                    if (this.$refs.videoElem) {
+                                        this.$refs.videoElem.srcObject = this.stream;
+                                        await this.$refs.videoElem.play();
+                                    }
+                                } catch (err) {
+                                    console.warn('Ideal constraint failed, trying generic camera...', err);
+                                    try {
+                                        this.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                                        if (this.$refs.videoElem) {
+                                            this.$refs.videoElem.srcObject = this.stream;
+                                            await this.$refs.videoElem.play();
+                                        }
+                                    } catch (fallbackErr) {
+                                        console.error('All camera attempts failed:', fallbackErr);
+                                        this.cameraError = 'Camera permission denied or camera not found. Please allow camera permission or use Native Camera.';
+                                    }
+                                } finally {
+                                    this.isLoading = false;
+                                }
+                            },
+
+                            async flipCamera() {
+                                this.facingMode = (this.facingMode === 'environment' ? 'user' : 'environment');
+                                await this.initStream();
+                            },
+
+                            openNativeCamera() {
+                                if (this.targetField === 'front' && this.$refs.nativeInputFront) {
+                                    this.$refs.nativeInputFront.click();
+                                } else if (this.targetField === 'back' && this.$refs.nativeInputBack) {
+                                    this.$refs.nativeInputBack.click();
+                                } else if (this.targetField === 'guest' && this.$refs.nativeInputGuest) {
+                                    this.$refs.nativeInputGuest.click();
+                                }
+                                this.stopCamera();
+                            },
+
+                            stopCamera() {
+                                if (this.stream) {
+                                    this.stream.getTracks().forEach(t => t.stop());
+                                    this.stream = null;
+                                }
+                                this.showCamera = false;
+                                this.cameraError = '';
+                                this.isLoading = false;
+                            },
+
+                            capture() {
+                                const video = this.$refs.videoElem;
+                                if (!video || !video.videoWidth) return;
+
+                                const canvas = document.createElement('canvas');
+                                canvas.width = video.videoWidth || 1280;
+                                canvas.height = video.videoHeight || 720;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+
+                                if (this.targetField === 'front') {
+                                    $wire.set('id_card_front_base64', dataUrl);
+                                } else if (this.targetField === 'back') {
+                                    $wire.set('id_card_back_base64', dataUrl);
+                                } else if (this.targetField === 'guest') {
+                                    $wire.set('guest_photo_base64', dataUrl);
+                                }
+                                this.stopCamera();
+                            }
+                         }">
+>>>>>>> 69db85840fcc1cae6b7e35a7e3d62d99aaafe6d4
                         
+                        {{-- Hidden Native Camera File Inputs for 100% Mobile Compatibility Fallback --}}
+                        <input type="file" x-ref="nativeInputFront" wire:model="id_card_front" accept="image/*" capture="environment" class="hidden">
+                        <input type="file" x-ref="nativeInputBack" wire:model="id_card_back" accept="image/*" capture="environment" class="hidden">
+                        <input type="file" x-ref="nativeInputGuest" wire:model="guest_photo" accept="image/*" capture="user" class="hidden">
+
                         <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200/60">
                             <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
                                 <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs">
@@ -166,7 +284,14 @@
                                 @endif
 
                                 <div class="flex items-center gap-2">
+<<<<<<< HEAD
                                     <label class="w-full py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs">
+=======
+                                    <button type="button" @click="startCamera('front', 'environment')" class="flex-1 py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer" title="Scan with Camera (Front/Back)">
+                                        <i class="fas fa-camera text-xs"></i> Camera
+                                    </button>
+                                    <label class="flex-1 py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs" title="Upload from Gallery/Files">
+>>>>>>> 69db85840fcc1cae6b7e35a7e3d62d99aaafe6d4
                                         <i class="fas fa-upload text-xs"></i> Upload
                                         <input type="file" wire:model="id_card_front" accept="image/*" class="hidden">
                                     </label>
@@ -201,7 +326,14 @@
                                 @endif
 
                                 <div class="flex items-center gap-2">
+<<<<<<< HEAD
                                     <label class="w-full py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs">
+=======
+                                    <button type="button" @click="startCamera('back', 'environment')" class="flex-1 py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer" title="Scan with Camera (Front/Back)">
+                                        <i class="fas fa-camera text-xs"></i> Camera
+                                    </button>
+                                    <label class="flex-1 py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs" title="Upload from Gallery/Files">
+>>>>>>> 69db85840fcc1cae6b7e35a7e3d62d99aaafe6d4
                                         <i class="fas fa-upload text-xs"></i> Upload
                                         <input type="file" wire:model="id_card_back" accept="image/*" class="hidden">
                                     </label>
@@ -236,7 +368,14 @@
                                 @endif
 
                                 <div class="flex items-center gap-2">
+<<<<<<< HEAD
                                     <label class="w-full py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs">
+=======
+                                    <button type="button" @click="startCamera('guest', 'user')" class="flex-1 py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer" title="Take Guest Photo (Front/Back Camera)">
+                                        <i class="fas fa-camera text-xs"></i> Camera
+                                    </button>
+                                    <label class="flex-1 py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-2xs" title="Upload from Gallery/Files">
+>>>>>>> 69db85840fcc1cae6b7e35a7e3d62d99aaafe6d4
                                         <i class="fas fa-upload text-xs"></i> Upload
                                         <input type="file" wire:model="guest_photo" accept="image/*" class="hidden">
                                     </label>
@@ -245,6 +384,104 @@
                             </div>
                         </div>
 
+<<<<<<< HEAD
+=======
+                        {{-- WebCam Live Capture Scanner Modal with Front/Back Switch --}}
+                        <div x-show="showCamera" style="display: none;" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+                            <div class="bg-white rounded-3xl p-5 md:p-6 max-w-lg w-full shadow-2xl border border-slate-100 text-center transition-all">
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-bold">
+                                            <i class="fas fa-expand"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider" x-text="targetField === 'front' ? 'Scan ID Document - FRONT Side' : (targetField === 'back' ? 'Scan ID Document - BACK Side' : 'Capture Guest Live Photo')"></h3>
+                                            <p class="text-[10px] text-slate-400">Position clearly inside the frame</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        {{-- Camera Flip Button (Front / Back) --}}
+                                        <button type="button" @click="flipCamera()" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs" title="Switch Front / Back Camera">
+                                            <i class="fas fa-sync-alt text-indigo-600"></i>
+                                            <span x-text="facingMode === 'environment' ? 'Back (Rear)' : 'Front (Selfie)'"></span>
+                                        </button>
+                                        <button type="button" @click="stopCamera()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs flex items-center justify-center cursor-pointer">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Camera Viewfinder with ID Card Scanner Overlay --}}
+                                <div class="bg-slate-950 rounded-2xl overflow-hidden aspect-4/3 relative mb-4 shadow-inner border border-slate-800 flex items-center justify-center">
+                                    <video x-ref="videoElem" autoplay playsinline muted class="w-full h-full object-cover"></video>
+
+                                    {{-- Loading indicator --}}
+                                    <div x-show="isLoading" class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-white z-10">
+                                        <i class="fas fa-spinner fa-spin text-2xl text-indigo-400 mb-2"></i>
+                                        <p class="text-xs font-bold">Starting Camera...</p>
+                                    </div>
+
+                                    {{-- Error overlay & fallback --}}
+                                    <div x-show="cameraError" style="display: none;" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center text-white z-20">
+                                        <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xl mb-2">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </div>
+                                        <p class="text-xs font-bold text-rose-300 mb-3" x-text="cameraError"></p>
+                                        <button type="button" @click="openNativeCamera()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-md cursor-pointer">
+                                            <i class="fas fa-camera"></i> Open Phone Camera
+                                        </button>
+                                    </div>
+                                    
+                                    {{-- ID Card Scanner Viewfinder Target Overlay --}}
+                                    <div x-show="!cameraError && !isLoading" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-4">
+                                        <template x-if="targetField === 'front' || targetField === 'back'">
+                                            <div class="w-full h-44 sm:h-48 border-2 border-dashed border-indigo-400/90 rounded-2xl relative shadow-[0_0_30px_rgba(99,102,241,0.25)] bg-indigo-950/10 flex flex-col justify-between p-3">
+                                                <div class="flex justify-between items-start">
+                                                    <div class="w-4 h-4 border-t-4 border-l-4 border-indigo-400 rounded-tl"></div>
+                                                    <span class="text-[9px] font-black uppercase tracking-widest text-indigo-200 bg-indigo-950/80 px-2 py-0.5 rounded-full border border-indigo-400/40" x-text="targetField === 'front' ? 'FRONT SIDE' : 'BACK SIDE'"></span>
+                                                    <div class="w-4 h-4 border-t-4 border-r-4 border-indigo-400 rounded-tr"></div>
+                                                </div>
+                                                <p class="text-[10px] font-extrabold text-white bg-black/60 backdrop-blur-xs py-1 px-3 rounded-full mx-auto shadow-sm">
+                                                    <i class="fas fa-crop-alt text-indigo-400 mr-1"></i> Align ID Card Inside Frame
+                                                </p>
+                                                <div class="flex justify-between items-end">
+                                                    <div class="w-4 h-4 border-b-4 border-l-4 border-indigo-400 rounded-bl"></div>
+                                                    <div class="w-4 h-4 border-b-4 border-r-4 border-indigo-400 rounded-br"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="targetField === 'guest'">
+                                            <div class="w-40 h-52 sm:w-44 sm:h-56 border-2 border-dashed border-emerald-400/90 rounded-full relative shadow-[0_0_30px_rgba(16,185,129,0.25)] bg-emerald-950/10 flex items-center justify-center">
+                                                <p class="text-[10px] font-extrabold text-white bg-black/60 backdrop-blur-xs py-1 px-3 rounded-full shadow-sm">
+                                                    <i class="fas fa-user-circle text-emerald-400 mr-1"></i> Align Face Here
+                                                </p>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                {{-- Camera Controls & Switch Bar --}}
+                                <div class="flex flex-wrap items-center justify-center gap-2.5">
+                                    <button type="button" @click="capture()" :disabled="isLoading || !!cameraError" class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer">
+                                        <i class="fas fa-camera text-sm"></i> Capture & Save Scan
+                                    </button>
+                                    
+                                    <button type="button" @click="flipCamera()" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer" title="Flip Camera">
+                                        <i class="fas fa-sync-alt"></i> <span x-text="facingMode === 'environment' ? 'Switch to Front' : 'Switch to Back'"></span>
+                                    </button>
+
+                                    <button type="button" @click="openNativeCamera()" class="px-3.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer" title="Open Phone Camera Directly">
+                                        <i class="fas fa-mobile-alt"></i> Phone App
+                                    </button>
+
+                                    <button type="button" @click="stopCamera()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+>>>>>>> 69db85840fcc1cae6b7e35a7e3d62d99aaafe6d4
                     </div>
 
 
