@@ -55,6 +55,33 @@ Route::get('/clear-records', function () {
         return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
     }
 });
+
+Route::get('/seed-rooms', function () {
+    try {
+        $seeder = new \Database\Seeders\RoomsSeeder();
+        $seeder->run();
+
+        $totalRooms = \App\Models\Room::withoutGlobalScope('tenant')->count();
+        $hotelRooms = \App\Models\Hotel::withCount(['rooms' => function ($q) {
+            $q->withoutGlobalScope('tenant');
+        }])->get(['id', 'name', 'slug', 'rooms_count']);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Successfully seeded {$totalRooms} dynamic rooms across all hotels!",
+            'total_rooms_in_system' => $totalRooms,
+            'hotels' => $hotelRooms,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+    }
+});
+
 // ─── Setup Route ───────────────────────────────────────────────────────────
 Route::get('/setup-project', function () {
     try {

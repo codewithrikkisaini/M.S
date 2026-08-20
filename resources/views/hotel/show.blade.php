@@ -29,52 +29,162 @@
     </script>
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>
-        function hotelShowPage() {
-            return {
-                showModal: false,
-                selectedRoom: null,
-                modalImgIdx: 0,
-                showBookingModal: false,
-                bookingSubmitted: false,
-                selectedRoomForBooking: null,
-                filterGuests: {{ (int) request('adults', request('guests', 1)) + (int) request('children', 0) }},
-                filterAdults: {{ (int) request('adults', request('guests', 1)) }},
-                filterChildren: {{ (int) request('children', 0) }},
-                filterRooms: {{ (int) request('rooms', 1) }},
-                filterRoomTypeId: @json((string) request('room_type_id', '')),
-                filterRoomTypeName: @json((string) request('room_type_name', '')),
-                filterCheckIn: @json($checkInDate ?? date('Y-m-d')),
-                filterCheckOut: @json($checkOutDate ?? date('Y-m-d', strtotime('+1 day'))),
-                isFilterActive: {{ (request()->has('adults') || request()->has('guests') || request()->has('check_in') || request()->filled('room_type_id')) ? 'true' : 'false' }},
-                visibleRoomCount: 0,
-                resetFilter() {
-                    this.filterGuests = 1;
-                    this.filterAdults = 1;
-                    this.filterChildren = 0;
-                    this.filterRooms = 1;
-                    this.filterRoomTypeId = '';
-                    this.filterRoomTypeName = '';
-                    this.isFilterActive = false;
+</head>
+@php
+    $roomsData = $hotel->rooms->map(function($room) {
+        $roomTypeName = $room->roomType->name ?? 'Standard Room';
+        $primaryType = $room->bed_type ?: $roomTypeName;
+        $roomPrice = (float)($room->price ?: ($room->roomType->base_price ?? 2500));
+        $isMaintenance = ($room->status === 'Maintenance' || ($room->activeMaintenanceTickets && $room->activeMaintenanceTickets->count() > 0));
+        $hkStatus = $room->latestHousekeeping?->status ?? 'Clean';
+        $isDirty = in_array($hkStatus, ['Dirty', 'Maintenance']);
+        $isOccupied = ($room->status === 'Occupied');
+        
+        $activeReservations = $room->reservations 
+            ? $room->reservations->whereIn('status', ['Confirmed', 'Checked-In', 'Pending'])
+                                 ->map(fn($r) => [
+                                     'check_in' => $r->check_in_date,
+                                     'check_out' => $r->check_out_date,
+                                 ])->values()->toArray()
+            : [];
 
-                    let url = new URL(window.location.href);
-                    url.search = '';
-                    window.history.pushState({}, '', url.toString());
+        return [
+            'id' => $room->id,
+            'room_number' => (string)$room->room_number,
+            'name' => $primaryType,
+            'type' => $roomTypeName,
+            'price' => $roomPrice,
+            'price_formatted' => '₹' . number_format($roomPrice),
+            'bed_type' => $room->bed_type ?: 'King Bed',
+            'capacity' => (int)($room->capacity ?? 2),
+            'room_option' => $room->room_option ?? '',
+            'description' => $room->description ?: ("Experience ultimate comfort in Room " . $room->room_number . ". Designed with modern luxury aesthetics, premium mattresses, soundproof acoustic windows, complimentary high-speed Wi-Fi, 24/7 room service, and private en-suite bathroom."),
+            'image_url' => $room->image_url,
+            'images' => $room->images,
+            'is_maintenance' => $isMaintenance,
+            'is_dirty' => $isDirty,
+            'is_occupied' => $isOccupied,
+            'reservations' => $activeReservations,
+        ];
+    })->values();
 
-                    if (document.getElementById('roomsInput')) document.getElementById('roomsInput').value = 1;
-                    if (document.getElementById('adultsInput')) document.getElementById('adultsInput').value = 1;
-                    if (document.getElementById('childrenInput')) document.getElementById('childrenInput').value = 0;
-                    document.querySelectorAll('input[name="room_type_id"]').forEach(function(input) {
-                        input.checked = input.value === '';
-                    });
-                    const rateSummary = document.getElementById('rateSummary');
-                    if (rateSummary) rateSummary.innerText = 'Select Room Type';
-                    if (typeof window.applyRoomCardVisibility === 'function') {
-                        window.applyRoomCardVisibility({ reset: true });
-                    }
-                    this.visibleRoomCount = document.querySelectorAll('.room-card-item').length;
-                    if (typeof updateGuestSummary === 'function') updateGuestSummary();
-                    if (typeof initBookingState === 'function') initBookingState();
+    $hasInitialSearch = request()->filled('checkin') && request()->filled('checkout');
+    $initialCheckIn = request('checkin', date('Y-m-d'));
+    $initialCheckOut = request('checkout', date('Y-m-d', strtotime('+1 day')));
+    $initialGuests = (int)request('guests', 1);
+@endphp
+<body class="antialiased bg-slate-50 text-slate-800" x-data="{ 
+    showModal: false, 
+    selectedRoom: null,
+    modalImgIdx: 0,
+    showBookingModal: false,
+    bookingSubmitted: false,
+    selectedRoomForBooking: null,
+    allRooms: @js($roomsData),
+    searchCheckIn: '{{ $initialCheckIn }}',
+    searchCheckOut: '{{ $initialCheckOut }}',
+    searchGuests: {{ $initialGuests }},
+    promoCode: '{{ request('code', '') }}',
+    hasSearched: true,
+    roomTypeFilter: 'all',
+    showFilterDropdown: false,
+    bookingData: { 
+        guest_name: '', 
+        guest_email: '', 
+        guest_phone: '', 
+        checkin_date: '{{ $initialCheckIn }}', 
+        checkout_date: '{{ $initialCheckOut }}', 
+        guests: {{ $initialGuests }},
+        special_requests: '', 
+        payment_method: 'Cash' 
+    },
+    get searchNights() {
+        if (!this.searchCheckIn || !this.searchCheckOut) return 1;
+        let d1 = new Date(this.searchCheckIn);
+        let d2 = new Date(this.searchCheckOut);
+        let diffTime = d2.getTime() - d1.getTime();
+        let diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+        return diffDays > 0 ? diffDays : 1;
+    },
+    get matchingRooms() {
+        if (!this.hasSearched) return [];
+        let cin = this.searchCheckIn;
+        let cout = this.searchCheckOut;
+        let guests = parseInt(this.searchGuests || 1);
+
+        return this.allRooms.filter(room => {
+            if (room.is_maintenance || room.is_dirty || room.is_occupied) return false;
+            if (room.capacity < guests) return false;
+            if (this.roomTypeFilter !== 'all' && room.type !== this.roomTypeFilter) return false;
+
+            if (cin && cout) {
+                let hasCollision = room.reservations.some(res => {
+                    return (res.check_in < cout && res.check_out > cin);
+                });
+                if (hasCollision) return false;
+            }
+
+            return true;
+        });
+    },
+    get uniqueRoomTypes() {
+        return [...new Set(this.allRooms.map(r => r.type).filter(Boolean))];
+    },
+    formatDisplayDate(dStr) {
+        if (!dStr) return '';
+        const d = new Date(dStr + 'T00:00:00');
+        if (isNaN(d.getTime())) return dStr;
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    },
+    performSearch() {
+        if (!this.searchCheckIn || !this.searchCheckOut) {
+            alert('Please select check-in and check-out dates.');
+            return;
+        }
+        if (this.searchCheckIn >= this.searchCheckOut) {
+            alert('Check-out date must be after check-in date.');
+            return;
+        }
+        this.hasSearched = true;
+        this.bookingData.checkin_date = this.searchCheckIn;
+        this.bookingData.checkout_date = this.searchCheckOut;
+        this.bookingData.guests = this.searchGuests;
+
+        setTimeout(() => {
+            document.getElementById('available-rooms')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    },
+    get nights() {
+        if (!this.bookingData.checkin_date || !this.bookingData.checkout_date) return 1;
+        let d1 = new Date(this.bookingData.checkin_date);
+        let d2 = new Date(this.bookingData.checkout_date);
+        let diffTime = d2.getTime() - d1.getTime();
+        let diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+        return diffDays > 0 ? diffDays : 1;
+    },
+    get totalPayable() {
+        if (!this.selectedRoomForBooking) return 0;
+        let rawRate = Number(this.selectedRoomForBooking.price || this.selectedRoomForBooking.rawPrice || 0);
+        return rawRate * this.nights;
+    },
+    get totalPayableFormatted() {
+        return '₹' + this.totalPayable.toLocaleString('en-IN');
+    },
+    isSubmitting: false,
+    successResult: null,
+    errorMessage: '',
+    async submitBooking() {
+        if (!this.selectedRoomForBooking) return;
+        this.isSubmitting = true;
+        this.errorMessage = '';
+        try {
+            let res = await fetch('{{ route('hotel.book-instant') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 matchingRoomsCount() {
                     return this.visibleRoomCount;
@@ -559,117 +669,136 @@
                                                          ->count() > 0 
                                     : false;
 
-                                $isAvail = ($room->status === 'Available') && !$isMaintenance && !$isDirty && !$isOccupied && !$hasActiveReservation;
-                            @endphp
-                            @if(!$isAvail)
-                                @continue
-                            @endif
-                            <div class="room-card-item bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group"
-                                 data-capacity="{{ (int) $room->capacity }}"
-                                 data-room-type-id="{{ $room->room_type_id }}"
-                                 data-room-type-name="{{ $roomTypeName }}"
-                            >
-                                {{-- Card Image --}}
-                                <div class="relative w-full aspect-[16/10] bg-slate-100 overflow-hidden shrink-0">
-                                    <img src="{{ $room->image_url }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                    
-                                    {{-- Status Pill --}}
-                                    <div class="absolute top-3 right-3 flex items-center gap-1.5">
-                                        @if($isAvail)
-                                            <span class="text-[11px] font-extrabold px-3 py-1 bg-emerald-500/90 text-white rounded-full backdrop-blur-md shadow-sm flex items-center gap-1">
-                                                <i class="fas fa-check-circle text-[10px]"></i> Available
-                                            </span>
-                                        @else
-                                            <span class="text-[11px] font-extrabold px-3 py-1 bg-rose-500/90 text-white rounded-full backdrop-blur-md shadow-sm flex items-center gap-1">
-                                                <i class="fas fa-times-circle text-[10px]"></i> Occupied
-                                            </span>
-                                        @endif
-                                    </div>
+                <!-- Available Rooms -->
+                <section id="available-rooms" class="scroll-mt-24">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">Available Rooms & Suites</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Check live room rates and availability for your selected dates.</p>
+                        </div>
+                        <template x-if="hasSearched">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-xl shadow-2xs">
+                                <i class="fas fa-check-circle text-emerald-500"></i>
+                                <span x-text="matchingRooms.length + ' Available Room' + (matchingRooms.length === 1 ? '' : 's')"></span>
+                            </span>
+                        </template>
+                    </div>
 
-                                    @if(count($room->images) > 1)
-                                        <span class="absolute bottom-3 left-3 bg-slate-900/75 backdrop-blur-sm border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1.5">
-                                            <i class="fas fa-images text-blue-400"></i> {{ count($room->images) }} Photos
-                                        </span>
-                                    @endif
+                    <!-- Search Summary Banner (Shown when searched) -->
+                    <template x-if="hasSearched">
+                        <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-2xl p-4 mb-6 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+                            <div class="flex items-center gap-2 text-xs font-bold text-emerald-950">
+                                <i class="fas fa-calendar-check text-emerald-600 text-sm"></i>
+                                <span>Showing rooms for: <strong class="text-slate-900" x-text="formatDisplayDate(searchCheckIn)"></strong> ➔ <strong class="text-slate-900" x-text="formatDisplayDate(searchCheckOut)"></strong> (<span x-text="searchNights + (searchNights === 1 ? ' Night' : ' Nights')"></span>, <span x-text="searchGuests + (searchGuests === 1 ? ' Guest' : ' Guests')"></span>)</span>
+                            </div>
+                            <button type="button" @click="document.getElementById('booking-sidebar-widget')?.scrollIntoView({ behavior: 'smooth' })" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer">
+                                <i class="fas fa-edit"></i> Modify Dates
+                            </button>
+                        </div>
+                    </template>
+                    
+                    <div class="space-y-5">
+                        <!-- STATE 2: User HAS searched, but NO rooms match -->
+                        <template x-if="hasSearched && matchingRooms.length === 0">
+                            <div class="bg-amber-50 border border-amber-200 text-amber-900 p-8 rounded-3xl text-center space-y-3 shadow-sm">
+                                <div class="w-14 h-14 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
+                                    <i class="fas fa-calendar-times"></i>
                                 </div>
+                                <div>
+                                    <h4 class="text-base font-extrabold text-amber-900">No Rooms Available for Selected Dates</h4>
+                                    <p class="text-xs text-amber-700 max-w-md mx-auto mt-1">
+                                        All rooms are currently booked or under maintenance from <strong x-text="formatDisplayDate(searchCheckIn)"></strong> to <strong x-text="formatDisplayDate(searchCheckOut)"></strong> for <strong x-text="searchGuests"></strong> guest(s). Please try selecting different dates.
+                                    </p>
+                                </div>
+                                <button type="button" @click="document.getElementById('booking-sidebar-widget')?.scrollIntoView({ behavior: 'smooth' })" class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow transition-all cursor-pointer">
+                                    <i class="fas fa-redo-alt"></i> Try Different Dates
+                                </button>
+                            </div>
+                        </template>
 
-                                {{-- Card Content --}}
-                                <div class="p-5 flex-1 flex flex-col justify-between">
-                                    <div>
-                                        <div class="flex items-start justify-between gap-2">
-                                            <h3 class="text-base font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors">
-                                                {{ $roomTypeName }} <span class="text-xs font-semibold text-slate-500">(Room {{ $room->room_number }})</span>
-                                            </h3>
-                                            <span class="shrink-0 px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md border border-slate-200">
-                                                <i class="fas fa-users text-blue-500 mr-0.5"></i> Max {{ $room->capacity }}
-                                            </span>
+                        <!-- STATE 3: User HAS searched, and matching rooms are found -->
+                        <template x-if="hasSearched && matchingRooms.length > 0">
+                            <div class="space-y-4">
+                                <template x-for="room in matchingRooms" :key="room.id">
+                                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row gap-6 hover:shadow-md transition-all">
+                                        <div class="w-full sm:w-1/3 aspect-video sm:aspect-auto rounded-xl bg-slate-100 overflow-hidden shrink-0 relative">
+                                            <img :src="room.image_url" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';" class="w-full h-full object-cover">
+                                            <template x-if="room.images && room.images.length > 1">
+                                                <span class="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-sm border border-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                                                    <i class="fas fa-images text-blue-400"></i> <span x-text="room.images.length + ' Photos'"></span>
+                                                </span>
+                                            </template>
                                         </div>
-
-                                        <p class="text-xs text-slate-500 mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                                            <span><i class="fas fa-bed text-blue-500 mr-1"></i> {{ $room->bed_type ?: 'King Bed' }}</span>
-                                            <span>•</span>
-                                            <span><i class="fas fa-users text-blue-500 mr-1"></i> Up to {{ $room->capacity ?? 2 }} Guests</span>
-                                        </p>
-
-                                        @if(!empty($room->description))
-                                            <p class="text-xs text-slate-600 mt-2.5 line-clamp-2 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                                                {{ $room->description }}
-                                            </p>
-                                        @endif
-                                        
-                                        <div class="mt-3 flex flex-wrap gap-1.5">
-                                            @if($room->room_option)
-                                                @foreach(explode(',', $room->room_option) as $opt)
-                                                    <span class="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                                                        <i class="fas fa-check text-indigo-500 text-[8px]"></i> {{ trim($opt) }}
+                                        <div class="flex-1 flex flex-col justify-between">
+                                            <div>
+                                                <div class="flex justify-between items-start">
+                                                        <div>
+                                                            <h3 class="text-lg font-bold text-slate-900" x-text="room.name"></h3>
+                                                            <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
+                                                                <span><i class="fas fa-bed text-blue-500 mr-1"></i> Bed: <strong class="text-slate-800 font-bold" x-text="room.bed_type"></strong></span>
+                                                            </p>
+                                                        </div>
+                                                    <span class="text-xs font-bold px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg flex items-center gap-1">
+                                                        <i class="fas fa-check-circle"></i> Available
                                                     </span>
-                                                @endforeach
-                                            @endif
-                                            <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg"><i class="fas fa-wifi text-blue-500 mr-1"></i> Wi-Fi</span>
-                                            <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg"><i class="fas fa-snowflake text-blue-500 mr-1"></i> AC</span>
-                                            <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg"><i class="fas fa-tv text-blue-500 mr-1"></i> TV</span>
-                                        </div>
-                                    </div>
-                                    
-                                    {{-- Card Footer --}}
-                                    <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-                                        <div>
-                                            <div class="flex items-baseline gap-1">
-                                                <span class="text-xl font-black text-slate-900">₹{{ number_format($roomPrice) }}</span>
-                                                <span class="text-[10px] text-slate-400 font-bold uppercase">/ night</span>
+                                                </div>
+                                                
+                                                <div class="mt-3 flex flex-wrap gap-1.5">
+                                                    <template x-if="room.room_option">
+                                                        <template x-for="opt in room.room_option.split(',')" :key="opt">
+                                                            <span class="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100/80 px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-2xs">
+                                                                <i class="fas fa-check-circle text-indigo-500 text-[9px]"></i> <span x-text="opt.trim()"></span>
+                                                            </span>
+                                                        </template>
+                                                    </template>
+                                                    <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-wifi mr-1 text-blue-500"></i> Free Wi-Fi</span>
+                                                    <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-snowflake mr-1 text-blue-500"></i> AC</span>
+                                                    <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-tv mr-1 text-blue-500"></i> Flat TV</span>
+                                                    <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-coffee mr-1 text-blue-500"></i> Breakfast Included</span>
+                                                </div>
                                             </div>
-                                            <span class="text-[9px] text-slate-400">+ taxes & fees</span>
-                                        </div>
+                                            
+                                            <div class="mt-6 flex items-end justify-between border-t border-slate-100 pt-4 gap-3">
+                                                <div>
+                                                    <div class="flex items-baseline gap-1.5">
+                                                        <span class="block text-2xl font-black text-slate-900" x-text="'₹' + Number(room.price * searchNights).toLocaleString('en-IN')"></span>
+                                                        <span class="text-xs font-bold text-slate-400" x-show="searchNights > 1" x-text="'(₹' + Number(room.price).toLocaleString('en-IN') + ' / night)'"></span>
+                                                    </div>
+                                                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider" x-text="'Total for ' + searchNights + (searchNights === 1 ? ' night' : ' nights') + ' + taxes'"></span>
+                                                </div>
 
-                                        <div class="flex items-center gap-1.5">
-                                            <button @click="selectedRoom = {
-                                                id: '{{ $room->id }}',
-                                                name: {!! json_encode($roomTypeName) !!},
-                                                number: {!! json_encode($room->room_number) !!},
-                                                price: '₹{{ number_format($roomPrice) }}',
-                                                rawPrice: {{ $roomPrice }},
-                                                image: {!! json_encode($room->image_url) !!},
-                                                images: {!! json_encode($room->images) !!},
-                                                description: {!! json_encode($room->description ?: "Experience ultimate comfort in Room " . $room->room_number . ". Designed with modern luxury aesthetics, premium mattresses, soundproof acoustic windows, complimentary high-speed Wi-Fi, 24/7 room service, and private en-suite bathroom.") !!},
-                                                bed_type: {!! json_encode(ucfirst($room->bed_type ?? "King / Queen Bed")) !!},
-                                                room_option: {!! json_encode($room->room_option ?? "") !!},
-                                                capacity: {!! json_encode(($room->capacity ?? 2) . ' Guests') !!}
-                                            }; modalImgIdx = 0; showModal = true" class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center justify-center cursor-pointer shadow-2xs" title="View Details">
-                                                <i class="fas fa-eye text-slate-600"></i>
-                                            </button>
+                                                <div class="flex items-center gap-2">
+                                                    <button @click="selectedRoom = room; modalImgIdx = 0; showModal = true" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                                                        <i class="fas fa-eye text-slate-500"></i> View Details
+                                                    </button>
 
-                                            @if($isAvail)
-                                                <a href="{{ route('hotel.reserve', ['slug' => $hotel->slug ?: $hotel->id, 'room' => $room->id]) }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs font-bold rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-1.5 cursor-pointer">
-                                                    <i class="fas fa-calendar-check text-[11px]"></i> Book
-                                                </a>
-                                            @else
-                                                <button type="button" onclick="alert('Bro, ye room already booked hai! Please choose another room.')" class="px-3 py-2 bg-slate-200 text-slate-500 text-xs font-bold rounded-xl cursor-not-allowed">
-                                                    Booked
-                                                </button>
-                                            @endif
+                                                    <a :href="'/hotel/{{ $hotel->slug ?: $hotel->id }}/reserve/' + room.id + '?checkin=' + searchCheckIn + '&checkout=' + searchCheckOut + '&guests=' + searchGuests + (promoCode ? '&code=' + promoCode : '')" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer">
+                                                        <i class="fas fa-calendar-check text-xs"></i> Book Now
+                                                    </a>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+
+                <!-- FAQ Section -->
+                <section id="faq-section" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm scroll-mt-24" x-data="{ openFaq: null }">
+                    <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-question-circle text-blue-600 text-lg"></i> Frequently Asked Questions
+                    </h2>
+                    <div class="space-y-3 text-xs">
+                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                            <button @click="openFaq = openFaq === 1 ? null : 1" class="w-full bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 flex justify-between items-center cursor-pointer">
+                                <span>What are the standard Check-in and Check-out times?</span>
+                                <i class="fas text-slate-400" :class="openFaq === 1 ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            </button>
+                            <div x-show="openFaq === 1" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
+                                Standard Check-in is from 02:00 PM and Check-out is until 11:00 AM. Early check-in or late check-out is subject to availability.
                             </div>
                         @endforeach
                     </div>
@@ -699,39 +828,36 @@
                 @endif
             </section>
 
-            <!-- FAQ Section -->
-            <section id="faq-section" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm scroll-mt-24" x-data="{ openFaq: null }">
-                <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <i class="fas fa-question-circle text-blue-600 text-lg"></i> Frequently Asked Questions
-                </h2>
-                <div class="space-y-3 text-xs">
-                    <div class="border border-slate-100 rounded-2xl overflow-hidden">
-                        <button @click="openFaq = openFaq === 1 ? null : 1" class="w-full bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 flex justify-between items-center cursor-pointer">
-                            <span>What are the standard Check-in and Check-out times?</span>
-                            <i class="fas text-slate-400" :class="openFaq === 1 ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                        </button>
-                        <div x-show="openFaq === 1" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
-                            Standard Check-in is from 02:00 PM and Check-out is until 11:00 AM. Early check-in or late check-out is subject to availability.
+            <!-- Right Column: Booking Widget / Summary -->
+            <div class="lg:col-span-1" id="booking-sidebar-widget">
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl sticky top-28">
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Book Your Stay</h3>
+                    <p class="text-xs text-slate-500 mb-6">Select dates and number of guests to reserve instantly.</p>
+                    
+                    <form @submit.prevent="performSearch()" class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Check-in Date</label>
+                            <input type="date" x-model="searchCheckIn" min="{{ date('Y-m-d') }}" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
-                    </div>
-
-                    <div class="border border-slate-100 rounded-2xl overflow-hidden">
-                        <button @click="openFaq = openFaq === 2 ? null : 2" class="w-full bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 flex justify-between items-center cursor-pointer">
-                            <span>Is breakfast included with room booking?</span>
-                            <i class="fas text-slate-400" :class="openFaq === 2 ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                        </button>
-                        <div x-show="openFaq === 2" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
-                            Yes, complimentary high-speed Wi-Fi and daily buffet breakfast are included with most room packages.
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Check-out Date</label>
+                            <input type="date" x-model="searchCheckOut" :min="searchCheckIn" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
-                    </div>
-
-                    <div class="border border-slate-100 rounded-2xl overflow-hidden">
-                        <button @click="openFaq = openFaq === 3 ? null : 3" class="w-full bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 flex justify-between items-center cursor-pointer">
-                            <span>What is the cancellation policy?</span>
-                            <i class="fas text-slate-400" :class="openFaq === 3 ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                        </button>
-                        <div x-show="openFaq === 3" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
-                            Free cancellation is available up to 24 hours prior to check-in. For late cancellations, standard 1-night room charges may apply.
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Guests</label>
+                            <select x-model="searchGuests" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option value="1">1 Guest</option>
+                                <option value="2">2 Guests</option>
+                                <option value="3">3 Guests</option>
+                                <option value="4">4 Guests</option>
+                                <option value="5">5+ Guests</option>
+                            </select>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <button type="submit" class="w-full bg-[#10B981] hover:bg-emerald-600 text-white font-bold text-sm py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fas fa-search text-xs"></i> Check Availability & Book
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -765,7 +891,7 @@
 
                 <!-- Room Title Badge -->
                 <div class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-white/10 shadow-md">
-                    <span x-text="selectedRoom?.name + ' (Room ' + selectedRoom?.number + ')'"></span>
+                    <span x-text="selectedRoom?.name"></span>
                 </div>
 
                 <!-- Image Counter Badge -->
@@ -791,10 +917,9 @@
             <div class="p-6 space-y-5">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h3 class="text-xl font-bold text-slate-900" x-text="selectedRoom?.name + ' - Room ' + selectedRoom?.number"></h3>
+                        <h3 class="text-xl font-bold text-slate-900" x-text="selectedRoom?.name"></h3>
                         <p class="text-xs text-slate-500 mt-1 flex items-center gap-3">
                             <span><i class="fas fa-bed text-blue-500 mr-1"></i> <span x-text="selectedRoom?.bed_type"></span></span>
-                            <span><i class="fas fa-users text-blue-500 mr-1"></i> Max: <span x-text="selectedRoom?.capacity"></span></span>
                         </p>
                     </div>
                     <div class="text-right">
@@ -842,7 +967,7 @@
                     <button @click="showModal = false" class="px-5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-all cursor-pointer">
                         Close
                     </button>
-                    <a :href="'/hotel/{{ $hotel->slug ?: $hotel->id }}/reserve/' + selectedRoom?.id" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center gap-2">
+                    <a :href="'/hotel/{{ $hotel->slug ?: $hotel->id }}/reserve/' + selectedRoom?.id + '?checkin=' + searchCheckIn + '&checkout=' + searchCheckOut + '&guests=' + searchGuests + (promoCode ? '&code=' + promoCode : '')" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-xs rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center gap-2">
                         <i class="fas fa-calendar-check text-xs"></i> Book This Room Now
                     </a>
                 </div>
@@ -864,7 +989,7 @@
                     </div>
                     <div>
                         <h3 class="text-xl font-extrabold" x-text="bookingSubmitted ? 'Booking Confirmed!' : 'Instant Room Reservation'"></h3>
-                        <p class="text-xs text-blue-100 mt-0.5" x-text="selectedRoomForBooking ? selectedRoomForBooking.name + ' (Room #' + selectedRoomForBooking.number + ')' : '{{ addslashes($hotel->name) }}'"></p>
+                        <p class="text-xs text-blue-100 mt-0.5" x-text="selectedRoomForBooking ? selectedRoomForBooking.name : '{{ addslashes($hotel->name) }}'"></p>
                     </div>
                 </div>
             </div>
@@ -889,7 +1014,7 @@
                                     <img :src="selectedRoomForBooking.image" class="w-14 h-12 rounded-xl object-cover border border-slate-200">
                                 </template>
                                 <div>
-                                    <span class="text-sm font-extrabold text-slate-900 block" x-text="selectedRoomForBooking?.name + ' - Room #' + selectedRoomForBooking?.number"></span>
+                                    <span class="text-sm font-extrabold text-slate-900 block" x-text="selectedRoomForBooking?.name"></span>
                                     <span class="text-xs text-slate-500" x-text="nights + ' Night' + (nights > 1 ? 's' : '')"></span>
                                 </div>
                             </div>
@@ -989,7 +1114,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-slate-400">Room:</span>
-                                <span class="font-bold text-white" x-text="successResult?.room_type + ' (Room #' + successResult?.room_number + ')'"></span>
+                                <span class="font-bold text-white" x-text="successResult?.room_type"></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-slate-400">Dates:</span>

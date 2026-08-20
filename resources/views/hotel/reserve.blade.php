@@ -442,7 +442,7 @@
 
                             <!-- Room Title Badge -->
                             <div class="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-xl border border-white/10 shadow-md">
-                                <span x-text="selectedRoom.name + ' (Room #' + selectedRoom.number + ')'"></span>
+                                <span x-text="selectedRoom.name"></span>
                             </div>
 
                             <!-- Image Counter Badge -->
@@ -722,7 +722,7 @@
             bookingSubmitted: false,
             selectedRoom: {
                 id: "{{ $selectedRoom->id }}",
-                name: {!! json_encode($selectedRoom->roomType?->name ?: "Standard Room") !!},
+                name: {!! json_encode($selectedRoom->bed_type ?: ($selectedRoom->roomType?->name ?: "Standard Room")) !!},
                 number: "{{ $selectedRoom->room_number }}",
                 price: "₹{{ number_format($roomPrice) }}",
                 rawPrice: {{ $roomPrice }},
@@ -741,6 +741,7 @@
                 id_number: "",
                 checkin_date: "{{ $checkin }}", 
                 checkout_date: "{{ $checkout }}", 
+                guests_count: {{ $guests ?? 2 }}, 
                 special_requests: "", 
                 payment_method: "Cash",
                 utr_number: "",
