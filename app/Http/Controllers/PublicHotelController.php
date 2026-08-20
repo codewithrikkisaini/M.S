@@ -17,7 +17,6 @@ class PublicHotelController extends Controller
 {
     public function search(Request $request)
     {
-<<<<<<< HEAD
         $validated = $request->validate([
             'check_in' => ['required', 'date_format:Y-m-d'],
             'check_out' => ['required', 'date_format:Y-m-d', 'after:check_in'],
@@ -81,18 +80,6 @@ class PublicHotelController extends Controller
         $children = (int) $request->query('children', old('children', 0));
         $totalGuests = max(1, $adults + $children);
         $roomsCount = (int) $request->query('rooms', old('rooms', 1));
-=======
-        $hotelQuery = function ($q) {
-            $q->with([
-                'images',
-                'rooms' => function ($rq) {
-                    $rq->withoutGlobalScope('tenant')
-                       ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets', 'reservations'])
-                       ->orderBy('room_number');
-                }
-            ]);
-        };
->>>>>>> 5f7ad150ec083575746ac84afe2f70478282f8f1
 
         // 1. Load by exact slug match or ID
         $hotel = Hotel::where('slug', $slug)
