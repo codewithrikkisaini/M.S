@@ -245,9 +245,10 @@ new class extends Component
             }
         }
 
-        if (!empty($this->photos) && is_array($this->photos)) {
-            foreach ($this->photos as $p) {
-                if ($p) {
+        if (!empty($this->photos)) {
+            $photoList = is_array($this->photos) ? $this->photos : [$this->photos];
+            foreach ($photoList as $p) {
+                if ($p && is_object($p) && method_exists($p, 'store')) {
                     try {
                         $paths[] = $p->store('rooms', 'public');
                     } catch (\Throwable $e) {}

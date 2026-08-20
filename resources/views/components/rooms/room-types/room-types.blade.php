@@ -14,16 +14,6 @@
 
     {{-- Single Unified Form Card --}}
     <div class="pms-card shadow-sm border border-slate-100/80 p-6 mb-8">
-        <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-3">
-            <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100">
-                <i class="fas fa-door-open text-base"></i>
-            </div>
-            <div>
-                <h3 class="text-base font-bold text-slate-800">Room Details & Tariff Configuration</h3>
-                <p class="text-xs text-slate-400">Fill details below to add room into inventory</p>
-            </div>
-        </div>
-
         <form wire:submit.prevent="saveRoom" class="space-y-6">
             {{-- Row 1: Room Number, Floor, Room Status --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">

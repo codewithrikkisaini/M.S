@@ -33,7 +33,7 @@
                             <select wire:model="guest_id" class="pms-select text-xs">
                                 <option value="">Select guest...</option>
                                 @foreach($guests as $g)
-                                    <option value="{{ $g->id }}">{{ $g->name }} ({{ $g->email }})</option>
+                                    <option value="{{ $g->id }}">{{ $g->name }}</option>
                                 @endforeach
                             </select>
                             @error('guest_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
