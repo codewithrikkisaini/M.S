@@ -177,10 +177,10 @@
                 </div>
 
 
-                <!-- Special Rates -->
+                <!-- Room Type -->
                 <div class="booking-field">
 
-                    <label>Special Rates</label>
+                    <label>Room Type</label>
 
                     <div class="custom-dropdown">
 
@@ -193,7 +193,7 @@
                             <span>
                                 🏷️
                                 <span id="rateSummary">
-                                    Select Rate
+                                    Select Room Type
                                 </span>
                             </span>
 
@@ -206,47 +206,68 @@
                             id="rateDropdown"
                             class="dropdown-content rate-dropdown"
                         >
+                            @php
+                                $roomTypeOptions = collect();
+                                if (isset($allRooms)) {
+                                    $roomTypeOptions = $allRooms->map->roomType->filter()->unique('id');
+                                } elseif (isset($hotel) && $hotel->relationLoaded('rooms')) {
+                                    $roomTypeOptions = $hotel->rooms->map->roomType->filter()->unique('id');
+                                }
+                            @endphp
 
                             <label class="rate-option">
                                 <input
                                     type="radio"
-                                    name="special_rate"
+                                    name="room_type_id"
                                     value=""
-                                    checked
-                                    onchange="selectRate('Select Rate')"
+                                    {{ !request('room_type_id') ? 'checked' : '' }}
+                                    onchange="selectRate('Select Room Type')"
                                 >
-                                Select Rate
+                                Select Room Type
+                            </label>
+
+                            @forelse($roomTypeOptions as $roomType)
+                            <label class="rate-option">
+                                <input
+                                    type="radio"
+                                    name="room_type_id"
+                                    value="{{ $roomType->id }}"
+                                    {{ (string) request('room_type_id') === (string) $roomType->id ? 'checked' : '' }}
+                                    onchange="selectRate(@json($roomType->name))"
+                                >
+                                {{ $roomType->name }}
+                            </label>
+                            @empty
+                            <label class="rate-option">
+                                <input
+                                    type="radio"
+                                    name="room_type_id"
+                                    value="deluxe"
+                                    onchange="selectRate('Deluxe Room')"
+                                >
+                                Deluxe Room
                             </label>
 
                             <label class="rate-option">
                                 <input
                                     type="radio"
-                                    name="special_rate"
-                                    value="aaa"
-                                    onchange="selectRate('AAA / CAA')"
+                                    name="room_type_id"
+                                    value="standard"
+                                    onchange="selectRate('Standard Room')"
                                 >
-                                AAA / CAA
+                                Standard Room
                             </label>
 
                             <label class="rate-option">
                                 <input
                                     type="radio"
-                                    name="special_rate"
-                                    value="senior"
-                                    onchange="selectRate('Senior Citizen')"
+                                    name="room_type_id"
+                                    value="suite"
+                                    onchange="selectRate('Suite')"
                                 >
-                                Senior Citizen
+                                Suite
                             </label>
-
-                            <label class="rate-option">
-                                <input
-                                    type="radio"
-                                    name="special_rate"
-                                    value="corporate"
-                                    onchange="selectRate('Corporate')"
-                                >
-                                Corporate
-                            </label>
+                            @endforelse
 
                         </div>
 
@@ -344,7 +365,7 @@
 
         margin: 0 0 40px;
 
-        color: #970d16;
+        color: #3B82F6;
 
         font-family: Arial, sans-serif;
 
@@ -370,7 +391,7 @@
 
         background: white;
 
-        border: 2px solid #970d16;
+        border: 2px solid #3B82F6;
 
         color: #111;
 
@@ -385,7 +406,7 @@
 
     .close-btn:hover {
 
-        background: #970d16;
+        background: #3B82F6;
 
         color: white;
     }
@@ -611,7 +632,7 @@
 
         height: 40px;
 
-        background: #970d16;
+        background: #3B82F6;
 
         border: none;
 
@@ -691,7 +712,7 @@
 
         height: 48px;
 
-        background: #970d16;
+        background: #3B82F6;
 
         color: white;
 
@@ -708,7 +729,7 @@
 
     .book-now-btn:hover {
 
-        background: #720910;
+        background: #2563EB;
     }
 
 
@@ -783,10 +804,10 @@
             summary.innerText = rooms + ' ' + roomText + ', ' + adults + ' ' + adultText + childText;
         }
 
-        const checkedRate = document.querySelector('input[name="special_rate"]:checked');
+        const checkedRate = document.querySelector('input[name="room_type_id"]:checked');
         const rateSummary = document.getElementById('rateSummary');
         if (checkedRate && rateSummary) {
-            rateSummary.innerText = checkedRate.value ? checkedRate.closest('label')?.textContent?.trim() || 'Select Rate' : 'Select Rate';
+            rateSummary.innerText = checkedRate.value ? checkedRate.closest('label')?.textContent?.trim() || 'Select Room Type' : 'Select Room Type';
         }
 
         const checkIn = document.getElementById('check_in');
@@ -881,6 +902,11 @@
             const rooms = Number(document.getElementById('roomsInput')?.value || 1);
             const adults = Number(document.getElementById('adultsInput')?.value || 1);
             const children = Number(document.getElementById('childrenInput')?.value || 0);
+            const selectedType = document.querySelector('#bookingSearchModalForm input[name="room_type_id"]:checked');
+            const roomTypeId = (selectedType && selectedType.value) ? String(selectedType.value).trim() : '';
+            const roomTypeName = roomTypeId
+                ? (selectedType.closest('label')?.textContent || '').replace(/\s+/g, ' ').trim()
+                : '';
 
             window.applyBookingSearchFilter({
                 checkIn: checkIn,
@@ -888,7 +914,9 @@
                 rooms: rooms,
                 adults: adults,
                 children: children,
-                totalGuests: adults + children
+                totalGuests: adults + children,
+                roomTypeId: roomTypeId,
+                roomTypeName: roomTypeName
             });
 
             closeBookingModal();
