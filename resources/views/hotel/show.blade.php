@@ -186,70 +186,159 @@
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({
-                    hotel_id: {{ $hotel->id }},
-                    room_id: this.selectedRoomForBooking.id,
-                    guest_name: this.bookingData.guest_name,
-                    guest_email: this.bookingData.guest_email,
-                    guest_phone: this.bookingData.guest_phone,
-                    checkin_date: this.bookingData.checkin_date,
-                    checkout_date: this.bookingData.checkout_date,
-                    special_requests: this.bookingData.special_requests,
-                    payment_method: this.bookingData.payment_method
-                })
-            });
-            let data = await res.json().catch(() => ({ success: false, message: 'Server error or invalid response. Please try again.' }));
-            if (res.ok && data.success) {
-                this.successResult = data;
-                this.bookingSubmitted = true;
-            } else {
-                this.errorMessage = data.message || 'Error completing booking.';
-            }
-        } catch (e) {
-            this.errorMessage = 'Network error occurred: ' + (e.message || 'Please try again.');
-        } finally {
-            this.isSubmitting = false;
+                matchingRoomsCount() {
+                    return this.visibleRoomCount;
+                },
+                bookingData: {
+                    guest_name: '',
+                    guest_email: '',
+                    guest_phone: '',
+                    checkin_date: @json($checkInDate ?? date('Y-m-d')),
+                    checkout_date: @json($checkOutDate ?? date('Y-m-d', strtotime('+1 day'))),
+                    special_requests: '',
+                    payment_method: 'Cash'
+                },
+                get nights() {
+                    if (!this.bookingData.checkin_date || !this.bookingData.checkout_date) return 1;
+                    let d1 = new Date(this.bookingData.checkin_date);
+                    let d2 = new Date(this.bookingData.checkout_date);
+                    let diffTime = d2.getTime() - d1.getTime();
+                    let diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+                    return diffDays > 0 ? diffDays : 1;
+                },
+                get totalPayable() {
+                    if (!this.selectedRoomForBooking) return 0;
+                    let rawRate = Number(this.selectedRoomForBooking.rawPrice || 0);
+                    return rawRate * this.nights;
+                },
+                get totalPayableFormatted() {
+                    return '₹' + this.totalPayable.toLocaleString('en-IN');
+                },
+                isSubmitting: false,
+                successResult: null,
+                errorMessage: '',
+                async submitBooking() {
+                    if (!this.selectedRoomForBooking) return;
+                    this.isSubmitting = true;
+                    this.errorMessage = '';
+                    try {
+                        let res = await fetch(@json(route('hotel.book-instant')), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': @json(csrf_token())
+                            },
+                            body: JSON.stringify({
+                                hotel_id: {{ (int) $hotel->id }},
+                                room_id: this.selectedRoomForBooking.id,
+                                guest_name: this.bookingData.guest_name,
+                                guest_email: this.bookingData.guest_email,
+                                guest_phone: this.bookingData.guest_phone,
+                                checkin_date: this.bookingData.checkin_date,
+                                checkout_date: this.bookingData.checkout_date,
+                                special_requests: this.bookingData.special_requests,
+                                payment_method: this.bookingData.payment_method
+                            })
+                        });
+                        let data = await res.json().catch(() => ({ success: false, message: 'Server error or invalid response. Please try again.' }));
+                        if (res.ok && data.success) {
+                            this.successResult = data;
+                            this.bookingSubmitted = true;
+                        } else {
+                            this.errorMessage = data.message || 'Error completing booking.';
+                        }
+                    } catch (e) {
+                        this.errorMessage = 'Network error occurred: ' + (e.message || 'Please try again.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                }
+            };
         }
-    }
-}">
+    </script>
+
+    <style>
+        body {
+            background: #f3f4f6;
+        }
+
+        .lodgiko-shell {
+            max-width: 1200px;
+        }
+
+        .lodgiko-topbar {
+            background: rgba(255,255,255,0.96);
+            border-bottom: 1px solid rgba(148,163,184,0.18);
+        }
+
+        .lodgiko-brand {
+            letter-spacing: -0.08em;
+        }
+
+        .lodgiko-nav a {
+            color: #334155;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.01em;
+        }
+
+        .lodgiko-nav a:hover {
+            color: #0f172a;
+        }
+
+        .lodgiko-cta {
+            border-radius: 14px;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+        }
+
+        .hero-media {
+            border-radius: 28px;
+        }
+
+        .hero-tile {
+            border-radius: 22px;
+        }
+
+        .booking-panel {
+            border-radius: 26px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        .room-card-item.is-filtered-out {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="antialiased bg-slate-50 text-slate-800" x-data="hotelShowPage()">
 
     <!-- Navbar Header with Navigation Menu -->
-    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm" x-data="{ mobileMenu: false }">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <!-- Brand Logo -->
-              <a href="/" class="flex items-center gap-2">
-                 <img src="{{ asset('images/lodgiko.png') }}"
-                    alt="Merahkie Logo"
-                    class="h-12 w-auto">
-                <!-- <div class="flex flex-col">
-                    <span class="text-xl font-black tracking-tight text-slate-900 leading-none">MERAHKIE</span>
-                    <span class="text-[10px] font-bold tracking-widest text-blue-600 uppercase mt-1">Bookings</span>
-                </div> -->
+    <header class="lodgiko-topbar sticky top-0 z-50 backdrop-blur-md" x-data="{ mobileMenu: false }">
+        <div class="lodgiko-shell mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2 shrink-0">
+                <img src="{{ asset('images/lodgiko.png') }}" alt="Lodgiko Logo" class="h-11 w-auto">
             </a>
 
-            <!-- Navigation Links (Home, Hotels, About, FAQ) -->
-            <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-                <a href="/" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                    <i class="fas fa-home text-xs text-blue-500"></i> Home
+            <nav class="lodgiko-nav hidden md:flex items-center justify-center gap-8 flex-1">
+                <a href="/" class="inline-flex items-center gap-2">
+                    <i class="fas fa-home text-[10px]"></i> Home
                 </a>
-                <a href="/#hotels" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                    <i class="fas fa-hotel text-xs text-blue-500"></i> Hotels
+                <a href="/#hotels" class="inline-flex items-center gap-2">
+                    <i class="fas fa-hotel text-[10px]"></i> Hotels
                 </a>
-                <a href="#about-property" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                    <i class="fas fa-info-circle text-xs text-blue-500"></i> About
+                <a href="#about-property" class="inline-flex items-center gap-2">
+                    <i class="fas fa-info-circle text-[10px]"></i> About
                 </a>
-                <a href="#faq-section" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                    <i class="fas fa-question-circle text-xs text-blue-500"></i> FAQ
+                <a href="#faq-section" class="inline-flex items-center gap-2">
+                    <i class="fas fa-question-circle text-[10px]"></i> FAQ
                 </a>
             </nav>
 
-            <!-- Right Actions -->
             <div class="flex items-center gap-3">
-                <a href="#available-rooms" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+                <button type="button" onclick="openBookingModal()" class="lodgiko-cta px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-all flex items-center gap-2 cursor-pointer">
                     <i class="fas fa-calendar-check text-xs"></i> Book Room
-                </a>
+                </button>
 
-                <!-- Mobile Hamburger Button -->
                 <button @click="mobileMenu = !mobileMenu" class="md:hidden w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 hover:bg-slate-200 transition-all">
                     <i class="fas" :class="mobileMenu ? 'fa-times' : 'fa-bars'"></i>
                 </button>
@@ -273,114 +362,312 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Breadcrumb & Title -->
-        <div class="mb-6">
-            <nav class="flex text-xs font-medium text-slate-400 gap-2 mb-2">
-                <a href="/" class="hover:text-blue-600">Home</a>
+    <main class="lodgiko-shell mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-7">
+            <nav class="flex items-center gap-2 text-[11px] font-medium text-slate-400 mb-4">
+                <a href="/" class="hover:text-blue-600 transition-colors">Home</a>
                 <span>/</span>
                 <span class="text-slate-600">{{ $hotel->city }}</span>
                 <span>/</span>
                 <span class="text-slate-900 font-bold">{{ $hotel->name }}</span>
             </nav>
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ $hotel->name }}</h1>
-                    <p class="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                    <h1 class="text-3xl sm:text-4xl lg:text-[3rem] font-black text-slate-900 tracking-[-0.05em] leading-[0.95]">{{ $hotel->name }}</h1>
+                    <p class="mt-3 text-sm sm:text-base text-slate-500 flex items-center gap-2">
                         <i class="fas fa-map-marker-alt text-blue-500"></i>
-                        {{ $hotel->address }}, {{ $hotel->city }}, {{ $hotel->state }}, {{ $hotel->country }}
+                        <span>{{ $hotel->city }}, {{ $hotel->country }}</span>
                     </p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="text-right">
-                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Rating</span>
-                        <span class="text-lg font-bold text-amber-500"><i class="fas fa-star mr-1"></i>4.8 / 5</span>
-                    </div>
+
+                <div class="inline-flex items-center gap-2 bg-white border border-amber-200 rounded-full px-4 py-2 shadow-sm">
+                    <span class="text-amber-500 text-base"><i class="fas fa-star"></i></span>
+                    <span class="text-sm font-bold text-slate-800">4.8 / 5</span>
+                    <span class="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">Rating</span>
                 </div>
             </div>
         </div>
 
-        <!-- Image Gallery Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 rounded-3xl overflow-hidden shadow-lg border border-slate-200">
-            @php
-                $images = $hotel->images;
-                $defaultImages = [
-                    'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
-                    'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=600&q=80',
-                    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80',
-                    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=600&q=80'
-                ];
-            @endphp
+        @php
+            $images = $hotel->images;
+            $mainImageUrl = ($images && $images->count() > 0) ? $images[0]->url : ($hotel->rooms->first()?->image_url ?? 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80');
+        @endphp
 
-            @if($images && $images->count() > 0)
-                <div class="md:col-span-2 aspect-[4/3] md:aspect-auto bg-slate-200">
-                    <img src="{{ $images[0]->url }}" onerror="this.onerror=null; this.src='{{ $defaultImages[0] }}';" class="w-full h-full object-cover">
+        <!-- Main Section: Main Image on Left & About Property on Right -->
+        <div class="mb-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+            {{-- Left: Main Hotel Image --}}
+            <div class="relative overflow-hidden rounded-[32px] border border-slate-200 bg-slate-900 shadow-[0_16px_36px_rgba(15,23,42,0.08)] group min-h-[380px] lg:min-h-[440px]">
+                <img src="{{ $mainImageUrl }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                
+                {{-- Badges on Image --}}
+                <div class="absolute top-5 left-5 flex items-center gap-2">
+                    <span class="px-3.5 py-1.5 bg-slate-950/70 backdrop-blur-md border border-white/20 text-white text-xs font-bold rounded-full shadow-md flex items-center gap-1.5">
+                        <i class="fas fa-hotel text-blue-400"></i> {{ $hotel->name }}
+                    </span>
+                    <span class="px-3 py-1.5 bg-emerald-600/90 backdrop-blur-md text-white text-xs font-bold rounded-full shadow-md flex items-center gap-1">
+                        <i class="fas fa-check-circle"></i> Verified Property
+                    </span>
                 </div>
-                <div class="md:col-span-2 grid grid-cols-2 gap-4">
-                    @foreach($images->slice(1, 4) as $idx => $img)
-                        <div class="aspect-video bg-slate-100 overflow-hidden">
-                            <img src="{{ $img->url }}" onerror="this.onerror=null; this.src='{{ $defaultImages[($idx + 1) % count($defaultImages)] }}';" class="w-full h-full object-cover">
+
+                <div class="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent text-white">
+                    <p class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                        <i class="fas fa-map-marker-alt text-blue-400"></i> {{ $hotel->city }}, {{ $hotel->country }}
+                    </p>
+                </div>
+            </div>
+
+            {{-- Right: About the Property Section --}}
+            <section id="about-property" class="bg-white border border-slate-200 rounded-[32px] p-6 sm:p-8 shadow-[0_16px_36px_rgba(15,23,42,0.06)] flex flex-col justify-between scroll-mt-24">
+                <div>
+                    <div class="flex items-center gap-2 text-blue-600 font-extrabold text-xs uppercase tracking-wider mb-2">
+                        <i class="fas fa-building"></i> Property Overview
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 tracking-tight">About the Property</h2>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Welcome to <strong>{{ $hotel->name }}</strong>. Located in the heart of {{ $hotel->city }}, this premier property offers modern accommodations with upscale amenities, dedicated 24/7 room service, and authentic top-rated hospitality. Specially crafted for both corporate travelers and vacationing families seeking unforgettable experiences.
+                    </p>
+                </div>
+
+                <div class="mt-8 border-t border-slate-100 pt-6">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Popular Amenities & Inclusions</h3>
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div class="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-700 hover:bg-blue-50/50 hover:border-blue-200 transition-all">
+                            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="fas fa-wifi"></i></div>
+                            <span>High-Speed Wi-Fi</span>
                         </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="md:col-span-2 aspect-[4/3] md:aspect-auto">
-                    <img src="{{ $defaultImages[0] }}" class="w-full h-full object-cover">
-                </div>
-                <div class="md:col-span-2 grid grid-cols-2 gap-4">
-                    <div class="aspect-video bg-slate-100 overflow-hidden">
-                        <img src="{{ $defaultImages[1] }}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="aspect-video bg-slate-100 overflow-hidden">
-                        <img src="{{ $defaultImages[2] }}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="aspect-video bg-slate-100 overflow-hidden">
-                        <img src="{{ $defaultImages[3] }}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="aspect-video bg-slate-100 overflow-hidden relative group cursor-pointer">
-                        <img src="{{ $defaultImages[0] }}" class="w-full h-full object-cover blur-sm">
-                        <div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center text-white font-bold text-sm">
-                            + View All Photos
+                        <div class="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-700 hover:bg-blue-50/50 hover:border-blue-200 transition-all">
+                            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="fas fa-swimming-pool"></i></div>
+                            <span>Swimming Pool</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-700 hover:bg-blue-50/50 hover:border-blue-200 transition-all">
+                            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="fas fa-parking"></i></div>
+                            <span>Free Parking</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs font-bold text-slate-700 hover:bg-blue-50/50 hover:border-blue-200 transition-all">
+                            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="fas fa-utensils"></i></div>
+                            <span>Restaurant & Dining</span>
                         </div>
                     </div>
                 </div>
-            @endif
+            </section>
         </div>
 
-        <!-- Content Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <!-- Left Column: Hotel Info & Available Rooms -->
-            <div class="lg:col-span-2 space-y-10">
-                <!-- Overview -->
-                <section id="about-property" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm scroll-mt-24">
-                    <h2 class="text-xl font-bold text-slate-900 mb-3">About the Property</h2>
-                    <p class="text-sm text-slate-600 leading-relaxed">
-                        Welcome to {{ $hotel->name }}. Located in {{ $hotel->city }}, this property offers modern accommodations with luxury amenities, 24/7 room service, and top-rated hospitality. Perfect for both business travelers and vacationing families.
-                    </p>
+        <!-- Content Layout (Full Width) -->
+        <div class="w-full space-y-10">
 
-                    <!-- Amenities Icons -->
-                    <div class="mt-6 border-t border-slate-100 pt-6">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Popular Amenities</h3>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            <div class="flex items-center gap-3 text-xs font-semibold text-slate-700">
-                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fas fa-wifi"></i></div>
-                                High-Speed Wi-Fi
-                            </div>
-                            <div class="flex items-center gap-3 text-xs font-semibold text-slate-700">
-                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fas fa-swimming-pool"></i></div>
-                                Swimming Pool
-                            </div>
-                            <div class="flex items-center gap-3 text-xs font-semibold text-slate-700">
-                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fas fa-parking"></i></div>
-                                Free Parking
-                            </div>
-                            <div class="flex items-center gap-3 text-xs font-semibold text-slate-700">
-                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fas fa-utensils"></i></div>
-                                Restaurant
-                            </div>
+            @php
+                $sliderImages = [];
+                if ($hotel->images && $hotel->images->count() > 0) {
+                    foreach ($hotel->images as $img) {
+                        $sliderImages[] = [
+                            'url' => $img->url,
+                            'title' => $img->title ?: $hotel->name,
+                            'caption' => $img->description ?: 'Explore the luxury spaces and comfort at ' . $hotel->name
+                        ];
+                    }
+                }
+
+                if ($hotel->rooms && $hotel->rooms->count() > 0) {
+                    foreach ($hotel->rooms as $r) {
+                        if (!empty($r->images)) {
+                            foreach ($r->images as $rImg) {
+                                $sliderImages[] = [
+                                    'url' => $rImg,
+                                    'title' => ($r->roomType->name ?? 'Room') . ' (Room ' . $r->room_number . ')',
+                                    'caption' => $r->bed_type ? ($r->bed_type . ' • ' . $r->status) : 'Deluxe Hospitality & Comfort'
+                                ];
+                            }
+                        }
+                    }
+                }
+
+                // Curated high-res fallback images if fewer images are present
+                $fallbacks = [
+                    ['url' => 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80', 'title' => 'Resort Overview & Scenic Pool', 'caption' => 'Experience serene relaxation and world-class luxury amenities'],
+                    ['url' => 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1400&q=80', 'title' => 'Luxury Guest Suites & Lounge', 'caption' => 'Spacious interiors designed with modern acoustic comfort and aesthetics'],
+                    ['url' => 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1400&q=80', 'title' => 'Fine Dining Restaurant & Bar', 'caption' => 'Savor multi-cuisine culinary masterpieces crafted by top chefs'],
+                    ['url' => 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1400&q=80', 'title' => 'Executive Suite Living Space', 'caption' => 'Elegantly curated architectural spaces with premium amenities'],
+                    ['url' => 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1400&q=80', 'title' => 'Wellness & Spa Oasis', 'caption' => 'Rejuvenate your body and mind in our serene relaxation lounges'],
+                ];
+
+                if (count($sliderImages) < 3) {
+                    foreach ($fallbacks as $fb) {
+                        $sliderImages[] = $fb;
+                    }
+                }
+            @endphp
+
+            <!-- Property Image Slider / Photo Tour Showcase -->
+            <section id="property-slider-gallery" class="bg-white border border-slate-200 rounded-[28px] p-6 sm:p-7 shadow-[0_12px_30px_rgba(15,23,42,0.05)] scroll-mt-24"
+                x-data="{
+                    activeSlide: 0,
+                    totalSlides: {{ count($sliderImages) }},
+                    autoPlayTimer: null,
+                    isPaused: false,
+                    slides: {{ Js::from($sliderImages) }},
+                    next() {
+                        this.activeSlide = (this.activeSlide + 1) % this.totalSlides;
+                    },
+                    prev() {
+                        this.activeSlide = (this.activeSlide - 1 + this.totalSlides) % this.totalSlides;
+                    },
+                    goTo(index) {
+                        this.activeSlide = index;
+                    },
+                    startAutoPlay() {
+                        this.autoPlayTimer = setInterval(() => {
+                            if (!this.isPaused) {
+                                this.next();
+                            }
+                        }, 5000);
+                    },
+                    stopAutoPlay() {
+                        if (this.autoPlayTimer) clearInterval(this.autoPlayTimer);
+                    }
+                }"
+                x-init="startAutoPlay()"
+                @mouseenter="isPaused = true"
+                @mouseleave="isPaused = false"
+                @keydown.right.window="next()"
+                @keydown.left.window="prev()"
+            >
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                            <i class="fas fa-images text-blue-600"></i> Property Photo Tour & Highlights
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Explore the ambience, architecture, and luxury spaces of {{ $hotel->name }}</p>
+                    </div>
+                    <div class="flex items-center gap-2 self-end sm:self-auto">
+                        <span class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 shadow-2xs" x-text="`${activeSlide + 1} / ${totalSlides}`"></span>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" @click="prev()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs" title="Previous Slide">
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </button>
+                            <button type="button" @click="next()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs" title="Next Slide">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </button>
                         </div>
                     </div>
-                </section>
+                </div>
+
+                <!-- Main Carousel Viewport -->
+                <div class="relative w-full h-[360px] sm:h-[480px] lg:h-[540px] rounded-2xl overflow-hidden bg-slate-900 shadow-lg group">
+                    <template x-for="(slide, index) in slides" :key="index">
+                        <div x-show="activeSlide === index"
+                             x-transition:enter="transition ease-out duration-500"
+                             x-transition:enter-start="opacity-0 scale-98"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-300"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-102"
+                             class="absolute inset-0 w-full h-full">
+                            <img :src="slide.url" :alt="slide.title" class="w-full h-full object-cover">
+                            
+                            <!-- Gradient Overlay & Caption -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent flex flex-col justify-end p-6 sm:p-8">
+                                <div class="max-w-2xl transform transition-all duration-300">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600/90 backdrop-blur-md text-white text-[11px] font-extrabold uppercase tracking-wider rounded-lg mb-2 shadow">
+                                        <i class="fas fa-camera"></i> Featured Gallery
+                                    </span>
+                                    <h3 class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white leading-tight drop-shadow-md" x-text="slide.title"></h3>
+                                    <p class="text-xs sm:text-sm text-slate-200 mt-1.5 leading-relaxed drop-shadow" x-text="slide.caption"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Floating Left / Right Arrow Buttons -->
+                    <button type="button" @click="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-xl cursor-pointer">
+                        <i class="fas fa-chevron-left text-sm"></i>
+                    </button>
+                    <button type="button" @click="next()" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-xl cursor-pointer">
+                        <i class="fas fa-chevron-right text-sm"></i>
+                    </button>
+
+                    <!-- Bottom Dots Navigation -->
+                    <div class="absolute bottom-4 right-6 flex items-center gap-1.5 z-10 bg-slate-900/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-md">
+                        <template x-for="(slide, index) in slides" :key="'dot-' + index">
+                            <button type="button" @click="goTo(index)" class="h-2 rounded-full transition-all cursor-pointer" :class="activeSlide === index ? 'w-6 bg-blue-500' : 'w-2 bg-white/50 hover:bg-white'"></button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Bottom Thumbnails Strip -->
+                <div class="mt-4 flex gap-3 overflow-x-auto pb-2 pt-1 scrollbar-thin">
+                    <template x-for="(slide, index) in slides" :key="'thumb-' + index">
+                        <button type="button" @click="goTo(index)" class="relative shrink-0 w-24 h-16 sm:w-28 sm:h-18 rounded-xl overflow-hidden border-2 transition-all cursor-pointer shadow-sm" :class="activeSlide === index ? 'border-blue-600 ring-2 ring-blue-300 scale-105 shadow-md' : 'border-slate-200 opacity-60 hover:opacity-100'">
+                            <img :src="slide.url" class="w-full h-full object-cover">
+                        </button>
+                    </template>
+                </div>
+            </section>
+
+            <!-- Available Rooms -->
+            <section id="available-rooms" class="scroll-mt-24">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                    <div>
+                        <h2 class="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-2">
+                            <i class="fas fa-bed text-blue-600"></i> Available Rooms & Suites
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Select from our handpicked luxury rooms with best rate guarantee</p>
+                    </div>
+                    <div class="flex items-center gap-2 self-start sm:self-auto">
+                        <button type="button" onclick="openBookingModal()" class="text-xs font-bold px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm cursor-pointer transition-all flex items-center gap-1.5">
+                            <i class="fas fa-search text-xs"></i> Change Dates & Guests
+                        </button>
+                        <span class="text-xs font-bold px-3 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl">
+                            <i class="fas fa-check-circle mr-1"></i> {{ $hotel->rooms->count() }} Total Rooms
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Active Filter Bar --}}
+                <div x-show="isFilterActive" x-cloak class="mb-6 p-4 rounded-2xl bg-blue-50/90 border border-blue-200 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
+                    <div class="flex flex-wrap items-center gap-3 font-semibold text-slate-800">
+                        <span class="px-3 py-1 bg-blue-600 text-white rounded-xl font-extrabold flex items-center gap-1.5 shadow-sm">
+                            <i class="fas fa-filter text-[10px]"></i> Showing Rooms For:
+                        </span>
+                        <span class="bg-white px-3 py-1.5 rounded-xl border border-blue-100"><i class="fas fa-user-friends text-blue-500 mr-1"></i> <strong x-text="`${filterGuests} Guest${filterGuests > 1 ? 's' : ''}`"></strong> (<span x-text="`${filterAdults} Adult${filterAdults > 1 ? 's' : ''}${filterChildren > 0 ? ', ' + filterChildren + ' Child' : ''}`"></span>)</span>
+                        <span class="bg-white px-3 py-1.5 rounded-xl border border-blue-100"><i class="fas fa-calendar-alt text-blue-500 mr-1"></i> <span x-text="filterCheckIn"></span> → <span x-text="filterCheckOut"></span></span>
+                        <span class="bg-white px-3 py-1.5 rounded-xl border border-blue-100"><i class="fas fa-door-open text-blue-500 mr-1"></i> <span x-text="`${filterRooms} Room${filterRooms > 1 ? 's' : ''}`"></span></span>
+                        <span x-show="filterRoomTypeName" x-cloak class="bg-white px-3 py-1.5 rounded-xl border border-blue-100"><i class="fas fa-bed text-blue-500 mr-1"></i> <strong x-text="filterRoomTypeName"></strong></span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="openBookingModal()" class="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-blue-600 font-bold rounded-xl border border-blue-200 shadow-2xs cursor-pointer transition-all flex items-center gap-1.5">
+                            <i class="fas fa-edit text-xs"></i> Modify
+                        </button>
+                        <button type="button" @click="resetFilter()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl shadow-2xs cursor-pointer transition-all flex items-center gap-1">
+                            <i class="fas fa-times text-xs"></i> Clear Filter
+                        </button>
+                    </div>
+                </div>
+                
+                @if($hotel->rooms->isEmpty())
+                    <div class="bg-blue-50 border border-blue-100 text-blue-800 p-8 rounded-3xl text-center">
+                        <i class="fas fa-hotel text-3xl text-blue-400 mb-2"></i>
+                        <p class="font-bold">No rooms currently listed for this property.</p>
+                    </div>
+                @else
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach($hotel->rooms as $room)
+                            @php
+                                $roomTypeName = $room->roomType->name ?? 'Standard Room';
+                                $roomPrice = $room->price ?: ($room->roomType->base_price ?? 2500);
+                                $bookUrl = route('booking-engine.hotel', ['slug' => $hotel->slug ? $hotel->slug . '-' . $hotel->id : $hotel->id]) . '?room_type_id=' . $room->room_type_id . '&room_id=' . $room->id;
+                                
+                                $isMaintenance = ($room->status === 'Maintenance' || ($room->activeMaintenanceTickets && $room->activeMaintenanceTickets->count() > 0));
+                                $hkStatus = $room->latestHousekeeping?->status ?? 'Clean';
+                                $isDirty = in_array($hkStatus, ['Dirty', 'Inspecting']);
+                                $isOccupied = ($room->status === 'Occupied');
+                                
+                                $hasActiveReservation = $room->reservations 
+                                    ? $room->reservations->whereIn('status', ['Confirmed', 'Checked-In', 'Pending'])
+                                                         ->where('check_out_date', '>=', date('Y-m-d'))
+                                                         ->count() > 0 
+                                    : false;
 
                 <!-- Available Rooms -->
                 <section id="available-rooms" class="scroll-mt-24">
@@ -513,30 +800,33 @@
                             <div x-show="openFaq === 1" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
                                 Standard Check-in is from 02:00 PM and Check-out is until 11:00 AM. Early check-in or late check-out is subject to availability.
                             </div>
-                        </div>
+                        @endforeach
+                    </div>
 
-                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
-                            <button @click="openFaq = openFaq === 2 ? null : 2" class="w-full bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 flex justify-between items-center cursor-pointer">
-                                <span>Is breakfast included with room booking?</span>
-                                <i class="fas text-slate-400" :class="openFaq === 2 ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                            </button>
-                            <div x-show="openFaq === 2" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
-                                Yes, complimentary high-speed Wi-Fi and daily buffet breakfast are included with most room packages.
-                            </div>
+                    {{-- No matching rooms notice when filtered --}}
+                    <div x-show="isFilterActive && matchingRoomsCount() === 0" x-cloak class="p-8 rounded-3xl bg-amber-50 border border-amber-200 text-center space-y-3 mt-6">
+                        <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-xl font-bold">
+                            <i class="fas fa-user-friends"></i>
                         </div>
-
-                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
-                            <button @click="openFaq = openFaq === 3 ? null : 3" class="w-full bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 flex justify-between items-center cursor-pointer">
-                                <span>What is the cancellation policy?</span>
-                                <i class="fas text-slate-400" :class="openFaq === 3 ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                        <h4 class="text-base font-bold text-amber-900">
+                            No <span x-text="filterRoomTypeName || 'matching'"></span> rooms for
+                            <span x-text="filterGuests"></span> guest<span x-text="filterGuests > 1 ? 's' : ''"></span>
+                            in <span x-text="filterRooms"></span> room<span x-text="filterRooms > 1 ? 's' : ''"></span>
+                        </h4>
+                        <p class="text-xs text-amber-700 max-w-md mx-auto">
+                            Please try another room type, fewer guests, more rooms, or view all available rooms.
+                        </p>
+                        <div class="pt-2 flex justify-center gap-2">
+                            <button type="button" onclick="openBookingModal()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm cursor-pointer">
+                                <i class="fas fa-sliders-h mr-1"></i> Adjust Guests
                             </button>
-                            <div x-show="openFaq === 3" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
-                                Free cancellation is available up to 24 hours prior to check-in. For late cancellations, standard 1-night room charges may apply.
-                            </div>
+                            <button type="button" @click="resetFilter()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl cursor-pointer">
+                                Show All Rooms
+                            </button>
                         </div>
                     </div>
-                </section>
-            </div>
+                @endif
+            </section>
 
             <!-- Right Column: Booking Widget / Summary -->
             <div class="lg:col-span-1" id="booking-sidebar-widget">
@@ -569,10 +859,9 @@
                                 <i class="fas fa-search text-xs"></i> Check Availability & Book
                             </button>
                         </div>
-                        <p class="text-[10px] text-center text-slate-500 mt-3"><i class="fas fa-shield-alt text-emerald-500 mr-1"></i> Best Rate Guaranteed</p>
-                    </form>
+                    </div>
                 </div>
-            </div>
+            </section>
         </div>
     </main>
 
@@ -910,5 +1199,112 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        window.applyRoomCardVisibility = function(data) {
+            const cards = document.querySelectorAll('.room-card-item');
+            if (data && data.reset) {
+                cards.forEach(function(card) {
+                    card.classList.remove('is-filtered-out');
+                });
+                return cards.length;
+            }
+
+            const roomsRequested = Math.max(Number(data.rooms || 1), 1);
+            const totalGuests = Math.max(Number(data.totalGuests || 1), 1);
+            const guestsPerRoom = Math.ceil(totalGuests / roomsRequested);
+            const typeId = String(data.roomTypeId || '').trim().toLowerCase();
+            const typeName = String(data.roomTypeName || '').trim().toLowerCase();
+
+            let visible = 0;
+            cards.forEach(function(card) {
+                const cap = Number(card.getAttribute('data-capacity') || 0);
+                const cardTypeId = String(card.getAttribute('data-room-type-id') || '').trim().toLowerCase();
+                const cardTypeName = String(card.getAttribute('data-room-type-name') || '').trim().toLowerCase();
+
+                let typeOk = true;
+                if (typeId) {
+                    typeOk = cardTypeId === typeId
+                        || (typeName && cardTypeName === typeName)
+                        || (typeName && cardTypeName.indexOf(typeName) !== -1)
+                        || (!/^\d+$/.test(typeId) && cardTypeName.indexOf(typeId) !== -1);
+                }
+
+                const capOk = cap >= guestsPerRoom;
+                const show = typeOk && capOk;
+                card.classList.toggle('is-filtered-out', !show);
+                if (show) visible += 1;
+            });
+
+            return visible;
+        };
+
+        window.applyBookingSearchFilter = function(data) {
+            const visibleCount = window.applyRoomCardVisibility(data || {});
+            const bodyEl = document.querySelector('body');
+            if (bodyEl && window.Alpine) {
+                const bodyAlpine = Alpine.$data(bodyEl);
+                if (bodyAlpine) {
+                    bodyAlpine.filterGuests = data.totalGuests;
+                    bodyAlpine.filterAdults = data.adults;
+                    bodyAlpine.filterChildren = data.children;
+                    bodyAlpine.filterRooms = data.rooms;
+                    bodyAlpine.filterRoomTypeId = data.roomTypeId || '';
+                    bodyAlpine.filterRoomTypeName = data.roomTypeName || '';
+                    bodyAlpine.filterCheckIn = data.checkIn;
+                    bodyAlpine.filterCheckOut = data.checkOut;
+                    bodyAlpine.visibleRoomCount = visibleCount;
+                    bodyAlpine.isFilterActive = true;
+                    
+                    if (bodyAlpine.bookingData) {
+                        bodyAlpine.bookingData.checkin_date = data.checkIn;
+                        bodyAlpine.bookingData.checkout_date = data.checkOut;
+                    }
+
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('check_in', data.checkIn);
+                    url.searchParams.set('check_out', data.checkOut);
+                    url.searchParams.set('adults', data.adults);
+                    url.searchParams.set('children', data.children);
+                    url.searchParams.set('rooms', data.rooms);
+                    if (data.roomTypeId) {
+                        url.searchParams.set('room_type_id', data.roomTypeId);
+                        if (data.roomTypeName) {
+                            url.searchParams.set('room_type_name', data.roomTypeName);
+                        }
+                    } else {
+                        url.searchParams.delete('room_type_id');
+                        url.searchParams.delete('room_type_name');
+                    }
+                    window.history.pushState({}, '', url.toString());
+                }
+            }
+
+            setTimeout(() => {
+                const el = document.getElementById('available-rooms');
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 120);
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('adults') || params.has('guests') || params.has('check_in') || params.has('room_type_id')) {
+                window.applyBookingSearchFilter({
+                    checkIn: params.get('check_in'),
+                    checkOut: params.get('check_out'),
+                    rooms: Number(params.get('rooms') || 1),
+                    adults: Number(params.get('adults') || 1),
+                    children: Number(params.get('children') || 0),
+                    totalGuests: Number(params.get('adults') || 1) + Number(params.get('children') || 0),
+                    roomTypeId: params.get('room_type_id') || '',
+                    roomTypeName: params.get('room_type_name') || ''
+                });
+            }
+        });
+    </script>
+
+    @include('components.booking.booking-search')
 </body>
 </html>

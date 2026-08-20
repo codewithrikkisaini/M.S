@@ -8,13 +8,14 @@ use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Payment;
 use App\Models\ActivityLog;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PublicHotelController extends Controller
 {
-    public function show($slug)
+    public function search(Request $request)
     {
         $hotelQuery = function ($q) {
             $q->with([
@@ -78,7 +79,12 @@ class PublicHotelController extends Controller
             abort(404, 'Hotel not found');
         }
 
-        return view('hotel.show', compact('hotel'));
+        $allRooms = Room::withoutGlobalScope('tenant')
+            ->where('hotel_id', $hotel->id)
+            ->with('roomType')
+            ->get();
+
+        return view('hotel.show', compact('hotel', 'allRooms', 'checkInDate', 'checkOutDate', 'adults', 'children', 'totalGuests', 'roomsCount'));
     }
 
     public function reserveRoom(Request $request, $slug, $roomId = null)
