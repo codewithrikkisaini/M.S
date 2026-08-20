@@ -14,25 +14,134 @@
 
     {{-- Single Unified Form Card --}}
     <div class="pms-card shadow-sm border border-slate-100/80 p-6 mb-8">
-        <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-3">
-            <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100">
-                <i class="fas fa-door-open text-base"></i>
-            </div>
-            <div>
-                <h3 class="text-base font-bold text-slate-800">Room Details & Tariff Configuration</h3>
-                <p class="text-xs text-slate-400">Fill details below to add room into inventory</p>
-            </div>
-        </div>
-
         <form wire:submit.prevent="saveRoom" class="space-y-6">
-            {{-- Section 1: Room Media & Overview (Main Images & Description) --}}
+            {{-- Section 1: Room Identity & Configuration (Room Number, Floor, Status, Bed Type) --}}
             <div class="space-y-5">
+                <div class="flex items-center gap-2 mb-2 pb-3 border-b border-slate-50">
+                    <div class="w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100">
+                        <i class="fas fa-door-open text-xs"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800">1. Room Identity & Configuration</h4>
+                        <p class="text-[11px] text-slate-400">Set room number, floor assignment, bed type, and status</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Number(s) <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model.live="room_number" class="pms-input text-sm font-extrabold text-slate-800" placeholder="e.g. 101, 102, 201-205">
+                        <p class="text-[10px] text-slate-400 mt-1">Single room or comma/range (e.g. 101, 102-105)</p>
+                        @error('room_number') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Floor <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="floor" class="pms-input text-sm font-semibold" placeholder="e.g. 1">
+                        <p class="text-[10px] text-slate-400 mt-1">Default floor number</p>
+                        @error('floor') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Status <span class="text-red-500">*</span></label>
+                        <select wire:model="status" class="pms-input text-sm font-bold">
+                            <option value="Available">Available</option>
+                            <option value="Occupied">Occupied</option>
+                            <option value="Reserved">Reserved</option>
+                            <option value="Maintenance">Maintenance</option>
+                        </select>
+                        @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-3">
+                    <div>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
+                        <select wire:model.live="bed_type" class="pms-input text-sm font-bold text-slate-800">
+                            @foreach($this->bedTypes as $bedType)
+                                <option value="{{ $bedType }}">{{ $bedType }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-0">Room Option / Feature</label>
+                            @if(!empty($room_option) && count($room_option) > 0)
+                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
+                                <i class="fas fa-check-circle text-indigo-500"></i> Multiple Select ({{ count($room_option) }} selected)
+                            </span>
+                            @endif
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
+                            @foreach($this->availableOptions as $opt)
+                                <label class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer transition-all shadow-2xs group">
+                                    <input type="checkbox" wire:model.live="room_option" value="{{ $opt }}" class="w-4 h-4 text-indigo-600 rounded-md border-slate-300 focus:ring-indigo-500 focus:ring-offset-0 transition-colors">
+                                    <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-900 transition-colors leading-tight">{{ $opt }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Room Type Selector & Custom Name --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
+                    <div>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Type Category <span class="text-red-500">*</span></label>
+                        <select wire:model.live="room_type_select" class="pms-input text-sm font-bold text-slate-800 bg-slate-50 border-slate-200">
+                            <option value="Single">Single Room (Daily: $59.95 | Weekly: $249.90 | Monthly: $990.00)</option>
+                            <option value="Double">Double Room (Daily: $79.95 | Weekly: $349.90 | Monthly: $1190.00)</option>
+                            <option value="Apartment">Apartment Suite (Daily: $79.90 | Weekly: $349.90 | Monthly: $1349.00)</option>
+                            <option value="custom">+ Add Custom Room Type...</option>
+                        </select>
+                    </div>
+
+                    @if($is_custom_type)
+                    <div>
+                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Custom Room Type Name <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="room_type_name" class="pms-input text-sm font-bold" placeholder="e.g. Deluxe Suite, Family Room">
+                        @error('room_type_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    @endif
+                </div>
+
+                {{-- Tariff Rates (Daily, Weekly, Monthly, Tax %) --}}
+                <div class="pt-4 border-t border-slate-100">
+                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Room Type Tariff Rates & Tax</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase">Daily Rate ($) *</label>
+                            <input type="number" step="0.01" wire:model="daily_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="59.95">
+                            @error('daily_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase">Weekly Rate ($) *</label>
+                            <input type="number" step="0.01" wire:model="weekly_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="249.90">
+                            @error('weekly_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase">Monthly Rate ($) *</label>
+                            <input type="number" step="0.01" wire:model="monthly_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="990.00">
+                            @error('monthly_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 uppercase">Tax Rate (%) *</label>
+                            <input type="number" step="0.01" wire:model="tax_percent" class="pms-input text-sm font-bold text-indigo-700 bg-indigo-50/50" placeholder="15">
+                            @error('tax_percent') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Section 2: Room Media & Overview (Photos & Description) --}}
+            <div class="pt-6 border-t border-slate-100 space-y-5">
                 <div class="flex items-center gap-2 mb-2 pb-3 border-b border-slate-50">
                     <div class="w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100">
                         <i class="fas fa-images text-xs"></i>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-slate-800">1. Room Media & Overview</h4>
+                        <h4 class="text-sm font-bold text-slate-800">2. Room Media & Overview</h4>
                         <p class="text-[11px] text-slate-400">Add room photos, select main thumbnail, and provide room description</p>
                     </div>
                 </div>
@@ -103,125 +212,6 @@
                     <textarea wire:model="description" rows="3" class="pms-input text-sm font-medium" placeholder="Enter detailed room description, features, amenities, or notes..."></textarea>
                     <p class="text-[10px] text-slate-400">Provide an overview of the room features, view, and unique guest experience.</p>
                     @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-            </div>
-
-            {{-- Section 2: Room Identity & Inventory Setup --}}
-            <div class="pt-6 border-t border-slate-100 space-y-5">
-                <div class="flex items-center gap-2 mb-2 pb-3 border-b border-slate-50">
-                    <div class="w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100">
-                        <i class="fas fa-door-open text-xs"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold text-slate-800">2. Room Identity & Configuration</h4>
-                        <p class="text-[11px] text-slate-400">Set room numbers, floor assignment, and bed/feature options</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    <div>
-                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Number(s) <span class="text-red-500">*</span></label>
-                        <input type="text" wire:model.live="room_number" class="pms-input text-sm font-extrabold text-slate-800" placeholder="e.g. 101, 102, 201-205">
-                        <p class="text-[10px] text-slate-400 mt-1">Single room or comma/range (e.g. 101, 102-105)</p>
-                        @error('room_number') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Floor <span class="text-red-500">*</span></label>
-                        <input type="text" wire:model="floor" class="pms-input text-sm font-semibold" placeholder="e.g. 1">
-                        <p class="text-[10px] text-slate-400 mt-1">Default floor number</p>
-                        @error('floor') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Status <span class="text-red-500">*</span></label>
-                        <select wire:model="status" class="pms-input text-sm font-bold">
-                            <option value="Available">Available</option>
-                            <option value="Occupied">Occupied</option>
-                            <option value="Reserved">Reserved</option>
-                            <option value="Maintenance">Maintenance</option>
-                        </select>
-                        @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-3">
-                    <div>
-                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
-                        <select wire:model.live="bed_type" class="pms-input text-sm font-bold text-slate-800">
-                            @foreach($this->bedTypes as $bedType)
-                                <option value="{{ $bedType }}">{{ $bedType }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-0">Room Option / Feature</label>
-                            @if(!empty($room_option) && count($room_option) > 0)
-                            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
-                                <i class="fas fa-check-circle text-indigo-500"></i> Multiple Select ({{ count($room_option) }} selected)
-                            </span>
-                            @endif
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80 max-h-48 overflow-y-auto">
-                            @foreach($this->availableOptions as $opt)
-                                <label class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer transition-all shadow-2xs group">
-                                    <input type="checkbox" wire:model.live="room_option" value="{{ $opt }}" class="w-4 h-4 text-indigo-600 rounded-md border-slate-300 focus:ring-indigo-500 focus:ring-offset-0 transition-colors">
-                                    <span class="text-xs font-bold text-slate-700 group-hover:text-indigo-900 transition-colors leading-tight">{{ $opt }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Row 2: Room Type Selector & Custom Name --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
-                <div>
-                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Type Category <span class="text-red-500">*</span></label>
-                    <select wire:model.live="room_type_select" class="pms-input text-sm font-bold text-slate-800 bg-slate-50 border-slate-200">
-                        <option value="Single">Single Room (Daily: $59.95 | Weekly: $249.90 | Monthly: $990.00)</option>
-                        <option value="Double">Double Room (Daily: $79.95 | Weekly: $349.90 | Monthly: $1190.00)</option>
-                        <option value="Apartment">Apartment Suite (Daily: $79.90 | Weekly: $349.90 | Monthly: $1349.00)</option>
-                        <option value="custom">+ Add Custom Room Type...</option>
-                    </select>
-                </div>
-
-                @if($is_custom_type)
-                <div>
-                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Custom Room Type Name <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="room_type_name" class="pms-input text-sm font-bold" placeholder="e.g. Deluxe Suite, Family Room">
-                    @error('room_type_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                @endif
-            </div>
-
-            {{-- Row 3: Tariff Rates (Daily, Weekly, Monthly, Tax %) --}}
-            <div class="pt-4 border-t border-slate-100">
-                <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Room Type Tariff Rates & Tax</label>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div>
-                        <label class="text-[11px] font-bold text-slate-500 uppercase">Daily Rate ($) *</label>
-                        <input type="number" step="0.01" wire:model="daily_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="59.95">
-                        @error('daily_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="text-[11px] font-bold text-slate-500 uppercase">Weekly Rate ($) *</label>
-                        <input type="number" step="0.01" wire:model="weekly_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="249.90">
-                        @error('weekly_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="text-[11px] font-bold text-slate-500 uppercase">Monthly Rate ($) *</label>
-                        <input type="number" step="0.01" wire:model="monthly_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="990.00">
-                        @error('monthly_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="text-[11px] font-bold text-slate-500 uppercase">Tax Rate (%) *</label>
-                        <input type="number" step="0.01" wire:model="tax_percent" class="pms-input text-sm font-bold text-indigo-700 bg-indigo-50/50" placeholder="15">
-                        @error('tax_percent') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
                 </div>
             </div>
 

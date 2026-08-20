@@ -13,30 +13,42 @@ class Room extends Model
     protected $fillable = ['room_number', 'room_type_id', 'price', 'capacity', 'status', 'floor', 'bed_type', 'room_option', 'description', 'hotel_id', 'image_path'];
 
 
-    public function getCapacityAttribute($value): int
+    public function getCapacityAttribute($value = null): int
     {
-        if (!empty($value) && (int)$value > 0) {
-            return (int) $value;
+        $val = $value ?? ($this->attributes['capacity'] ?? null);
+        if (!empty($val) && (int) $val > 0) {
+            return (int) $val;
         }
 
         $bed = strtolower($this->bed_type ?? '');
         $option = strtolower($this->room_option ?? '');
         $type = strtolower($this->roomType?->name ?? '');
 
-        if (str_contains($bed, 'single') || str_contains($type, 'single')) {
-            return 1;
-        }
-        if (str_contains($bed, '2 double') || str_contains($bed, 'bunk') || str_contains($bed, 'family') || str_contains($type, 'family') || str_contains($type, 'suite')) {
-            return 4;
-        }
-        if (str_contains($bed, 'extra') || str_contains($option, 'extra guest') || str_contains($bed, 'triple')) {
-            return 3;
+        if (str_contains($type, 'presidential') || str_contains($type, 'grand') || str_contains($type, 'villa')) {
+            return 6;
         }
         if (str_contains($type, 'executive') || str_contains($type, 'apartment') || str_contains($bed, 'california')) {
             return 5;
         }
-        if (str_contains($type, 'presidential') || str_contains($type, 'grand') || str_contains($type, 'villa')) {
-            return 6;
+        if (
+            str_contains($bed, '2 double') ||
+            str_contains($bed, '2 king') ||
+            str_contains($bed, '2 queen') ||
+            str_contains($bed, 'double double') ||
+            str_contains($bed, 'bunk') ||
+            str_contains($bed, 'quad') ||
+            str_contains($bed, 'family') ||
+            str_contains($type, 'family') ||
+            str_contains($type, 'suite') ||
+            str_contains($type, 'quad')
+        ) {
+            return 4;
+        }
+        if (str_contains($bed, 'extra') || str_contains($option, 'extra guest') || str_contains($bed, 'triple') || str_contains($type, 'triple')) {
+            return 3;
+        }
+        if (str_contains($bed, 'single') || str_contains($type, 'single')) {
+            return 1;
         }
 
         return 2;
@@ -115,30 +127,6 @@ class Room extends Model
     {
         $all = $this->images;
         return $all[0] ?? 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';
-    }
-
-    public function getCapacityAttribute(): int
-    {
-        if (isset($this->attributes['capacity']) && $this->attributes['capacity'] > 0) {
-            return (int) $this->attributes['capacity'];
-        }
-
-        $bedType = strtolower($this->bed_type ?? '');
-        $typeName = strtolower($this->roomType->name ?? '');
-
-        if (str_contains($bedType, '2 double') || str_contains($bedType, '2 king') || str_contains($bedType, '2 queen') || str_contains($bedType, 'double double') || str_contains($bedType, 'family') || str_contains($typeName, 'family') || str_contains($typeName, 'apartment') || str_contains($typeName, 'suite')) {
-            return 4;
-        }
-        if (str_contains($bedType, 'triple') || str_contains($typeName, 'triple')) {
-            return 3;
-        }
-        if (str_contains($bedType, 'single') || str_contains($typeName, 'single')) {
-            return 1;
-        }
-        if (str_contains($bedType, 'quad') || str_contains($typeName, 'quad')) {
-            return 4;
-        }
-        return 2;
     }
 
     public function roomType()
