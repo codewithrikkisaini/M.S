@@ -29,10 +29,13 @@
     </script>
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<<<<<<< HEAD
     <style>
         [x-cloak] { display: none !important; }
         .is-filtered-out { display: none !important; }
     </style>
+=======
+>>>>>>> 5f7ad150ec083575746ac84afe2f70478282f8f1
 </head>
 <body class="antialiased bg-slate-50 text-slate-800" x-data="{ 
     showModal: false, 
@@ -225,8 +228,52 @@
                 <div class="w-full h-full rounded-2xl overflow-hidden bg-slate-100 relative group">
                     <img src="{{ $sideImg1 }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 </div>
+<<<<<<< HEAD
                 <div class="w-full h-full rounded-2xl overflow-hidden bg-slate-100 relative group">
                     <img src="{{ $sideImg2 }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+=======
+
+                <!-- Main Carousel Viewport -->
+                <div class="relative w-full h-[360px] sm:h-[480px] lg:h-[540px] rounded-2xl overflow-hidden bg-slate-900 shadow-lg group">
+                    <template x-for="(slide, index) in slides" :key="index">
+                        <div x-show="activeSlide === index"
+                             x-transition:enter="transition ease-out duration-500"
+                             x-transition:enter-start="opacity-0 scale-98"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-300"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-102"
+                             class="absolute inset-0 w-full h-full">
+                            <img :src="slide.url" :alt="slide.title" class="w-full h-full object-cover">
+                            
+                            <!-- Gradient Overlay & Caption -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent flex flex-col justify-end p-6 sm:p-8">
+                                <div class="max-w-2xl transform transition-all duration-300">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600/90 backdrop-blur-md text-white text-[11px] font-extrabold uppercase tracking-wider rounded-lg mb-2 shadow">
+                                        <i class="fas fa-camera"></i> Featured Gallery
+                                    </span>
+                                    <h3 class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white leading-tight drop-shadow-md" x-text="slide.title"></h3>
+                                    <p class="text-xs sm:text-sm text-slate-200 mt-1.5 leading-relaxed drop-shadow" x-text="slide.caption"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Floating Left / Right Arrow Buttons -->
+                    <button type="button" @click="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-xl cursor-pointer">
+                        <i class="fas fa-chevron-left text-sm"></i>
+                    </button>
+                    <button type="button" @click="next()" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-xl cursor-pointer">
+                        <i class="fas fa-chevron-right text-sm"></i>
+                    </button>
+
+                    <!-- Bottom Dots Navigation -->
+                    <div class="absolute bottom-4 right-6 flex items-center gap-1.5 z-10 bg-slate-900/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-md">
+                        <template x-for="(slide, index) in slides" :key="'dot-' + index">
+                            <button type="button" @click="goTo(index)" class="h-2 rounded-full transition-all cursor-pointer" :class="activeSlide === index ? 'w-6 bg-blue-500' : 'w-2 bg-white/50 hover:bg-white'"></button>
+                        </template>
+                    </div>
+>>>>>>> 5f7ad150ec083575746ac84afe2f70478282f8f1
                 </div>
             </div>
         </div>
@@ -267,6 +314,7 @@
                     </div>
                 </div>
 
+<<<<<<< HEAD
                 {{-- 2. Available Rooms & Suites Section --}}
                 <div id="available-rooms" class="space-y-4 scroll-mt-24">
                     <h2 class="text-xl font-bold text-slate-900">Available Rooms & Suites</h2>
@@ -361,6 +409,98 @@
                                     <div class="flex-1 flex flex-col justify-between">
                                         <div>
                                             <div class="flex justify-between items-start">
+=======
+                <!-- Available Rooms -->
+                <section id="available-rooms" class="scroll-mt-24">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">Available Rooms & Suites</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Check live room rates and availability for your selected dates.</p>
+                        </div>
+                        <template x-if="hasSearched">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-xl shadow-2xs">
+                                <i class="fas fa-check-circle text-emerald-500"></i>
+                                <span x-text="matchingRooms.length + ' Available Room' + (matchingRooms.length === 1 ? '' : 's')"></span>
+                            </span>
+                        </template>
+                    </div>
+
+                    <!-- Search Summary Banner (Shown when searched) -->
+                    <template x-if="hasSearched">
+                        <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-2xl p-4 mb-6 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+                            <div class="flex items-center gap-2 text-xs font-bold text-emerald-950">
+                                <i class="fas fa-calendar-check text-emerald-600 text-sm"></i>
+                                <span>Showing rooms for: <strong class="text-slate-900" x-text="formatDisplayDate(searchCheckIn)"></strong> ➔ <strong class="text-slate-900" x-text="formatDisplayDate(searchCheckOut)"></strong> (<span x-text="searchNights + (searchNights === 1 ? ' Night' : ' Nights')"></span>, <span x-text="searchGuests + (searchGuests === 1 ? ' Guest' : ' Guests')"></span>)</span>
+                            </div>
+                            <button type="button" @click="document.getElementById('booking-sidebar-widget')?.scrollIntoView({ behavior: 'smooth' })" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer">
+                                <i class="fas fa-edit"></i> Modify Dates
+                            </button>
+                        </div>
+                    </template>
+                    
+                    <div class="space-y-5">
+                        <!-- STATE 2: User HAS searched, but NO rooms match -->
+                        <template x-if="hasSearched && matchingRooms.length === 0">
+                            <div class="bg-amber-50 border border-amber-200 text-amber-900 p-8 rounded-3xl text-center space-y-3 shadow-sm">
+                                <div class="w-14 h-14 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
+                                    <i class="fas fa-calendar-times"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-base font-extrabold text-amber-900">No Rooms Available for Selected Dates</h4>
+                                    <p class="text-xs text-amber-700 max-w-md mx-auto mt-1">
+                                        All rooms are currently booked or under maintenance from <strong x-text="formatDisplayDate(searchCheckIn)"></strong> to <strong x-text="formatDisplayDate(searchCheckOut)"></strong> for <strong x-text="searchGuests"></strong> guest(s). Please try selecting different dates.
+                                    </p>
+                                </div>
+                                <button type="button" @click="document.getElementById('booking-sidebar-widget')?.scrollIntoView({ behavior: 'smooth' })" class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow transition-all cursor-pointer">
+                                    <i class="fas fa-redo-alt"></i> Try Different Dates
+                                </button>
+                            </div>
+                        </template>
+
+                        <!-- STATE 3: User HAS searched, and matching rooms are found -->
+                        <template x-if="hasSearched && matchingRooms.length > 0">
+                            <div class="space-y-4">
+                                <template x-for="room in matchingRooms" :key="room.id">
+                                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row gap-6 hover:shadow-md transition-all">
+                                        <div class="w-full sm:w-1/3 aspect-video sm:aspect-auto rounded-xl bg-slate-100 overflow-hidden shrink-0 relative">
+                                            <img :src="room.image_url" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80';" class="w-full h-full object-cover">
+                                            <template x-if="room.images && room.images.length > 1">
+                                                <span class="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-sm border border-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+                                                    <i class="fas fa-images text-blue-400"></i> <span x-text="room.images.length + ' Photos'"></span>
+                                                </span>
+                                            </template>
+                                        </div>
+                                        <div class="flex-1 flex flex-col justify-between">
+                                            <div>
+                                                <div class="flex justify-between items-start">
+                                                        <div>
+                                                            <h3 class="text-lg font-bold text-slate-900" x-text="room.name"></h3>
+                                                            <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
+                                                                <span><i class="fas fa-bed text-blue-500 mr-1"></i> Bed: <strong class="text-slate-800 font-bold" x-text="room.bed_type"></strong></span>
+                                                            </p>
+                                                        </div>
+                                                    <span class="text-xs font-bold px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg flex items-center gap-1">
+                                                        <i class="fas fa-check-circle"></i> Available
+                                                    </span>
+                                                </div>
+                                                
+                                                <div class="mt-3 flex flex-wrap gap-1.5">
+                                                    <template x-if="room.room_option">
+                                                        <template x-for="opt in room.room_option.split(',')" :key="opt">
+                                                            <span class="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100/80 px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-2xs">
+                                                                <i class="fas fa-check-circle text-indigo-500 text-[9px]"></i> <span x-text="opt.trim()"></span>
+                                                            </span>
+                                                        </template>
+                                                    </template>
+                                                    <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-wifi mr-1 text-blue-500"></i> Free Wi-Fi</span>
+                                                    <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-snowflake mr-1 text-blue-500"></i> AC</span>
+                                                    <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-tv mr-1 text-blue-500"></i> Flat TV</span>
+                                                    <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fas fa-coffee mr-1 text-blue-500"></i> Breakfast Included</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mt-6 flex items-end justify-between border-t border-slate-100 pt-4 gap-3">
+>>>>>>> 5f7ad150ec083575746ac84afe2f70478282f8f1
                                                 <div>
                                                     <h3 class="text-base sm:text-lg font-bold text-slate-900">{{ $roomTypeName }}</h3>
                                                     <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-3">
@@ -440,6 +580,35 @@
                             <div x-show="openFaq === 1" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
                                 Standard Check-in is from 02:00 PM and Check-out is until 11:00 AM. Early check-in or late check-out is subject to availability.
                             </div>
+<<<<<<< HEAD
+=======
+                        </template>
+                    </div>
+                </section>
+
+
+                <!-- FAQ Section -->
+                <section id="faq-section" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm scroll-mt-24" x-data="{ openFaq: null }">
+                    <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-question-circle text-blue-600 text-lg"></i> Frequently Asked Questions
+                    </h2>
+                    <div class="space-y-3 text-xs">
+                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                            <button @click="openFaq = openFaq === 1 ? null : 1" class="w-full bg-slate-50 px-4 py-3 text-left font-bold text-slate-800 flex justify-between items-center cursor-pointer">
+                                <span>What are the standard Check-in and Check-out times?</span>
+                                <i class="fas text-slate-400" :class="openFaq === 1 ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            </button>
+                            <div x-show="openFaq === 1" x-cloak class="p-4 bg-white text-slate-600 border-t border-slate-100 leading-relaxed">
+                                Standard Check-in is from 02:00 PM and Check-out is until 11:00 AM. Early check-in or late check-out is subject to availability.
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- No matching rooms notice when filtered --}}
+                    <div x-show="isFilterActive && matchingRoomsCount() === 0" x-cloak class="p-8 rounded-3xl bg-amber-50 border border-amber-200 text-center space-y-3 mt-6">
+                        <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-xl font-bold">
+                            <i class="fas fa-user-friends"></i>
+>>>>>>> 5f7ad150ec083575746ac84afe2f70478282f8f1
                         </div>
 
                         <div class="border border-slate-100 rounded-2xl overflow-hidden bg-slate-50">
@@ -465,6 +634,7 @@
                 </div>
             </div>
 
+<<<<<<< HEAD
             {{-- Right Column (4 cols): Sticky Room Search Card --}}
             <div class="lg:col-span-4 sticky top-24">
                 <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-md space-y-4">
@@ -476,6 +646,15 @@
                     </div>
 
                     <form action="{{ route('hotel.show', ['slug' => $hotel->slug ?: $hotel->id]) }}" method="GET" id="sidebarBookingSearchForm" onsubmit="return handleSidebarSearchSubmit(event)" class="space-y-3.5">
+=======
+            <!-- Right Column: Booking Widget / Summary -->
+            <div class="lg:col-span-1" id="booking-sidebar-widget">
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl sticky top-28">
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Book Your Stay</h3>
+                    <p class="text-xs text-slate-500 mb-6">Select dates and number of guests to reserve instantly.</p>
+                    
+                    <form @submit.prevent="performSearch()" class="space-y-4">
+>>>>>>> 5f7ad150ec083575746ac84afe2f70478282f8f1
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">GUESTS</label>
                             <select name="adults" id="sidebar_guests" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 focus:bg-white shadow-2xs">
@@ -507,11 +686,15 @@
                                 <i class="fas fa-search text-xs"></i> Search Rooms
                             </button>
                         </div>
+<<<<<<< HEAD
 
                         <p class="text-[10px] text-center text-slate-400 flex items-center justify-center gap-1.5 pt-1">
                             <i class="fas fa-shield-alt text-emerald-500"></i> Best Rate Guaranteed
                         </p>
                     </form>
+=======
+                    </div>
+>>>>>>> 5f7ad150ec083575746ac84afe2f70478282f8f1
                 </div>
             </div>
         </div>
