@@ -29,6 +29,124 @@
     </script>
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        function hotelShowPage() {
+            return {
+                showModal: false,
+                selectedRoom: null,
+                modalImgIdx: 0,
+                showBookingModal: false,
+                bookingSubmitted: false,
+                selectedRoomForBooking: null,
+                filterGuests: {{ (int) request('adults', request('guests', 1)) + (int) request('children', 0) }},
+                filterAdults: {{ (int) request('adults', request('guests', 1)) }},
+                filterChildren: {{ (int) request('children', 0) }},
+                filterRooms: {{ (int) request('rooms', 1) }},
+                filterRoomTypeId: @json((string) request('room_type_id', '')),
+                filterRoomTypeName: @json((string) request('room_type_name', '')),
+                filterCheckIn: @json($checkInDate ?? date('Y-m-d')),
+                filterCheckOut: @json($checkOutDate ?? date('Y-m-d', strtotime('+1 day'))),
+                isFilterActive: {{ (request()->has('adults') || request()->has('guests') || request()->has('check_in') || request()->filled('room_type_id')) ? 'true' : 'false' }},
+                visibleRoomCount: 0,
+                resetFilter() {
+                    this.filterGuests = 1;
+                    this.filterAdults = 1;
+                    this.filterChildren = 0;
+                    this.filterRooms = 1;
+                    this.filterRoomTypeId = '';
+                    this.filterRoomTypeName = '';
+                    this.isFilterActive = false;
+
+                    let url = new URL(window.location.href);
+                    url.search = '';
+                    window.history.pushState({}, '', url.toString());
+
+                    if (document.getElementById('roomsInput')) document.getElementById('roomsInput').value = 1;
+                    if (document.getElementById('adultsInput')) document.getElementById('adultsInput').value = 1;
+                    if (document.getElementById('childrenInput')) document.getElementById('childrenInput').value = 0;
+                    document.querySelectorAll('input[name="room_type_id"]').forEach(function(input) {
+                        input.checked = input.value === '';
+                    });
+                    const rateSummary = document.getElementById('rateSummary');
+                    if (rateSummary) rateSummary.innerText = 'Select Room Type';
+                    if (typeof window.applyRoomCardVisibility === 'function') {
+                        window.applyRoomCardVisibility({ reset: true });
+                    }
+                    this.visibleRoomCount = document.querySelectorAll('.room-card-item').length;
+                    if (typeof updateGuestSummary === 'function') updateGuestSummary();
+                    if (typeof initBookingState === 'function') initBookingState();
+                },
+                matchingRoomsCount() {
+                    return this.visibleRoomCount;
+                },
+                bookingData: {
+                    guest_name: '',
+                    guest_email: '',
+                    guest_phone: '',
+                    checkin_date: @json($checkInDate ?? date('Y-m-d')),
+                    checkout_date: @json($checkOutDate ?? date('Y-m-d', strtotime('+1 day'))),
+                    special_requests: '',
+                    payment_method: 'Cash'
+                },
+                get nights() {
+                    if (!this.bookingData.checkin_date || !this.bookingData.checkout_date) return 1;
+                    let d1 = new Date(this.bookingData.checkin_date);
+                    let d2 = new Date(this.bookingData.checkout_date);
+                    let diffTime = d2.getTime() - d1.getTime();
+                    let diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+                    return diffDays > 0 ? diffDays : 1;
+                },
+                get totalPayable() {
+                    if (!this.selectedRoomForBooking) return 0;
+                    let rawRate = Number(this.selectedRoomForBooking.rawPrice || 0);
+                    return rawRate * this.nights;
+                },
+                get totalPayableFormatted() {
+                    return '₹' + this.totalPayable.toLocaleString('en-IN');
+                },
+                isSubmitting: false,
+                successResult: null,
+                errorMessage: '',
+                async submitBooking() {
+                    if (!this.selectedRoomForBooking) return;
+                    this.isSubmitting = true;
+                    this.errorMessage = '';
+                    try {
+                        let res = await fetch(@json(route('hotel.book-instant')), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': @json(csrf_token())
+                            },
+                            body: JSON.stringify({
+                                hotel_id: {{ (int) $hotel->id }},
+                                room_id: this.selectedRoomForBooking.id,
+                                guest_name: this.bookingData.guest_name,
+                                guest_email: this.bookingData.guest_email,
+                                guest_phone: this.bookingData.guest_phone,
+                                checkin_date: this.bookingData.checkin_date,
+                                checkout_date: this.bookingData.checkout_date,
+                                special_requests: this.bookingData.special_requests,
+                                payment_method: this.bookingData.payment_method
+                            })
+                        });
+                        let data = await res.json().catch(() => ({ success: false, message: 'Server error or invalid response. Please try again.' }));
+                        if (res.ok && data.success) {
+                            this.successResult = data;
+                            this.bookingSubmitted = true;
+                        } else {
+                            this.errorMessage = data.message || 'Error completing booking.';
+                        }
+                    } catch (e) {
+                        this.errorMessage = 'Network error occurred: ' + (e.message || 'Please try again.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                }
+            };
+        }
+    </script>
 
     <style>
         body {
@@ -76,118 +194,13 @@
             border-radius: 26px;
             box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
         }
+
+        .room-card-item.is-filtered-out {
+            display: none !important;
+        }
     </style>
 </head>
-<body class="antialiased bg-slate-50 text-slate-800" x-data="{ 
-    showModal: false, 
-    selectedRoom: null,
-    modalImgIdx: 0,
-    showBookingModal: false,
-    bookingSubmitted: false,
-    selectedRoomForBooking: null,
-    filterGuests: {{ (int) request('adults', request('guests', 1)) + (int) request('children', 0) }},
-    filterAdults: {{ (int) request('adults', request('guests', 1)) }},
-    filterChildren: {{ (int) request('children', 0) }},
-    filterRooms: {{ (int) request('rooms', 1) }},
-    filterCheckIn: '{{ $checkInDate ?? date('Y-m-d') }}',
-    filterCheckOut: '{{ $checkOutDate ?? date('Y-m-d', strtotime('+1 day')) }}',
-    isFilterActive: {{ (request()->has('adults') || request()->has('guests') || request()->has('check_in')) ? 'true' : 'false' }},
-    
-    resetFilter() {
-        this.filterGuests = 1;
-        this.filterAdults = 1;
-        this.filterChildren = 0;
-        this.filterRooms = 1;
-        this.isFilterActive = false;
-        
-        let url = new URL(window.location.href);
-        url.search = '';
-        window.history.pushState({}, '', url.toString());
-        
-        if (document.getElementById('roomsInput')) document.getElementById('roomsInput').value = 1;
-        if (document.getElementById('adultsInput')) document.getElementById('adultsInput').value = 1;
-        if (document.getElementById('childrenInput')) document.getElementById('childrenInput').value = 0;
-        if (typeof updateGuestSummary === 'function') updateGuestSummary();
-        if (typeof initBookingState === 'function') initBookingState();
-    },
-
-    matchingRoomsCount() {
-        let count = 0;
-        document.querySelectorAll('.room-card-item').forEach(card => {
-            let cap = Number(card.getAttribute('data-capacity') || 2);
-            if (!this.isFilterActive || cap >= this.filterGuests) {
-                count++;
-            }
-        });
-        return count;
-    },
-
-    bookingData: { 
-        guest_name: '', 
-        guest_email: '', 
-        guest_phone: '', 
-        checkin_date: '{{ $checkInDate ?? date('Y-m-d') }}', 
-        checkout_date: '{{ $checkOutDate ?? date('Y-m-d', strtotime('+1 day')) }}', 
-        special_requests: '', 
-        payment_method: 'Cash' 
-    },
-    get nights() {
-        if (!this.bookingData.checkin_date || !this.bookingData.checkout_date) return 1;
-        let d1 = new Date(this.bookingData.checkin_date);
-        let d2 = new Date(this.bookingData.checkout_date);
-        let diffTime = d2.getTime() - d1.getTime();
-        let diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
-        return diffDays > 0 ? diffDays : 1;
-    },
-    get totalPayable() {
-        if (!this.selectedRoomForBooking) return 0;
-        let rawRate = Number(this.selectedRoomForBooking.rawPrice || 0);
-        return rawRate * this.nights;
-    },
-    get totalPayableFormatted() {
-        return '₹' + this.totalPayable.toLocaleString('en-IN');
-    },
-    isSubmitting: false,
-    successResult: null,
-    errorMessage: '',
-    async submitBooking() {
-        if (!this.selectedRoomForBooking) return;
-        this.isSubmitting = true;
-        this.errorMessage = '';
-        try {
-            let res = await fetch('{{ route('hotel.book-instant') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    hotel_id: {{ $hotel->id }},
-                    room_id: this.selectedRoomForBooking.id,
-                    guest_name: this.bookingData.guest_name,
-                    guest_email: this.bookingData.guest_email,
-                    guest_phone: this.bookingData.guest_phone,
-                    checkin_date: this.bookingData.checkin_date,
-                    checkout_date: this.bookingData.checkout_date,
-                    special_requests: this.bookingData.special_requests,
-                    payment_method: this.bookingData.payment_method
-                })
-            });
-            let data = await res.json().catch(() => ({ success: false, message: 'Server error or invalid response. Please try again.' }));
-            if (res.ok && data.success) {
-                this.successResult = data;
-                this.bookingSubmitted = true;
-            } else {
-                this.errorMessage = data.message || 'Error completing booking.';
-            }
-        } catch (e) {
-            this.errorMessage = 'Network error occurred: ' + (e.message || 'Please try again.');
-        } finally {
-            this.isSubmitting = false;
-        }
-    }
-}">
+<body class="antialiased bg-slate-50 text-slate-800" x-data="hotelShowPage()">
 
     <!-- Navbar Header with Navigation Menu -->
     <header class="lodgiko-topbar sticky top-0 z-50 backdrop-blur-md" x-data="{ mobileMenu: false }">
@@ -509,6 +522,7 @@
                         <span class="bg-white px-3 py-1.5 rounded-xl border border-blue-100"><i class="fas fa-user-friends text-blue-500 mr-1"></i> <strong x-text="`${filterGuests} Guest${filterGuests > 1 ? 's' : ''}`"></strong> (<span x-text="`${filterAdults} Adult${filterAdults > 1 ? 's' : ''}${filterChildren > 0 ? ', ' + filterChildren + ' Child' : ''}`"></span>)</span>
                         <span class="bg-white px-3 py-1.5 rounded-xl border border-blue-100"><i class="fas fa-calendar-alt text-blue-500 mr-1"></i> <span x-text="filterCheckIn"></span> → <span x-text="filterCheckOut"></span></span>
                         <span class="bg-white px-3 py-1.5 rounded-xl border border-blue-100"><i class="fas fa-door-open text-blue-500 mr-1"></i> <span x-text="`${filterRooms} Room${filterRooms > 1 ? 's' : ''}`"></span></span>
+                        <span x-show="filterRoomTypeName" x-cloak class="bg-white px-3 py-1.5 rounded-xl border border-blue-100"><i class="fas fa-bed text-blue-500 mr-1"></i> <strong x-text="filterRoomTypeName"></strong></span>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -551,11 +565,9 @@
                                 @continue
                             @endif
                             <div class="room-card-item bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group"
-                                 data-capacity="{{ $room->capacity }}"
-                                 x-show="!isFilterActive || {{ $room->capacity }} >= filterGuests"
-                                 x-transition:enter="transition ease-out duration-300"
-                                 x-transition:enter-start="opacity-0 scale-95"
-                                 x-transition:enter-end="opacity-100 scale-100"
+                                 data-capacity="{{ (int) $room->capacity }}"
+                                 data-room-type-id="{{ $room->room_type_id }}"
+                                 data-room-type-name="{{ $roomTypeName }}"
                             >
                                 {{-- Card Image --}}
                                 <div class="relative w-full aspect-[16/10] bg-slate-100 overflow-hidden shrink-0">
@@ -667,9 +679,13 @@
                         <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-xl font-bold">
                             <i class="fas fa-user-friends"></i>
                         </div>
-                        <h4 class="text-base font-bold text-amber-900">No single room accommodates <span x-text="filterGuests"></span> guests</h4>
+                        <h4 class="text-base font-bold text-amber-900">
+                            No <span x-text="filterRoomTypeName || 'matching'"></span> rooms for
+                            <span x-text="filterGuests"></span> guest<span x-text="filterGuests > 1 ? 's' : ''"></span>
+                            in <span x-text="filterRooms"></span> room<span x-text="filterRooms > 1 ? 's' : ''"></span>
+                        </h4>
                         <p class="text-xs text-amber-700 max-w-md mx-auto">
-                            Please try searching for fewer guests per room, booking multiple rooms, or click below to view all available rooms.
+                            Please try another room type, fewer guests, more rooms, or view all available rooms.
                         </p>
                         <div class="pt-2 flex justify-center gap-2">
                             <button type="button" onclick="openBookingModal()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm cursor-pointer">
@@ -1060,7 +1076,46 @@
     </footer>
 
     <script>
+        window.applyRoomCardVisibility = function(data) {
+            const cards = document.querySelectorAll('.room-card-item');
+            if (data && data.reset) {
+                cards.forEach(function(card) {
+                    card.classList.remove('is-filtered-out');
+                });
+                return cards.length;
+            }
+
+            const roomsRequested = Math.max(Number(data.rooms || 1), 1);
+            const totalGuests = Math.max(Number(data.totalGuests || 1), 1);
+            const guestsPerRoom = Math.ceil(totalGuests / roomsRequested);
+            const typeId = String(data.roomTypeId || '').trim().toLowerCase();
+            const typeName = String(data.roomTypeName || '').trim().toLowerCase();
+
+            let visible = 0;
+            cards.forEach(function(card) {
+                const cap = Number(card.getAttribute('data-capacity') || 0);
+                const cardTypeId = String(card.getAttribute('data-room-type-id') || '').trim().toLowerCase();
+                const cardTypeName = String(card.getAttribute('data-room-type-name') || '').trim().toLowerCase();
+
+                let typeOk = true;
+                if (typeId) {
+                    typeOk = cardTypeId === typeId
+                        || (typeName && cardTypeName === typeName)
+                        || (typeName && cardTypeName.indexOf(typeName) !== -1)
+                        || (!/^\d+$/.test(typeId) && cardTypeName.indexOf(typeId) !== -1);
+                }
+
+                const capOk = cap >= guestsPerRoom;
+                const show = typeOk && capOk;
+                card.classList.toggle('is-filtered-out', !show);
+                if (show) visible += 1;
+            });
+
+            return visible;
+        };
+
         window.applyBookingSearchFilter = function(data) {
+            const visibleCount = window.applyRoomCardVisibility(data || {});
             const bodyEl = document.querySelector('body');
             if (bodyEl && window.Alpine) {
                 const bodyAlpine = Alpine.$data(bodyEl);
@@ -1069,8 +1124,11 @@
                     bodyAlpine.filterAdults = data.adults;
                     bodyAlpine.filterChildren = data.children;
                     bodyAlpine.filterRooms = data.rooms;
+                    bodyAlpine.filterRoomTypeId = data.roomTypeId || '';
+                    bodyAlpine.filterRoomTypeName = data.roomTypeName || '';
                     bodyAlpine.filterCheckIn = data.checkIn;
                     bodyAlpine.filterCheckOut = data.checkOut;
+                    bodyAlpine.visibleRoomCount = visibleCount;
                     bodyAlpine.isFilterActive = true;
                     
                     if (bodyAlpine.bookingData) {
@@ -1078,13 +1136,21 @@
                         bodyAlpine.bookingData.checkout_date = data.checkOut;
                     }
 
-                    // Update URL query parameters cleanly in address bar
                     let url = new URL(window.location.href);
                     url.searchParams.set('check_in', data.checkIn);
                     url.searchParams.set('check_out', data.checkOut);
                     url.searchParams.set('adults', data.adults);
                     url.searchParams.set('children', data.children);
                     url.searchParams.set('rooms', data.rooms);
+                    if (data.roomTypeId) {
+                        url.searchParams.set('room_type_id', data.roomTypeId);
+                        if (data.roomTypeName) {
+                            url.searchParams.set('room_type_name', data.roomTypeName);
+                        }
+                    } else {
+                        url.searchParams.delete('room_type_id');
+                        url.searchParams.delete('room_type_name');
+                    }
                     window.history.pushState({}, '', url.toString());
                 }
             }
@@ -1096,6 +1162,22 @@
                 }
             }, 120);
         };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('adults') || params.has('guests') || params.has('check_in') || params.has('room_type_id')) {
+                window.applyBookingSearchFilter({
+                    checkIn: params.get('check_in'),
+                    checkOut: params.get('check_out'),
+                    rooms: Number(params.get('rooms') || 1),
+                    adults: Number(params.get('adults') || 1),
+                    children: Number(params.get('children') || 0),
+                    totalGuests: Number(params.get('adults') || 1) + Number(params.get('children') || 0),
+                    roomTypeId: params.get('room_type_id') || '',
+                    roomTypeName: params.get('room_type_name') || ''
+                });
+            }
+        });
     </script>
 
     @include('components.booking.booking-search')
