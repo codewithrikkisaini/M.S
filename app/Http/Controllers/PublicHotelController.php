@@ -16,24 +16,28 @@ class PublicHotelController extends Controller
 {
     public function show($slug)
     {
-        $roomQuery = function ($q) {
-            $q->withoutGlobalScope('tenant')
-              ->where('status', 'Available')
-              ->whereDoesntHave('activeMaintenanceTickets')
-              ->whereDoesntHave('housekeeping', function ($hk) {
-                  $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
-              })
-              ->whereDoesntHave('reservations', function ($res) {
-                  $res->whereIn('reservations.status', ['Confirmed', 'Checked-In', 'Pending'])
-                      ->where('check_out_date', '>=', date('Y-m-d'));
-              })
-              ->with('roomType');
+        $hotelQuery = function ($q) {
+            $q->with([
+                'images',
+                'rooms' => function ($rq) {
+                    $rq->withoutGlobalScope('tenant')
+                       ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets', 'reservations'])
+                       ->orderBy('room_number');
+                }
+            ]);
         };
 
         // 1. Load by exact slug match or ID
         $hotel = Hotel::where('slug', $slug)
             ->orWhere('id', $slug)
-            ->with(['images', 'rooms' => $roomQuery])
+            ->with([
+                'images',
+                'rooms' => function ($rq) {
+                    $rq->withoutGlobalScope('tenant')
+                       ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets', 'reservations'])
+                       ->orderBy('room_number');
+                }
+            ])
             ->first();
 
         // 2. If not found, check if parameter is formatted like "hotall-hotall-9" or "emerald-grand-8"
@@ -43,7 +47,14 @@ class PublicHotelController extends Controller
 
             if (is_numeric($lastPart)) {
                 $hotel = Hotel::where('id', $lastPart)
-                    ->with(['images', 'rooms' => $roomQuery])
+                    ->with([
+                        'images',
+                        'rooms' => function ($rq) {
+                            $rq->withoutGlobalScope('tenant')
+                               ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets', 'reservations'])
+                               ->orderBy('room_number');
+                        }
+                    ])
                     ->first();
             }
         }
@@ -52,7 +63,14 @@ class PublicHotelController extends Controller
         if (!$hotel) {
             $cleanName = str_replace('-', ' ', (string)$slug);
             $hotel = Hotel::where('name', 'LIKE', '%' . $cleanName . '%')
-                ->with(['images', 'rooms' => $roomQuery])
+                ->with([
+                    'images',
+                    'rooms' => function ($rq) {
+                        $rq->withoutGlobalScope('tenant')
+                           ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets', 'reservations'])
+                           ->orderBy('room_number');
+                    }
+                ])
                 ->first();
         }
 
@@ -65,23 +83,16 @@ class PublicHotelController extends Controller
 
     public function reserveRoom(Request $request, $slug, $roomId = null)
     {
-        $roomQuery = function ($q) {
-            $q->withoutGlobalScope('tenant')
-              ->where('status', 'Available')
-              ->whereDoesntHave('activeMaintenanceTickets')
-              ->whereDoesntHave('housekeeping', function ($hk) {
-                  $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
-              })
-              ->whereDoesntHave('reservations', function ($res) {
-                  $res->whereIn('reservations.status', ['Confirmed', 'Checked-In', 'Pending'])
-                      ->where('check_out_date', '>=', date('Y-m-d'));
-              })
-              ->with('roomType');
-        };
-
         $hotel = Hotel::where('slug', $slug)
             ->orWhere('id', $slug)
-            ->with(['images', 'rooms' => $roomQuery])
+            ->with([
+                'images',
+                'rooms' => function ($rq) {
+                    $rq->withoutGlobalScope('tenant')
+                       ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets', 'reservations'])
+                       ->orderBy('room_number');
+                }
+            ])
             ->first();
 
         if (!$hotel) {
@@ -90,7 +101,14 @@ class PublicHotelController extends Controller
 
             if (is_numeric($lastPart)) {
                 $hotel = Hotel::where('id', $lastPart)
-                    ->with(['images', 'rooms' => $roomQuery])
+                    ->with([
+                        'images',
+                        'rooms' => function ($rq) {
+                            $rq->withoutGlobalScope('tenant')
+                               ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets', 'reservations'])
+                               ->orderBy('room_number');
+                        }
+                    ])
                     ->first();
             }
         }
@@ -98,7 +116,14 @@ class PublicHotelController extends Controller
         if (!$hotel) {
             $cleanName = str_replace('-', ' ', (string)$slug);
             $hotel = Hotel::where('name', 'LIKE', '%' . $cleanName . '%')
-                ->with(['images', 'rooms' => $roomQuery])
+                ->with([
+                    'images',
+                    'rooms' => function ($rq) {
+                        $rq->withoutGlobalScope('tenant')
+                           ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets', 'reservations'])
+                           ->orderBy('room_number');
+                    }
+                ])
                 ->first();
         }
 
@@ -112,19 +137,23 @@ class PublicHotelController extends Controller
             $selectedRoom = Room::withoutGlobalScope('tenant')
                 ->where('hotel_id', $hotel->id)
                 ->where('id', $roomId)
-                ->with('roomType')
+                ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets'])
                 ->first();
         }
 
         if (!$selectedRoom) {
             $selectedRoom = Room::withoutGlobalScope('tenant')
                 ->where('hotel_id', $hotel->id)
-                ->where('status', '!=', 'Maintenance')
+                ->where('status', 'Available')
                 ->whereDoesntHave('activeMaintenanceTickets')
-                ->whereDoesntHave('housekeeping', function ($hk) {
-                    $hk->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
-                })
-                ->with('roomType')
+                ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets'])
+                ->first();
+        }
+
+        if (!$selectedRoom) {
+            $selectedRoom = Room::withoutGlobalScope('tenant')
+                ->where('hotel_id', $hotel->id)
+                ->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets'])
                 ->first();
         }
 
@@ -143,8 +172,9 @@ class PublicHotelController extends Controller
 
         $checkin = $request->query('checkin', date('Y-m-d'));
         $checkout = $request->query('checkout', date('Y-m-d', strtotime('+1 day')));
+        $guests = (int) $request->query('guests', 2);
 
-        return view('hotel.reserve', compact('hotel', 'selectedRoom', 'checkin', 'checkout'));
+        return view('hotel.reserve', compact('hotel', 'selectedRoom', 'checkin', 'checkout', 'guests'));
     }
 
     public function bookInstant(Request $request)
@@ -158,15 +188,15 @@ class PublicHotelController extends Controller
         ]);
 
         $hotel = Hotel::find($request->hotel_id);
-        $room = Room::withoutGlobalScope('tenant')->with('roomType')->find($request->room_id);
+        $room = Room::withoutGlobalScope('tenant')->with(['roomType', 'latestHousekeeping', 'activeMaintenanceTickets'])->find($request->room_id);
 
         if (!$hotel || !$room) {
             return response()->json(['success' => false, 'message' => 'Invalid Hotel or Room selection.'], 422);
         }
 
         $isUnderWork = $room->status === 'Maintenance' 
-            || $room->activeMaintenanceTickets()->exists() 
-            || $room->housekeeping()->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance'])->exists();
+            || ($room->activeMaintenanceTickets && $room->activeMaintenanceTickets->count() > 0)
+            || ($room->latestHousekeeping && in_array($room->latestHousekeeping->status, ['Dirty', 'Maintenance']));
 
         if ($isUnderWork || $room->status !== 'Available') {
             return response()->json(['success' => false, 'message' => 'Ye room abhi Maintenance ya Housekeeping process me hai! Kripya kisi clean/available room ko select karein.'], 422);

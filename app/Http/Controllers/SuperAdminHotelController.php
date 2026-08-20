@@ -201,15 +201,23 @@ class SuperAdminHotelController extends Controller
             }
 
             // Sync Hotel Admin User Login Credentials (Email & Password)
-            $users = \App\Models\User::where('hotel_id', $hotel->id)->get();
-            foreach ($users as $u) {
-                if ($u->email === $oldEmail || $u->role?->slug === 'admin' || $users->count() === 1) {
-                    $u->email = $validated['email'];
-                }
+            $adminUser = \App\Models\User::where('hotel_id', $hotel->id)
+                ->whereHas('role', fn($q) => $q->where('slug', 'admin'))
+                ->first();
+
+            if (!$adminUser) {
+                $adminUser = \App\Models\User::where('hotel_id', $hotel->id)
+                    ->where('email', $oldEmail)
+                    ->first() 
+                    ?? \App\Models\User::where('hotel_id', $hotel->id)->first();
+            }
+
+            if ($adminUser) {
+                $adminUser->email = $validated['email'];
                 if ($request->filled('password')) {
-                    $u->password = \Illuminate\Support\Facades\Hash::make($request->password);
+                    $adminUser->password = \Illuminate\Support\Facades\Hash::make($request->password);
                 }
-                $u->save();
+                $adminUser->save();
             }
 
             ActivityLog::logAdminAction($hotel, 'Update Hotel Record', null, null, "Updated hotel profile & login credentials (Email: {$validated['email']}) by SuperAdmin");

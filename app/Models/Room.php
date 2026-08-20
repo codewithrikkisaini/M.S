@@ -2,15 +2,45 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\BelongsToTenant;
 
 class Room extends Model
 {
     use HasFactory, BelongsToTenant;
 
-    protected $fillable = ['room_number', 'room_type_id', 'price', 'status', 'floor', 'bed_type', 'room_option', 'description', 'hotel_id', 'image_path'];
+    protected $fillable = ['room_number', 'room_type_id', 'price', 'capacity', 'status', 'floor', 'bed_type', 'room_option', 'description', 'hotel_id', 'image_path'];
+
+
+    public function getCapacityAttribute($value): int
+    {
+        if (!empty($value) && (int)$value > 0) {
+            return (int) $value;
+        }
+
+        $bed = strtolower($this->bed_type ?? '');
+        $option = strtolower($this->room_option ?? '');
+        $type = strtolower($this->roomType?->name ?? '');
+
+        if (str_contains($bed, 'single') || str_contains($type, 'single')) {
+            return 1;
+        }
+        if (str_contains($bed, '2 double') || str_contains($bed, 'bunk') || str_contains($bed, 'family') || str_contains($type, 'family') || str_contains($type, 'suite')) {
+            return 4;
+        }
+        if (str_contains($bed, 'extra') || str_contains($option, 'extra guest') || str_contains($bed, 'triple')) {
+            return 3;
+        }
+        if (str_contains($type, 'executive') || str_contains($type, 'apartment') || str_contains($bed, 'california')) {
+            return 5;
+        }
+        if (str_contains($type, 'presidential') || str_contains($type, 'grand') || str_contains($type, 'villa')) {
+            return 6;
+        }
+
+        return 2;
+    }
 
     public static function formatUrl(string $img): string
     {
@@ -120,10 +150,6 @@ class Room extends Model
     public function scopeAvailableBetween($query, $checkIn, $checkOut, $excludeReservationId = null)
     {
         return $query->where('rooms.status', '!=', 'Maintenance')
-            ->whereDoesntHave('activeMaintenanceTickets')
-            ->whereDoesntHave('housekeeping', function ($q) {
-                $q->whereIn('status', ['Dirty', 'Inspecting', 'Maintenance']);
-            })
             ->whereDoesntHave('reservations', function ($q) use ($checkIn, $checkOut, $excludeReservationId) {
                 $q->whereIn('reservations.status', ['Confirmed', 'Checked-In'])
                     ->where('reservations.check_in_date', '<', $checkOut)
