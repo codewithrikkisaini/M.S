@@ -362,6 +362,9 @@
                                                     <h3 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
                                                         <i class="fas fa-bed text-blue-500"></i> {{ $room->bed_type ?: 'King Bed' }}
                                                     </h3>
+                                                    <p class="text-xs text-slate-500 font-semibold flex items-center gap-1.5 mt-1">
+                                                        <i class="fas fa-user-friends text-blue-500 text-[11px]"></i> Max {{ $room->capacity }} {{ Str::plural('Guest', $room->capacity) }}
+                                                    </p>
                                                 </div>
                                                 <span class="text-[11px] font-bold px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg flex items-center gap-1">
                                                     <i class="fas fa-check-circle"></i> Available

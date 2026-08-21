@@ -184,6 +184,21 @@
                             </select>
                         </div>
                         <div>
+                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Max Guests (Capacity) <span class="text-red-500">*</span></label>
+                            <select wire:model="capacity" class="pms-select text-xs font-bold text-slate-800">
+                                <option value="1">1 Guest</option>
+                                <option value="2">2 Guests</option>
+                                <option value="3">3 Guests</option>
+                                <option value="4">4 Guests</option>
+                                <option value="5">5 Guests</option>
+                                <option value="6">6 Guests</option>
+                                <option value="7">7 Guests</option>
+                                <option value="8">8 Guests</option>
+                                <option value="10">10 Guests</option>
+                            </select>
+                            @error('capacity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
                             <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Status <span class="text-red-500">*</span></label>
                             <select wire:model="status" class="pms-select text-xs font-bold">
                                 <option value="Available">Available</option>

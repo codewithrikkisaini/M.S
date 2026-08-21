@@ -20,6 +20,7 @@ new class extends Component
     public string $monthly_rate = '';
     public string $tax_percent = '';
     public string $price = '';
+    public int $capacity = 2;
     public string $status = 'Available';
     public string $floor = '';
     public string $bed_type = 'King Bed';
@@ -90,6 +91,7 @@ new class extends Component
         $this->monthly_rate = (string) ($roomType?->monthly_rate ?? ($this->daily_rate ? round((float)$this->daily_rate * 30 * 0.8, 2) : ''));
         $this->tax_percent = (string) ($roomType?->tax_percent ?? '15');
         $this->price = $this->daily_rate;
+        $this->capacity = (int) ($room->capacity ?: 2);
         $this->status = $room->status;
         $this->floor = (string) ($room->floor ?? '');
         $this->bed_type = $room->bed_type ?: 'King Bed';
@@ -115,6 +117,15 @@ new class extends Component
             $this->room_option = array_values(array_intersect($this->room_option, $allowed));
         } else {
             $this->room_option = [];
+        }
+
+        $lower = strtolower((string)$val);
+        if (str_contains($lower, 'single')) {
+            $this->capacity = 1;
+        } elseif (str_contains($lower, '2 double') || str_contains($lower, 'twin beds') || str_contains($lower, 'bunk')) {
+            $this->capacity = 4;
+        } elseif (str_contains($lower, 'extra') || str_contains($lower, 'triple')) {
+            $this->capacity = 3;
         }
     }
 
@@ -156,6 +167,7 @@ new class extends Component
             ],
             'room_type_id' => 'nullable|exists:room_types,id',
             'bed_type'     => 'nullable|string',
+            'capacity'     => 'required|integer|min:1|max:20',
             'room_option'  => 'nullable|array',
             'daily_rate'   => 'required|numeric|min:0',
             'weekly_rate'  => 'nullable|numeric|min:0',
@@ -217,6 +229,7 @@ new class extends Component
                 'room_number'  => $this->room_number,
                 'room_type_id' => $this->room_type_id,
                 'price'        => $this->price,
+                'capacity'     => $this->capacity,
                 'status'       => $this->status,
                 'bed_type'     => $this->bed_type,
                 'room_option'  => $formattedRoomOption,

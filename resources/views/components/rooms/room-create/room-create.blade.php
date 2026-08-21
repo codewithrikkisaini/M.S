@@ -55,13 +55,32 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-3">
-                    <div>
-                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
-                        <select wire:model.live="bed_type" class="pms-input text-sm font-bold text-slate-800">
-                            @foreach($this->bedTypes as $bedType)
-                                <option value="{{ $bedType }}">{{ $bedType }}</option>
-                            @endforeach
-                        </select>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
+                            <select wire:model.live="bed_type" class="pms-input text-sm font-bold text-slate-800">
+                                @foreach($this->bedTypes as $bedType)
+                                    <option value="{{ $bedType }}">{{ $bedType }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Max Guests (Capacity) <span class="text-red-500">*</span></label>
+                            <select wire:model="capacity" class="pms-input text-sm font-bold text-slate-800">
+                                <option value="1">1 Guest</option>
+                                <option value="2">2 Guests</option>
+                                <option value="3">3 Guests</option>
+                                <option value="4">4 Guests</option>
+                                <option value="5">5 Guests</option>
+                                <option value="6">6 Guests</option>
+                                <option value="7">7 Guests</option>
+                                <option value="8">8 Guests</option>
+                                <option value="10">10 Guests</option>
+                            </select>
+                            <p class="text-[10px] text-slate-400 mt-1">Maximum allowed guests for this room</p>
+                            @error('capacity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
                     </div>
 
                     <div>
@@ -229,6 +248,7 @@
                         <th class="font-bold">Photo</th>
                         <th class="font-bold">Room No.</th>
                         <th class="font-bold">Bed Type</th>
+                        <th class="font-bold">Guests</th>
                         <th class="font-bold">Room Option / Feature</th>
                         <th class="font-bold">Daily Rate</th>
                         <th class="font-bold">Weekly Rate</th>
@@ -258,6 +278,11 @@
                         </td>
                         <td>
                             <span class="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs whitespace-nowrap">{{ $r->bed_type ?: 'King Bed' }}</span>
+                        </td>
+                        <td>
+                            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/80 whitespace-nowrap flex items-center gap-1 w-max">
+                                <i class="fas fa-user-friends text-[10px] text-indigo-500"></i>{{ $r->capacity }} {{ Str::plural('Guest', $r->capacity) }}
+                            </span>
                         </td>
                         <td>
                             @if(!empty($r->room_option))
