@@ -85,49 +85,29 @@
                     </div>
                 </div>
 
-                {{-- Room Type Selector & Custom Name --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
-                    <div>
-                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Room Type Category <span class="text-red-500">*</span></label>
-                        <select wire:model.live="room_type_select" class="pms-input text-sm font-bold text-slate-800 bg-slate-50 border-slate-200">
-                            <option value="Single">Single Room (Daily: $59.95 | Weekly: $249.90 | Monthly: $990.00)</option>
-                            <option value="Double">Double Room (Daily: $79.95 | Weekly: $349.90 | Monthly: $1190.00)</option>
-                            <option value="Apartment">Apartment Suite (Daily: $79.90 | Weekly: $349.90 | Monthly: $1349.00)</option>
-                            <option value="custom">+ Add Custom Room Type...</option>
-                        </select>
-                    </div>
-
-                    @if($is_custom_type)
-                    <div>
-                        <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider">Custom Room Type Name <span class="text-red-500">*</span></label>
-                        <input type="text" wire:model="room_type_name" class="pms-input text-sm font-bold" placeholder="e.g. Deluxe Suite, Family Room">
-                        @error('room_type_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    @endif
-                </div>
 
                 {{-- Tariff Rates (Daily, Weekly, Monthly, Tax %) --}}
                 <div class="pt-4 border-t border-slate-100">
-                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Room Type Tariff Rates & Tax</label>
+                    <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Room Tariff Rates & Tax</label>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div>
-                            <label class="text-[11px] font-bold text-slate-500 uppercase">Daily Rate ($) *</label>
-                            <input type="number" step="0.01" wire:model="daily_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="59.95">
+                            <label class="text-[11px] font-bold text-slate-500 uppercase">Daily Rate ($) <span class="text-red-500">*</span></label>
+                            <input type="number" step="0.01" wire:model.live.debounce.300ms="daily_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="0.00">
                             @error('daily_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="text-[11px] font-bold text-slate-500 uppercase">Weekly Rate ($) *</label>
-                            <input type="number" step="0.01" wire:model="weekly_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="249.90">
+                            <label class="text-[11px] font-bold text-slate-500 uppercase">Weekly Rate ($)</label>
+                            <input type="number" step="0.01" wire:model.live="weekly_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="0.00">
                             @error('weekly_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="text-[11px] font-bold text-slate-500 uppercase">Monthly Rate ($) *</label>
-                            <input type="number" step="0.01" wire:model="monthly_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="990.00">
+                            <label class="text-[11px] font-bold text-slate-500 uppercase">Monthly Rate ($)</label>
+                            <input type="number" step="0.01" wire:model.live="monthly_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="0.00">
                             @error('monthly_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="text-[11px] font-bold text-slate-500 uppercase">Tax Rate (%) *</label>
-                            <input type="number" step="0.01" wire:model="tax_percent" class="pms-input text-sm font-bold text-indigo-700 bg-indigo-50/50" placeholder="15">
+                            <label class="text-[11px] font-bold text-slate-500 uppercase">Tax Rate (%)</label>
+                            <input type="number" step="0.01" wire:model.live="tax_percent" class="pms-input text-sm font-bold text-indigo-700 bg-indigo-50/50" placeholder="0">
                             @error('tax_percent') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
@@ -248,7 +228,6 @@
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500">
                         <th class="font-bold">Photo</th>
                         <th class="font-bold">Room No.</th>
-                        <th class="font-bold">Room Type</th>
                         <th class="font-bold">Bed Type</th>
                         <th class="font-bold">Room Option / Feature</th>
                         <th class="font-bold">Daily Rate</th>
@@ -276,9 +255,6 @@
                         </td>
                         <td>
                             <span class="font-black text-slate-800 text-sm bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 shadow-sm">Room {{ $r->room_number }}</span>
-                        </td>
-                        <td>
-                            <span class="font-bold text-slate-800 text-xs">{{ $r->roomType->name ?? '—' }}</span>
                         </td>
                         <td>
                             <span class="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs whitespace-nowrap">{{ $r->bed_type ?: 'King Bed' }}</span>

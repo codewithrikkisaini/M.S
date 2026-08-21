@@ -18,10 +18,10 @@ new class extends Component
     public array $room_option = [];
     public string $room_type_select = 'Single';
     public string $room_type_name = 'Single';
-    public string $daily_rate = '59.95';
-    public string $weekly_rate = '249.90';
-    public string $monthly_rate = '990.00';
-    public string $tax_percent = '15';
+    public string $daily_rate = '';
+    public string $weekly_rate = '';
+    public string $monthly_rate = '';
+    public string $tax_percent = '';
     public string $status = 'Available';
     public string $description = '';
     public string $image_path = '';
@@ -61,7 +61,11 @@ new class extends Component
 
     public function mount(): void
     {
-        $this->applyPreset('Single');
+        $this->room_type_name = $this->bed_type ?: 'King Bed';
+        $this->daily_rate = '';
+        $this->weekly_rate = '';
+        $this->monthly_rate = '';
+        $this->tax_percent = '';
     }
 
     public function updatedBedType($val): void
@@ -72,84 +76,21 @@ new class extends Component
         } else {
             $this->room_option = [];
         }
+        $this->room_type_name = $val ?: 'King Bed';
     }
 
-    public function updatedRoomNumber($val): void
+    public function updatedDailyRate($val): void
     {
-        if (!empty($val) && is_numeric($val[0])) {
-            $this->floor = $val[0];
-        }
-    }
-
-    public function updatedRoomTypeSelect($val): void
-    {
-        if ($val === 'custom') {
-            $this->is_custom_type = true;
-            $this->room_type_name = '';
-            $this->daily_rate = '';
+        if (is_numeric($val) && (float)$val > 0) {
+            $daily = (float)$val;
+            $this->weekly_rate = (string) round($daily * 7 * 0.9, 2);
+            $this->monthly_rate = (string) round($daily * 30 * 0.8, 2);
+            if ($this->tax_percent === '' || $this->tax_percent === null) {
+                $this->tax_percent = '15';
+            }
+        } else {
             $this->weekly_rate = '';
             $this->monthly_rate = '';
-            $this->tax_percent = '15';
-        } else {
-            $this->is_custom_type = false;
-            $this->applyPreset($val);
-        }
-    }
-
-    private function applyPreset(string $val): void
-    {
-        $user = Auth::user();
-        $hotel_id = $user?->hotel_id ?? \App\Models\Hotel::where('status', 'approved')->first()?->id ?? \App\Models\Hotel::first()?->id;
-
-        $type = RoomType::where('name', $val)->when($hotel_id, fn($q) => $q->where('hotel_id', $hotel_id))->first()
-            ?? RoomType::where('name', $val)->first();
-
-        if ($type) {
-            $this->room_type_name = $type->name;
-            $this->daily_rate = (string) ($type->daily_rate ?: 59.95);
-            $this->weekly_rate = (string) ($type->weekly_rate ?: 249.90);
-            $this->monthly_rate = (string) ($type->monthly_rate ?: 990.00);
-            $this->tax_percent = (string) ($type->tax_percent ?: 15);
-        } else {
-            if ($val === 'Single') {
-                $this->room_type_name = 'Single';
-                $this->daily_rate = '59.95';
-                $this->weekly_rate = '249.90';
-                $this->monthly_rate = '990.00';
-                $this->tax_percent = '15';
-            } elseif ($val === 'Double') {
-                $this->room_type_name = 'Double';
-                $this->daily_rate = '79.95';
-                $this->weekly_rate = '349.90';
-                $this->monthly_rate = '1190.00';
-                $this->tax_percent = '15';
-            } elseif ($val === 'Twin') {
-                $this->room_type_name = 'Twin';
-                $this->daily_rate = '69.95';
-                $this->weekly_rate = '299.90';
-                $this->monthly_rate = '1090.00';
-                $this->tax_percent = '15';
-            } elseif ($val === 'Deluxe') {
-                $this->room_type_name = 'Deluxe';
-                $this->daily_rate = '99.95';
-                $this->weekly_rate = '449.90';
-                $this->monthly_rate = '1590.00';
-                $this->tax_percent = '15';
-            } elseif ($val === 'Executive') {
-                $this->room_type_name = 'Executive Suite';
-                $this->daily_rate = '129.95';
-                $this->weekly_rate = '599.90';
-                $this->monthly_rate = '1990.00';
-                $this->tax_percent = '15';
-            } elseif ($val === 'Apartment') {
-                $this->room_type_name = 'Apartment';
-                $this->daily_rate = '79.90';
-                $this->weekly_rate = '349.90';
-                $this->monthly_rate = '1349.00';
-                $this->tax_percent = '15';
-            } else {
-                $this->room_type_name = $val;
-            }
         }
     }
 
@@ -193,16 +134,20 @@ new class extends Component
 
         $allowedOptions = $this->getAvailableOptionsProperty();
 
+        if (empty($this->room_type_name)) {
+            $this->room_type_name = $this->bed_type ?: 'King Bed';
+        }
+
         $this->validate([
             'room_number'    => 'required|string',
             'floor'          => 'required|string|max:50',
             'bed_type'       => 'nullable|string',
             'room_option'    => 'nullable|array',
-            'room_type_name' => 'required|string|max:100',
+            'room_type_name' => 'nullable|string|max:100',
             'daily_rate'     => 'required|numeric|min:0',
-            'weekly_rate'    => 'required|numeric|min:0',
-            'monthly_rate'   => 'required|numeric|min:0',
-            'tax_percent'    => 'required|numeric|min:0|max:100',
+            'weekly_rate'    => 'nullable|numeric|min:0',
+            'monthly_rate'   => 'nullable|numeric|min:0',
+            'tax_percent'    => 'nullable|numeric|min:0|max:100',
             'status'         => 'required|in:Available,Occupied,Reserved,Maintenance',
             'description'    => 'nullable|string',
             'image_path'     => 'nullable|string',
@@ -210,6 +155,11 @@ new class extends Component
         ]);
 
         $formattedRoomOption = is_array($this->room_option) ? implode(', ', $this->room_option) : $this->room_option;
+
+        $daily = (float) $this->daily_rate;
+        $weekly = ($this->weekly_rate !== '' && $this->weekly_rate !== null) ? (float) $this->weekly_rate : round($daily * 7 * 0.9, 2);
+        $monthly = ($this->monthly_rate !== '' && $this->monthly_rate !== null) ? (float) $this->monthly_rate : round($daily * 30 * 0.8, 2);
+        $tax = ($this->tax_percent !== '' && $this->tax_percent !== null) ? (float) $this->tax_percent : 0;
 
         $roomNumbers = $this->parseRoomNumbers($this->room_number);
         if (empty($roomNumbers)) {
@@ -263,10 +213,10 @@ new class extends Component
             $roomType = RoomType::updateOrCreate(
                 ['name' => $this->room_type_name, 'hotel_id' => $hotel_id],
                 [
-                    'daily_rate'   => $this->daily_rate,
-                    'weekly_rate'  => $this->weekly_rate,
-                    'monthly_rate' => $this->monthly_rate,
-                    'tax_percent'  => $this->tax_percent,
+                    'daily_rate'   => $daily,
+                    'weekly_rate'  => $weekly,
+                    'monthly_rate' => $monthly,
+                    'tax_percent'  => $tax,
                     'status'       => 'active',
                 ]
             );
@@ -281,7 +231,7 @@ new class extends Component
                 $roomData = [
                     'room_number'  => $num,
                     'room_type_id' => $roomType->id,
-                    'price'        => $this->daily_rate,
+                    'price'        => $daily,
                     'status'       => $this->status,
                     'hotel_id'     => $hotel_id,
                     'bed_type'     => $this->bed_type,
@@ -308,7 +258,7 @@ new class extends Component
 
             $addedStr = implode(', ', $roomNumbers);
             $msg = "Room(s) {$addedStr} saved successfully under {$roomType->name}!";
-            $this->reset(['room_number', 'description', 'image_path', 'photos']);
+            $this->reset(['room_number', 'description', 'image_path', 'photos', 'daily_rate', 'weekly_rate', 'monthly_rate', 'tax_percent']);
             $this->room_option = [];
             $this->dispatch('toast', message: $msg, type: 'success');
         } catch (UniqueConstraintViolationException $e) {

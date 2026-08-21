@@ -42,7 +42,6 @@
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500">
                         <th class="font-bold">Photo</th>
                         <th class="font-bold">Room No.</th>
-                        <th class="font-bold">Room Type</th>
                         <th class="font-bold">Bed Type</th>
                         <th class="font-bold">Room Option / Feature</th>
                         <th class="font-bold">Floor</th>
@@ -69,9 +68,6 @@
                         </td>
                         <td>
                             <span class="font-black text-slate-800 text-base tracking-tight bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 shadow-sm">{{ $room->room_number }}</span>
-                        </td>
-                        <td>
-                            <span class="font-bold text-slate-800 text-sm block">{{ $room->roomType->name ?? '—' }}</span>
                         </td>
                         <td>
                             <span class="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs whitespace-nowrap">{{ $room->bed_type ?: 'King Bed' }}</span>

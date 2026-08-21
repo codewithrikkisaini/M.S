@@ -335,7 +335,7 @@
 
                                 <div class="room-card-item bg-white border border-slate-200 rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-5"
                                      data-room-id="{{ $room->id }}"
-                                     data-capacity="{{ $room->capacity ?? 2 }}"
+                                     data-capacity="{{ $room->capacity ?: 10 }}"
                                      data-bed-type="{{ strtolower($room->bed_type ?? '') }}"
                                      data-room-type-id="{{ $room->room_type_id }}"
                                      data-room-type-name="{{ strtolower($roomTypeName) }}"
@@ -359,28 +359,13 @@
                                         <div>
                                             <div class="flex justify-between items-start">
                                                 <div>
-                                                    <h3 class="text-base sm:text-lg font-bold text-slate-900">{{ $roomTypeName }}</h3>
-                                                    <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-3">
-                                                        <span><i class="fas fa-bed text-blue-500 mr-1"></i> {{ $room->bed_type ?: 'King Bed' }}</span>
-                                                    </p>
+                                                    <h3 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                                                        <i class="fas fa-bed text-blue-500"></i> {{ $room->bed_type ?: 'King Bed' }}
+                                                    </h3>
                                                 </div>
                                                 <span class="text-[11px] font-bold px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg flex items-center gap-1">
                                                     <i class="fas fa-check-circle"></i> Available
                                                 </span>
-                                            </div>
-
-                                            <div class="mt-3 flex flex-wrap gap-1.5">
-                                                @if($room->room_option)
-                                                    @foreach(explode(',', $room->room_option) as $opt)
-                                                        <span class="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                                                            <i class="fas fa-check text-indigo-500 text-[8px]"></i> {{ trim($opt) }}
-                                                        </span>
-                                                    @endforeach
-                                                @endif
-                                                <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg"><i class="fas fa-wifi text-blue-500 mr-1"></i> Free Wi-Fi</span>
-                                                <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg"><i class="fas fa-snowflake text-blue-500 mr-1"></i> AC</span>
-                                                <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg"><i class="fas fa-tv text-blue-500 mr-1"></i> Smart TV</span>
-                                                <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg"><i class="fas fa-coffee text-blue-500 mr-1"></i> Breakfast Included</span>
                                             </div>
                                         </div>
 
@@ -459,11 +444,11 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">GUESTS</label>
                             <select name="adults" id="sidebar_guests" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 focus:bg-white shadow-2xs">
+                                <option value="1" {{ ($totalGuests ?? 2) == 1 ? 'selected' : '' }}>1 Guest</option>
                                 <option value="2" {{ ($totalGuests ?? 2) == 2 ? 'selected' : '' }}>2 Guests</option>
                                 <option value="3" {{ ($totalGuests ?? 2) == 3 ? 'selected' : '' }}>3 Guests</option>
                                 <option value="4" {{ ($totalGuests ?? 2) == 4 ? 'selected' : '' }}>4 Guests</option>
                                 <option value="5" {{ ($totalGuests ?? 2) == 5 ? 'selected' : '' }}>5 Guests</option>
-                                <option value="1" {{ ($totalGuests ?? 2) == 1 ? 'selected' : '' }}>1 Guest</option>
                                 <option value="6" {{ ($totalGuests ?? 2) >= 6 ? 'selected' : '' }}>6+ Guests</option>
                             </select>
                         </div>
@@ -868,8 +853,8 @@
                         || (!/^\d+$/.test(typeId) && cardTypeName.indexOf(typeId) !== -1);
                 }
 
-                // Capacity check: room capacity must accommodate the requested guests
-                const capOk = (cap === 0) || (cap >= guestsPerRoom);
+                // Capacity check: show available rooms for all requested guests (1, 2, 3, 4, 5, 6+ guests)
+                const capOk = true;
 
                 // Bed Type check
                 const bedTypeOk = !filterBedType || cardBedType.includes(filterBedType);
