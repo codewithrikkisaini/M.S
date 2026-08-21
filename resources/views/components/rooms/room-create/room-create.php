@@ -15,6 +15,7 @@ new class extends Component
     public string $room_number = '';
     public string $floor = '1';
     public string $bed_type = 'King Bed';
+    public int $capacity = 2;
     public array $room_option = [];
     public string $room_type_select = 'Single';
     public string $room_type_name = 'Single';
@@ -62,6 +63,7 @@ new class extends Component
     public function mount(): void
     {
         $this->room_type_name = $this->bed_type ?: 'King Bed';
+        $this->capacity = 2;
         $this->daily_rate = '';
         $this->weekly_rate = '';
         $this->monthly_rate = '';
@@ -77,6 +79,17 @@ new class extends Component
             $this->room_option = [];
         }
         $this->room_type_name = $val ?: 'King Bed';
+
+        $lower = strtolower((string)$val);
+        if (str_contains($lower, 'single')) {
+            $this->capacity = 1;
+        } elseif (str_contains($lower, '2 double') || str_contains($lower, 'twin beds') || str_contains($lower, 'bunk')) {
+            $this->capacity = 4;
+        } elseif (str_contains($lower, 'extra') || str_contains($lower, 'triple')) {
+            $this->capacity = 3;
+        } else {
+            $this->capacity = 2;
+        }
     }
 
     public function updatedDailyRate($val): void
@@ -142,6 +155,7 @@ new class extends Component
             'room_number'    => 'required|string',
             'floor'          => 'required|string|max:50',
             'bed_type'       => 'nullable|string',
+            'capacity'       => 'required|integer|min:1|max:20',
             'room_option'    => 'nullable|array',
             'room_type_name' => 'nullable|string|max:100',
             'daily_rate'     => 'required|numeric|min:0',
@@ -232,6 +246,7 @@ new class extends Component
                     'room_number'  => $num,
                     'room_type_id' => $roomType->id,
                     'price'        => $daily,
+                    'capacity'     => $this->capacity,
                     'status'       => $this->status,
                     'hotel_id'     => $hotel_id,
                     'bed_type'     => $this->bed_type,

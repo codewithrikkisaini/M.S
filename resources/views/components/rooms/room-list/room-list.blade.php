@@ -43,6 +43,7 @@
                         <th class="font-bold">Photo</th>
                         <th class="font-bold">Room No.</th>
                         <th class="font-bold">Bed Type</th>
+                        <th class="font-bold">Guests</th>
                         <th class="font-bold">Room Option / Feature</th>
                         <th class="font-bold">Floor</th>
                         <th class="font-bold">Price / Night</th>
@@ -71,6 +72,11 @@
                         </td>
                         <td>
                             <span class="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs whitespace-nowrap">{{ $room->bed_type ?: 'King Bed' }}</span>
+                        </td>
+                        <td>
+                            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100/80 whitespace-nowrap flex items-center gap-1 w-max">
+                                <i class="fas fa-user-friends text-[10px] text-indigo-500"></i>{{ $room->capacity }} {{ Str::plural('Guest', $room->capacity) }}
+                            </span>
                         </td>
                         <td>
                             @if(!empty($room->room_option))
