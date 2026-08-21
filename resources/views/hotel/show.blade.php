@@ -394,22 +394,6 @@
                                             </div>
 
                                             <div class="flex items-center gap-2">
-                                                <button @click="selectedRoom = {
-                                                    id: '{{ $room->id }}',
-                                                    name: {!! json_encode($roomTypeName) !!},
-                                                    number: {!! json_encode($room->room_number) !!},
-                                                    price: '₹{{ number_format($roomPrice) }}',
-                                                    rawPrice: {{ $roomPrice }},
-                                                    image: {!! json_encode($room->image_url) !!},
-                                                    images: {!! json_encode($room->images) !!},
-                                                    description: {!! json_encode($room->description ?: "Experience luxury comfort in Room " . $room->room_number . ". Featuring modern design, high-speed Wi-Fi, air conditioning, and top-tier amenities.") !!},
-                                                    bed_type: {!! json_encode($room->bed_type ?? "King Bed") !!},
-                                                    room_option: {!! json_encode($room->room_option ?? "") !!},
-                                                    capacity: {!! json_encode(($room->capacity ?? 2) . ' Guests') !!}
-                                                }; modalImgIdx = 0; showModal = true" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
-                                                    <i class="fas fa-eye text-slate-500"></i> View Details
-                                                </button>
-
                                                 <a href="{{ route('hotel.reserve', ['slug' => $hotel->slug ?: $hotel->id, 'room' => $room->id]) }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5 cursor-pointer">
                                                     <i class="fas fa-calendar-check text-xs"></i> Book Now
                                                 </a>

@@ -90,19 +90,22 @@
                     </div>
                     <div>
                         <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Identification Type</label>
-                        <select wire:model="id_type" class="pms-select text-xs">
+                        <select wire:model.live="id_type" class="pms-select text-xs">
                             <option value="">Select ID Type...</option>
-                            <option value="Passport">Passport</option>
-                            <option value="Driver's License">Driver's License</option>
                             <option value="Aadhaar Card">Aadhaar Card</option>
+                            <option value="Driving License">Driving License</option>
+                            <option value="Passport">Passport</option>
                             <option value="Voter ID">Voter ID</option>
                             <option value="Other">Other</option>
                         </select>
                         @error('id_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">ID / Passport Number</label>
-                        <input type="text" wire:model="id_number" class="pms-input text-xs" placeholder="e.g. P1234567">
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                            {{ $id_type ? ($id_type . ' Number') : 'ID / Passport Number' }}
+                        </label>
+                        <input type="text" wire:model="id_number" class="pms-input text-xs" 
+                               placeholder="{{ $id_type === 'Aadhaar Card' ? 'e.g. 1234 5678 9012' : ($id_type === 'Driving License' || $id_type === 'Driver\'s License' ? 'e.g. DL-1420110012345' : ($id_type === 'Passport' ? 'e.g. P1234567' : ($id_type === 'Voter ID' ? 'e.g. ABC1234567' : 'Enter ID / Document No...'))) }}">
                         @error('id_number') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
