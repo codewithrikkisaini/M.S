@@ -173,27 +173,8 @@
                             <p class="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1"><i class="fas fa-lightbulb text-indigo-400"></i> Floor is suggested automatically from first digit of room number.</p>
                             @error('floor') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Room Type <span class="text-red-500">*</span></label>
-                                <a href="{{ route('rooms.types') }}" class="text-[11px] font-bold text-indigo-600 hover:underline mb-1">
-                                    <i class="fas fa-cog text-[9px]"></i> Manage Types
-                                </a>
-                            </div>
-                            <select wire:model.live="room_type_id" class="pms-select text-xs font-semibold">
-                                <option value="">Select Room Type...</option>
-                                @foreach($roomTypes as $type)
-                                    <option value="{{ $type->id }}">{{ $type->name }} (Daily: {{ number_format($type->daily_rate ?: 59.95, 2) }} | Weekly: {{ number_format($type->weekly_rate ?: 249.90, 2) }} | Tax: {{ $type->tax_percent ?: 15 }}%)</option>
-                                @endforeach
-                            </select>
-                            @error('room_type_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Price per Night ($) <span class="text-red-500">*</span></label>
-                            <input type="number" wire:model="price" class="pms-input text-xs font-bold text-slate-800" placeholder="0.00" min="0" step="0.01">
-                            @error('price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        {{-- Bed Type & Room Option --}}
+
+                        {{-- Bed Type --}}
                         <div>
                             <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">Bed Type <span class="text-red-500">*</span></label>
                             <select wire:model.live="bed_type" class="pms-select text-xs font-bold text-slate-800">
@@ -211,6 +192,33 @@
                                 <option value="Maintenance">Maintenance</option>
                             </select>
                             @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Tariff Rates (Daily, Weekly, Monthly, Tax %) --}}
+                        <div class="sm:col-span-2 pt-4 border-t border-slate-100">
+                            <label class="pms-label text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Room Tariff Rates & Tax</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-500 uppercase">Daily Rate ($) <span class="text-red-500">*</span></label>
+                                    <input type="number" step="0.01" wire:model.live.debounce.300ms="daily_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="0.00">
+                                    @error('daily_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-500 uppercase">Weekly Rate ($)</label>
+                                    <input type="number" step="0.01" wire:model.live="weekly_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="0.00">
+                                    @error('weekly_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-500 uppercase">Monthly Rate ($)</label>
+                                    <input type="number" step="0.01" wire:model.live="monthly_rate" class="pms-input text-sm font-bold text-slate-800" placeholder="0.00">
+                                    @error('monthly_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-500 uppercase">Tax Rate (%)</label>
+                                    <input type="number" step="0.01" wire:model.live="tax_percent" class="pms-input text-sm font-bold text-indigo-700 bg-indigo-50/50" placeholder="0">
+                                    @error('tax_percent') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
                         </div>
 
                         <div class="sm:col-span-2">

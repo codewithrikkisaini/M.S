@@ -13,16 +13,35 @@ new class extends Component
     public string $floor = '1';
     public string $room_type_select = 'Single';
     public string $room_type_name = 'Single';
-    public string $daily_rate = '59.95';
-    public string $weekly_rate = '249.90';
-    public string $monthly_rate = '990.00';
-    public string $tax_percent = '15';
+    public string $daily_rate = '';
+    public string $weekly_rate = '';
+    public string $monthly_rate = '';
+    public string $tax_percent = '';
     public string $status = 'Available';
     public bool $is_custom_type = false;
 
     public function mount(): void
     {
-        $this->applyPreset('Single');
+        $this->room_type_name = 'Standard Room';
+        $this->daily_rate = '';
+        $this->weekly_rate = '';
+        $this->monthly_rate = '';
+        $this->tax_percent = '';
+    }
+
+    public function updatedDailyRate($val): void
+    {
+        if (is_numeric($val) && (float)$val > 0) {
+            $daily = (float)$val;
+            $this->weekly_rate = (string) round($daily * 7 * 0.9, 2);
+            $this->monthly_rate = (string) round($daily * 30 * 0.8, 2);
+            if ($this->tax_percent === '' || $this->tax_percent === null) {
+                $this->tax_percent = '15';
+            }
+        } else {
+            $this->weekly_rate = '';
+            $this->monthly_rate = '';
+        }
     }
 
     public function updatedRoomNumber($val): void
@@ -32,81 +51,13 @@ new class extends Component
         }
     }
 
-    public function updatedRoomTypeSelect($val): void
-    {
-        if ($val === 'custom') {
-            $this->is_custom_type = true;
-            $this->room_type_name = '';
-            $this->daily_rate = '';
-            $this->weekly_rate = '';
-            $this->monthly_rate = '';
-            $this->tax_percent = '15';
-        } else {
-            $this->is_custom_type = false;
-            $this->applyPreset($val);
-        }
-    }
-
-    private function applyPreset(string $val): void
-    {
-        $user = Auth::user();
-        $hotel_id = $user?->hotel_id ?? \App\Models\Hotel::where('status', 'approved')->first()?->id ?? \App\Models\Hotel::first()?->id;
-
-        $type = RoomType::where('name', $val)->when($hotel_id, fn($q) => $q->where('hotel_id', $hotel_id))->first()
-            ?? RoomType::where('name', $val)->first();
-
-        if ($type) {
-            $this->room_type_name = $type->name;
-            $this->daily_rate = (string) ($type->daily_rate ?: 59.95);
-            $this->weekly_rate = (string) ($type->weekly_rate ?: 249.90);
-            $this->monthly_rate = (string) ($type->monthly_rate ?: 990.00);
-            $this->tax_percent = (string) ($type->tax_percent ?: 15);
-        } else {
-            if ($val === 'Single') {
-                $this->room_type_name = 'Single';
-                $this->daily_rate = '59.95';
-                $this->weekly_rate = '249.90';
-                $this->monthly_rate = '990.00';
-                $this->tax_percent = '15';
-            } elseif ($val === 'Double') {
-                $this->room_type_name = 'Double';
-                $this->daily_rate = '79.95';
-                $this->weekly_rate = '349.90';
-                $this->monthly_rate = '1190.00';
-                $this->tax_percent = '15';
-            } elseif ($val === 'Twin') {
-                $this->room_type_name = 'Twin';
-                $this->daily_rate = '69.95';
-                $this->weekly_rate = '299.90';
-                $this->monthly_rate = '1090.00';
-                $this->tax_percent = '15';
-            } elseif ($val === 'Deluxe') {
-                $this->room_type_name = 'Deluxe';
-                $this->daily_rate = '99.95';
-                $this->weekly_rate = '449.90';
-                $this->monthly_rate = '1590.00';
-                $this->tax_percent = '15';
-            } elseif ($val === 'Executive') {
-                $this->room_type_name = 'Executive Suite';
-                $this->daily_rate = '129.95';
-                $this->weekly_rate = '599.90';
-                $this->monthly_rate = '1990.00';
-                $this->tax_percent = '15';
-            } elseif ($val === 'Apartment') {
-                $this->room_type_name = 'Apartment';
-                $this->daily_rate = '79.90';
-                $this->weekly_rate = '349.90';
-                $this->monthly_rate = '1349.00';
-                $this->tax_percent = '15';
-            } else {
-                $this->room_type_name = $val;
-            }
-        }
-    }
-
     public function saveRoom(): void
     {
         $hotel_id = Auth::user()->hotel_id ?? null;
+
+        if (empty($this->room_type_name)) {
+            $this->room_type_name = 'Standard Room';
+        }
 
         $this->validate([
             'room_number'    => [
@@ -118,23 +69,28 @@ new class extends Component
                 }),
             ],
             'floor'          => 'required|string|max:50',
-            'room_type_name' => 'required|string|max:100',
+            'room_type_name' => 'nullable|string|max:100',
             'daily_rate'     => 'required|numeric|min:0',
-            'weekly_rate'    => 'required|numeric|min:0',
-            'monthly_rate'   => 'required|numeric|min:0',
-            'tax_percent'    => 'required|numeric|min:0|max:100',
+            'weekly_rate'    => 'nullable|numeric|min:0',
+            'monthly_rate'   => 'nullable|numeric|min:0',
+            'tax_percent'    => 'nullable|numeric|min:0|max:100',
             'status'         => 'required|in:Available,Occupied,Reserved,Maintenance',
         ]);
+
+        $daily = (float) $this->daily_rate;
+        $weekly = ($this->weekly_rate !== '' && $this->weekly_rate !== null) ? (float) $this->weekly_rate : round($daily * 7 * 0.9, 2);
+        $monthly = ($this->monthly_rate !== '' && $this->monthly_rate !== null) ? (float) $this->monthly_rate : round($daily * 30 * 0.8, 2);
+        $tax = ($this->tax_percent !== '' && $this->tax_percent !== null) ? (float) $this->tax_percent : 0;
 
         try {
             // 1. Create or Update Room Type Tariff
             $roomType = RoomType::updateOrCreate(
                 ['name' => $this->room_type_name, 'hotel_id' => $hotel_id],
                 [
-                    'daily_rate'   => $this->daily_rate,
-                    'weekly_rate'  => $this->weekly_rate,
-                    'monthly_rate' => $this->monthly_rate,
-                    'tax_percent'  => $this->tax_percent,
+                    'daily_rate'   => $daily,
+                    'weekly_rate'  => $weekly,
+                    'monthly_rate' => $monthly,
+                    'tax_percent'  => $tax,
                     'status'       => 'active',
                 ]
             );
@@ -143,14 +99,14 @@ new class extends Component
             $newRoom = Room::create([
                 'room_number'  => $this->room_number,
                 'room_type_id' => $roomType->id,
-                'price'        => $this->daily_rate,
+                'price'        => $daily,
                 'floor'        => $this->floor,
                 'status'       => $this->status,
                 'hotel_id'     => $hotel_id,
             ]);
 
             $createdNum = $this->room_number;
-            $this->reset(['room_number']);
+            $this->reset(['room_number', 'daily_rate', 'weekly_rate', 'monthly_rate', 'tax_percent']);
             $this->dispatch('toast', message: "Room {$createdNum} added successfully under {$roomType->name}!", type: 'success');
         } catch (UniqueConstraintViolationException $e) {
             $this->addError('room_number', 'This room number already exists for this hotel.');
