@@ -155,9 +155,9 @@
             {{-- Actions --}}
             <div class="flex justify-end gap-3">
                 <a href="{{ route('guests.blacklist.index') }}" class="btn-secondary text-xs rounded-lg py-2 font-bold px-4">Cancel</a>
-                <button wire:click="save" wire:loading.attr="disabled" class="btn-primary text-xs rounded-lg py-2 font-bold px-4 cursor-pointer shadow-sm bg-red-600 hover:bg-red-700">
-                    <span wire:loading wire:target="save" class="mr-1"><i class="fas fa-spinner fa-spin"></i></span>
-                    <i class="fas fa-ban mr-1"></i> Save Blacklist
+                <button wire:click="openConfirmModal" wire:loading.attr="disabled" class="btn-primary text-xs rounded-lg py-2 font-bold px-4 cursor-pointer shadow-sm bg-red-600 hover:bg-red-700">
+                    <span wire:loading wire:target="openConfirmModal" class="mr-1"><i class="fas fa-spinner fa-spin"></i></span>
+                    <i class="fas fa-ban mr-1"></i> Blacklist Guest
                 </button>
             </div>
         </div>
@@ -191,4 +191,52 @@
             </div>
         </div>
     </div>
+
+    {{-- Confirmation Modal --}}
+    @if($show_confirm_modal)
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" wire:click.self="closeConfirmModal">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900">Confirm Blacklist</h3>
+                    <p class="text-xs text-slate-500">This action will restrict the guest from making new reservations.</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 mb-6">
+                <div class="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Guest</p>
+                    <p class="text-sm font-bold text-slate-800">{{ $first_name }} {{ $last_name }}</p>
+                </div>
+                @if($id_number)
+                <div class="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">ID / Passport</p>
+                    <p class="text-sm font-mono font-bold text-slate-800">{{ strtoupper($id_type ?: 'ID') }}: {{ $id_number }}</p>
+                </div>
+                @endif
+                <div class="bg-red-50 rounded-lg p-3 border border-red-100">
+                    <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-0.5">Reason</p>
+                    <p class="text-xs text-red-700">{{ $reason }}</p>
+                </div>
+                @if(count($documents) > 0)
+                <div class="bg-amber-50 rounded-lg p-3 border border-amber-100">
+                    <p class="text-[10px] font-bold text-amber-600 uppercase tracking-wider mb-0.5">Supporting Documents</p>
+                    <p class="text-xs text-amber-700">{{ count($documents) }} file(s) selected</p>
+                </div>
+                @endif
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button wire:click="closeConfirmModal" class="btn-secondary text-xs rounded-lg py-2 font-bold px-4 cursor-pointer">Cancel</button>
+                <button wire:click="save" wire:loading.attr="disabled" class="btn-primary text-xs rounded-lg py-2 font-bold px-4 cursor-pointer shadow-sm bg-red-600 hover:bg-red-700">
+                    <span wire:loading wire:target="save" class="mr-1"><i class="fas fa-spinner fa-spin"></i></span>
+                    <i class="fas fa-ban mr-1"></i> Confirm Blacklist
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

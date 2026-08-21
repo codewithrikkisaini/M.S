@@ -6,6 +6,7 @@ use App\Models\Reservation;
 use App\Models\CheckIn;
 use App\Models\CheckOut;
 use App\Models\Housekeeping;
+use App\Models\GuestBlacklist;
 use Carbon\Carbon;
 
 new class extends Component
@@ -57,6 +58,10 @@ new class extends Component
             ->where('priority', 'Critical')
             ->where('status', '!=', 'Completed')->count();
 
+        // Blacklist stats
+        $blacklistActive = GuestBlacklist::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->active()->count();
+        $blacklistReleased = GuestBlacklist::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->released()->count();
+
         // 7-day revenue trend for chart visualization
         $revenueTrend = [];
         for ($i = 6; $i >= 0; $i--) {
@@ -101,6 +106,8 @@ new class extends Component
             'maintOpen'           => $maintOpen,
             'maintInProgress'     => $maintInProgress,
             'maintCritical'       => $maintCritical,
+            'blacklistActive'     => $blacklistActive,
+            'blacklistReleased'   => $blacklistReleased,
             'recentReservations'  => $recentReservations,
             'rooms'               => $rooms,
             'revenueTrend'        => $revenueTrend,

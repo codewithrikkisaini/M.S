@@ -23,30 +23,38 @@ new class extends Component
     public $documents = [];
     public array $existing_documents = [];
 
+    public bool $showReleaseModal = false;
+    public string $release_reason = '';
+    public string $release_notes = '';
+    public $release_documents = [];
+
     public function mount(GuestBlacklist $blacklist): void
     {
         if (!auth()->check() || (!auth()->user()->hasRole('admin') && !auth()->user()->hasRole('superadmin'))) {
-            session()->flash('toast', ['message' => 'You do not have permission to edit blacklist entries.', 'type' => 'error']);
+            $this->dispatch('toast', message: 'You do not have permission to edit blacklist entries.', type: 'error');
             $this->redirect(route('guests.blacklist.index'), navigate: true);
             return;
         }
 
-        $this->blacklist = $blacklist;
+        $this->blacklist = $blacklist->load(['documents']);
         $this->first_name = $blacklist->first_name;
         $this->last_name = $blacklist->last_name;
         $this->id_type = $blacklist->id_type ?? '';
         $this->id_number = $blacklist->id_number ?? '';
         $this->date_of_birth = $blacklist->date_of_birth ? $blacklist->date_of_birth->format('Y-m-d') : '';
         $this->reason = $blacklist->reason;
-        $this->existing_documents = $blacklist->documents->toArray();
+        $this->existing_documents = $blacklist->documents->map(function ($doc) {
+            return $this->formatDocument($doc);
+        })->toArray();
     }
 
     public function deleteDocument(int $documentId): void
     {
         $doc = GuestBlacklistDocument::findOrFail($documentId);
-        
+
         if ($doc->guest_blacklist_id !== $this->blacklist->id) {
-            abort(403);
+            $this->dispatch('toast', message: 'Unauthorized access to document.', type: 'error');
+            return;
         }
 
         $fullPath = $doc->getFullStoragePath();
@@ -56,7 +64,7 @@ new class extends Component
 
         $doc->delete();
 
-        $this->existing_documents = $this->blacklist->fresh()->documents->toArray();
+        $this->refreshDocuments();
         $this->dispatch('toast', message: 'Document deleted.', type: 'success');
     }
 
@@ -81,12 +89,11 @@ new class extends Component
             'reason'         => $this->reason,
         ]);
 
-        // Handle new document uploads
         foreach ($this->documents as $file) {
             if ($file) {
                 $originalName = $file->getClientOriginalName();
                 $storedName = Str::random(20) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('blacklist-documents', $storedName, 'local');
+                $file->storeAs('blacklist-documents', $storedName, 'local');
 
                 GuestBlacklistDocument::create([
                     'guest_blacklist_id' => $this->blacklist->id,
@@ -102,15 +109,79 @@ new class extends Component
             }
         }
 
-        $this->existing_documents = $this->blacklist->fresh()->documents->toArray();
+        $this->refreshDocuments();
 
         \App\Models\ActivityLog::log(
             'Blacklist Updated',
             "Blacklist record for {$this->first_name} {$this->last_name} has been updated."
         );
 
-        session()->flash('toast', ['message' => 'Blacklist updated successfully.', 'type' => 'success']);
-        $this->redirect(route('guests.blacklist.index'), navigate: true);
+        $this->dispatch('toast', message: 'Blacklist updated successfully.', type: 'success');
+        $this->redirect(route('guests.blacklist.edit', $this->blacklist->id), navigate: true);
+    }
+
+    public function openReleaseModal(): void
+    {
+        $this->showReleaseModal = true;
+        $this->release_reason = '';
+        $this->release_notes = '';
+        $this->release_documents = [];
+    }
+
+    public function closeReleaseModal(): void
+    {
+        $this->showReleaseModal = false;
+        $this->release_reason = '';
+        $this->release_notes = '';
+        $this->release_documents = [];
+        $this->resetValidation();
+    }
+
+    public function releaseBlacklist(GuestBlacklistService $service): void
+    {
+        $this->validate([
+            'release_reason' => 'required|string|max:2000',
+            'release_notes' => 'nullable|string|max:2000',
+            'release_documents.*' => 'nullable|file|max:10240|mimes:pdf,jpg,jpeg,png',
+        ]);
+
+        $service->releaseBlacklist(
+            $this->blacklist->id,
+            $this->release_reason,
+            $this->release_notes,
+            $this->release_documents
+        );
+
+        $this->dispatch('toast', message: 'Guest has been released from blacklist.', type: 'success');
+        $this->redirect(route('guests.blacklist.show', $this->blacklist->id), navigate: true);
+    }
+
+    public function removeNewDocument(int $index): void
+    {
+        unset($this->documents[$index]);
+        $this->documents = array_values($this->documents);
+    }
+
+    private function refreshDocuments(): void
+    {
+        $this->existing_documents = $this->blacklist->fresh()->documents->map(function ($doc) {
+            return $this->formatDocument($doc);
+        })->toArray();
+    }
+
+    private function formatDocument($doc): array
+    {
+        return [
+            'id' => $doc->id,
+            'name' => $doc->original_filename,
+            'original_filename' => $doc->original_filename,
+            'mime_type' => $doc->mime_type,
+            'file_size' => $doc->file_size_formatted,
+            'category' => $doc->category ?? 'Other',
+            'uploaded_at' => $doc->created_at->format('d M Y'),
+            'view_url' => route('guests.blacklist.document.preview', $doc->id),
+            'download_url' => route('guests.blacklist.document.download', $doc->id),
+        ];
     }
 
     public function render(): mixed

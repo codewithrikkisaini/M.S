@@ -46,6 +46,7 @@
                         <th class="font-bold">ID Type</th>
                         <th class="font-bold">ID Number</th>
                         <th class="font-bold">Nationality</th>
+                        <th class="font-bold">Blacklist</th>
                         <th class="font-bold text-right">Actions</th>
                     </tr>
                 </thead>
@@ -122,6 +123,17 @@
                             <span class="text-slate-400 text-xs">—</span>
                             @endif
                         </td>
+                        <td>
+                            @if($guest->isBlacklisted())
+                                <a href="{{ route('guests.blacklist.show', $guest->blacklists()->active()->first()?->id) }}" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors cursor-pointer" title="View Blacklist Details">
+                                    <i class="fas fa-ban text-[8px] mr-1"></i> Blacklisted
+                                </a>
+                            @else
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-50 text-green-700 border border-green-100">
+                                    <i class="fas fa-check text-[8px] mr-1"></i> Clear
+                                </span>
+                            @endif
+                        </td>
                         <td class="text-right">
                             <div class="flex items-center justify-end gap-1.5">
                                 @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))
@@ -138,7 +150,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="py-12 text-center text-slate-400">
+                        <td colspan="10" class="py-12 text-center text-slate-400">
                             <i class="fas fa-users text-4xl text-slate-200 mb-3 block"></i>
                             <p class="text-sm font-medium">No guests found.</p>
                         </td>

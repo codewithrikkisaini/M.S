@@ -61,7 +61,7 @@
     @endif
 
     {{-- Stats Grid --}}
-    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 mb-6">
         <div class="stat-card border border-slate-100/80 hover:shadow-md transition-all duration-200">
             <div class="stat-icon bg-slate-50 text-slate-500 border border-slate-100"><i class="fas fa-bed text-lg"></i></div>
             <div>
@@ -102,6 +102,13 @@
             <div>
                 <p class="text-2xl font-black tracking-tight">${{ number_format($revenueToday, 0) }}</p>
                 <p class="text-[10px] font-bold text-indigo-100 uppercase tracking-wider mt-0.5">Revenue Today</p>
+            </div>
+        </div>
+        <div class="stat-card border border-slate-100/80 hover:shadow-md transition-all duration-200">
+            <div class="stat-icon bg-rose-50 text-rose-600 border border-rose-100"><i class="fas fa-ban text-lg"></i></div>
+            <div>
+                <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ $blacklistActive }}</p>
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Blacklisted</p>
             </div>
         </div>
     </div>

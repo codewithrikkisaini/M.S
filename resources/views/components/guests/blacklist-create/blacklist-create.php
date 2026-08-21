@@ -26,13 +26,15 @@ new class extends Component
 
     public $documents = [];
     public array $existing_documents = [];
+    public array $document_categories = [];
 
     public bool $show_guest_search = true;
+    public bool $show_confirm_modal = false;
 
     public function mount(): void
     {
         if (!auth()->check() || (!auth()->user()->hasRole('admin') && !auth()->user()->hasRole('superadmin'))) {
-            session()->flash('toast', ['message' => 'You do not have permission to create blacklist entries.', 'type' => 'error']);
+            $this->dispatch('toast', message: 'You do not have permission to create blacklist entries.', type: 'error');
             $this->redirect(route('guests.blacklist.index'), navigate: true);
         }
     }
@@ -68,7 +70,28 @@ new class extends Component
         $this->date_of_birth = '';
         $this->reason = '';
         $this->documents = [];
+        $this->document_categories = [];
         $this->show_guest_search = true;
+    }
+
+    public function openConfirmModal(): void
+    {
+        $this->validate([
+            'first_name'   => 'required|string|max:255',
+            'last_name'    => 'required|string|max:255',
+            'id_type'      => 'nullable|string|max:100',
+            'id_number'    => 'nullable|string|max:100',
+            'date_of_birth'=> 'nullable|date|before:today',
+            'reason'       => 'required|string|max:2000',
+            'documents.*'  => 'nullable|file|max:10240|mimes:pdf,jpg,jpeg,png',
+        ]);
+
+        $this->show_confirm_modal = true;
+    }
+
+    public function closeConfirmModal(): void
+    {
+        $this->show_confirm_modal = false;
     }
 
     public function save(GuestBlacklistService $service): void
@@ -131,6 +154,8 @@ new class extends Component
                 ]);
             }
         }
+
+        $this->show_confirm_modal = false;
 
         \App\Models\ActivityLog::log(
             'Guest Blacklisted',

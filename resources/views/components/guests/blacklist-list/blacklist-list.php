@@ -20,31 +20,15 @@ new class extends Component
         return auth()->check() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('superadmin'));
     }
 
-    public function remove(int $id): void
-    {
-        abort_unless($this->isAdmin(), 403);
-
-        $service = app(GuestBlacklistService::class);
-        $service->removeBlacklist($id);
-        $this->dispatch('toast', message: 'Guest blacklisted removed successfully.', type: 'success');
-    }
-
-    public function restore(int $id): void
-    {
-        abort_unless($this->isAdmin(), 403);
-
-        $service = app(GuestBlacklistService::class);
-        $service->restoreBlacklist($id);
-        $this->dispatch('toast', message: 'Guest blacklist restored.', type: 'success');
-    }
-
     public function delete(int $id): void
     {
-        abort_unless($this->isAdmin(), 403);
+        if (!$this->isAdmin()) {
+            $this->dispatch('toast', message: 'You do not have permission to delete blacklist records.', type: 'error');
+            return;
+        }
 
         $blacklist = GuestBlacklist::with('documents')->findOrFail($id);
-        
-        // Delete associated document files
+
         foreach ($blacklist->documents as $doc) {
             $fullPath = $doc->getFullStoragePath();
             if (\Illuminate\Support\Facades\Storage::disk($doc->disk)->exists($fullPath)) {
@@ -66,9 +50,10 @@ new class extends Component
 
     public function render(): mixed
     {
-        $query = GuestBlacklist::with(['guest', 'blacklister'])
+        $query = GuestBlacklist::with(['guest', 'blacklister', 'releaser'])
             ->where(function ($q) {
-                $q->where('first_name', 'like', "%{$this->search}%")
+                $q->where('case_number', 'like', "%{$this->search}%")
+                  ->orWhere('first_name', 'like', "%{$this->search}%")
                   ->orWhere('last_name', 'like', "%{$this->search}%")
                   ->orWhere('id_number', 'like', "%{$this->search}%")
                   ->orWhereHas('guest', function ($gq) {
