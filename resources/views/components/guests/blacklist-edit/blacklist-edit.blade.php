@@ -66,18 +66,20 @@
                         </div>
                         <div>
                             <label class="pms-label">ID Type <span class="text-red-500">*</span></label>
-                            <select wire:model="id_type" class="pms-select">
+                            <select wire:model.live="id_type" class="pms-select">
                                 <option value="">Select ID Type</option>
-                                <option value="passport">Passport</option>
-                                <option value="national_id">National ID</option>
-                                <option value="drivers_license">Driver's License</option>
-                                <option value="other">Other</option>
+                                <option value="Aadhaar Card">Aadhaar Card</option>
+                                <option value="Driving License">Driving License</option>
+                                <option value="Passport">Passport</option>
+                                <option value="Voter ID">Voter ID</option>
+                                <option value="Other">Other</option>
                             </select>
                             @error('id_type') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
                         <div>
-                            <label class="pms-label">ID Number <span class="text-red-500">*</span></label>
-                            <input type="text" wire:model="id_number" class="pms-input" placeholder="Enter ID number">
+                            <label class="pms-label">{{ $id_type ? ($id_type . ' Number') : 'ID Number' }} <span class="text-red-500">*</span></label>
+                            <input type="text" wire:model="id_number" class="pms-input" 
+                                   placeholder="{{ $id_type === 'Aadhaar Card' ? 'e.g. 1234 5678 9012' : ($id_type === 'Driving License' || $id_type === 'Driver\'s License' || $id_type === 'drivers_license' ? 'e.g. DL-1420110012345' : ($id_type === 'Passport' || $id_type === 'passport' ? 'e.g. P1234567' : ($id_type === 'Voter ID' ? 'e.g. ABC1234567' : 'Enter ID number'))) }}">
                             @error('id_number') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
                         <div>

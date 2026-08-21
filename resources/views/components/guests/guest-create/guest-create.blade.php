@@ -57,8 +57,8 @@
                         @error('id_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">ID / Aadhaar / Document Number</label>
-                        <input type="text" wire:model="id_number" class="pms-input text-xs" placeholder="{{ $id_type ? 'Enter ' . $id_type . ' number...' : 'Enter ID / Aadhaar / Passport number...' }}">
+                        <label class="pms-label text-xs font-semibold text-slate-600 uppercase tracking-wider">{{ $id_type ? ($id_type . ' Number') : 'ID / Aadhaar / Document Number' }}</label>
+                        <input type="text" wire:model="id_number" class="pms-input text-xs" placeholder="{{ $id_type === 'Aadhaar Card' ? 'e.g. 1234 5678 9012' : ($id_type === 'Driving License' ? 'e.g. DL-1420110012345' : ($id_type === 'Passport' ? 'e.g. P1234567' : ($id_type === 'Voter ID' ? 'e.g. ABC1234567' : 'Enter ID / Document No...'))) }}">
                         @error('id_number') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="sm:col-span-2">
