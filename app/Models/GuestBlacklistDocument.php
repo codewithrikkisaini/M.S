@@ -19,6 +19,7 @@ class GuestBlacklistDocument extends Model
         'storage_path',
         'mime_type',
         'file_size',
+        'category',
         'uploaded_by',
     ];
 
@@ -62,5 +63,33 @@ class GuestBlacklistDocument extends Model
             return round($bytes / 1024, 2) . ' KB';
         }
         return $bytes . ' B';
+    }
+
+    public function isPdf(): bool
+    {
+        return str_contains($this->mime_type ?? '', 'pdf');
+    }
+
+    public function isImage(): bool
+    {
+        return str_starts_with($this->mime_type ?? '', 'image/');
+    }
+
+    public function getCategoryLabel(): string
+    {
+        return $this->category ?? 'Other';
+    }
+
+    public static function getCategoryOptions(): array
+    {
+        return [
+            'Identity Document' => 'Identity Document',
+            'Incident Report' => 'Incident Report',
+            'Damage Report' => 'Damage Report',
+            'Payment Evidence' => 'Payment Evidence',
+            'Management Approval' => 'Management Approval',
+            'Release Evidence' => 'Release Evidence',
+            'Other' => 'Other',
+        ];
     }
 }

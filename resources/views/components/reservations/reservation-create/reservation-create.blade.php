@@ -61,15 +61,18 @@
                     {{-- Blacklist Warning --}}
                     @if($is_blacklisted)
                     <div class="col-span-2 p-4 bg-red-50 border-2 border-red-300 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
                                 <i class="fas fa-ban text-red-600 text-lg"></i>
                             </div>
-                            <div>
-                                <p class="text-sm font-black text-red-800">Guest Blacklisted</p>
-                                <p class="text-xs text-red-600 mt-0.5">This guest is currently blacklisted and cannot make new reservations.</p>
-                                @if($blacklist_reason)
-                                <p class="text-[10px] text-red-500 mt-1 font-semibold">Reason: {{ $blacklist_reason }}</p>
+                            <div class="flex-1">
+                                <p class="text-sm font-black text-red-800">Booking Not Allowed</p>
+                                <p class="text-xs text-red-600 mt-0.5">This guest is currently blacklisted and cannot make new reservations. Please contact an authorized administrator if this restriction needs to be reviewed.</p>
+                                @if($blacklist_reason && (Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin')))
+                                <div class="mt-2 p-2 bg-red-100/50 rounded-lg border border-red-200">
+                                    <p class="text-[10px] font-bold text-red-700 uppercase tracking-wider mb-0.5">Blacklist Reason</p>
+                                    <p class="text-xs text-red-600">{{ $blacklist_reason }}</p>
+                                </div>
                                 @endif
                             </div>
                         </div>
@@ -771,7 +774,7 @@
                     @if($is_blacklisted)
                     <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-center">
                         <p class="text-xs font-bold text-red-700"><i class="fas fa-ban mr-1"></i> Booking Not Allowed</p>
-                        <p class="text-[10px] text-red-500 mt-0.5">This guest is blacklisted. Release the blacklist before creating a reservation.</p>
+                        <p class="text-[10px] text-red-500 mt-0.5">This guest is currently blacklisted. Release the blacklist before creating a reservation.</p>
                     </div>
                     <button disabled class="btn-primary w-full justify-center rounded-lg shadow-sm text-xs py-2 font-bold opacity-50 cursor-not-allowed">
                         <i class="fas fa-ban mr-1"></i> Booking Blocked

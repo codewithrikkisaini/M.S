@@ -27,12 +27,12 @@
                 <select wire:model.live="status" class="pms-select text-xs py-1.5 rounded-lg border border-slate-200">
                     <option value="">All Status</option>
                     <option value="active">Active</option>
-                    <option value="removed">Removed</option>
+                    <option value="released">Released</option>
                 </select>
                 <div class="relative max-w-xs w-full">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
                     <input type="text" wire:model.live.debounce.300ms="search"
-                           placeholder="Search guest / passport / license..."
+                           placeholder="Search case # / guest / passport..."
                            class="pms-input pl-9 py-1.5 text-xs rounded-lg border border-slate-200">
                 </div>
                 <span class="text-xs font-semibold text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 shrink-0">
@@ -45,11 +45,9 @@
             <table class="pms-table">
                 <thead>
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-500">
-                        <th class="font-bold">#</th>
-                        <th class="font-bold">First Name</th>
-                        <th class="font-bold">Last Name</th>
+                        <th class="font-bold">Case #</th>
+                        <th class="font-bold">Guest Name</th>
                         <th class="font-bold">ID / Passport No.</th>
-                        <th class="font-bold">Date of Birth</th>
                         <th class="font-bold">Reason</th>
                         <th class="font-bold">Status</th>
                         <th class="font-bold">Blacklisted At</th>
@@ -60,26 +58,23 @@
                     @forelse($blacklists as $index => $blacklist)
                     <tr class="hover:bg-slate-50/40 transition-colors">
                         <td>
-                            <span class="text-xs font-mono text-slate-500">{{ $blacklists->firstItem() + $index }}</span>
+                            <a href="{{ route('guests.blacklist.show', $blacklist->id) }}" class="text-xs font-mono font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 shadow-sm hover:border-indigo-200 transition-colors">
+                                {{ $blacklist->case_number }}
+                            </a>
                         </td>
                         <td>
-                            <span class="font-bold text-slate-800 text-sm">{{ $blacklist->first_name }}</span>
-                        </td>
-                        <td>
-                            <span class="font-bold text-slate-800 text-sm">{{ $blacklist->last_name }}</span>
+                            <a href="{{ route('guests.blacklist.show', $blacklist->id) }}" class="font-bold text-slate-800 text-sm hover:text-indigo-600 transition-colors">
+                                {{ $blacklist->first_name }} {{ $blacklist->last_name }}
+                            </a>
+                            @if($blacklist->guest)
+                                <p class="text-[10px] text-slate-400">Guest ID: {{ $blacklist->guest->guest_id }}</p>
+                            @endif
                         </td>
                         <td>
                             @if($blacklist->id_number)
                                 <span class="text-xs font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                                     {{ strtoupper($blacklist->id_type ?? 'ID') }}: {{ $blacklist->id_number }}
                                 </span>
-                            @else
-                                <span class="text-slate-400 text-xs">—</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($blacklist->date_of_birth)
-                                <span class="text-xs text-slate-600">{{ $blacklist->date_of_birth->format('d M Y') }}</span>
                             @else
                                 <span class="text-slate-400 text-xs">—</span>
                             @endif
@@ -96,7 +91,7 @@
                                 </span>
                             @else
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-50 text-green-700 border border-green-100 shadow-2xs">
-                                    <i class="fas fa-circle text-[6px] mr-1"></i> Removed
+                                    <i class="fas fa-circle text-[6px] mr-1"></i> Released
                                 </span>
                             @endif
                         </td>
@@ -105,22 +100,14 @@
                         </td>
                         <td class="text-right">
                             <div class="flex items-center justify-end gap-1.5">
+                                <a href="{{ route('guests.blacklist.show', $blacklist->id) }}" class="btn-icon text-slate-500 hover:bg-slate-100 border border-slate-100 hover:border-slate-200 shadow-sm" title="View Details">
+                                    <i class="fas fa-eye text-xs"></i>
+                                </a>
                                 @if(Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('superadmin'))
                                     <a href="{{ route('guests.blacklist.edit', $blacklist->id) }}" class="btn-icon text-indigo-500 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-100 shadow-sm" title="Edit">
                                         <i class="fas fa-edit text-xs"></i>
                                     </a>
-                                    @if($blacklist->status === 'active')
-                                        <button wire:click="remove({{ $blacklist->id }})" wire:confirm="Remove blacklist for {{ $blacklist->first_name }} {{ $blacklist->last_name }}? This guest will be allowed to book again."
-                                                class="btn-icon text-green-500 hover:bg-green-50 border border-slate-100 hover:border-green-100 shadow-sm cursor-pointer" title="Remove Blacklist">
-                                            <i class="fas fa-undo text-xs"></i>
-                                        </button>
-                                    @else
-                                        <button wire:click="restore({{ $blacklist->id }})" wire:confirm="Restore blacklist for {{ $blacklist->first_name }} {{ $blacklist->last_name }}?"
-                                                class="btn-icon text-amber-500 hover:bg-amber-50 border border-slate-100 hover:border-amber-100 shadow-sm cursor-pointer" title="Restore Blacklist">
-                                            <i class="fas fa-redo text-xs"></i>
-                                        </button>
-                                    @endif
-                                    <button wire:click="delete({{ $blacklist->id }})" wire:confirm="Permanently delete blacklist record for {{ $blacklist->first_name }} {{ $blacklist->last_name }}?"
+                                    <button wire:click="delete({{ $blacklist->id }})" wire:confirm="Permanently delete blacklist case {{ $blacklist->case_number }} for {{ $blacklist->first_name }} {{ $blacklist->last_name }}?"
                                             class="btn-icon text-red-500 hover:bg-red-50 border border-slate-100 hover:border-red-100 shadow-sm cursor-pointer" title="Delete Permanently">
                                         <i class="fas fa-trash text-xs"></i>
                                     </button>
@@ -130,7 +117,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="py-12 text-center text-slate-400">
+                        <td colspan="7" class="py-12 text-center text-slate-400">
                             <i class="fas fa-ban text-4xl text-slate-200 mb-3 block"></i>
                             <p class="text-sm font-medium">No blacklisted guests found.</p>
                         </td>
