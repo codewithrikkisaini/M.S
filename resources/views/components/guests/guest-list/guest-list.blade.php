@@ -5,9 +5,11 @@
             <h1 class="text-2xl font-black text-gray-900 tracking-tight">Guests Directory</h1>
             <p class="text-sm text-gray-500 mt-0.5">Manage guest profiles, contact details, and nationalities</p>
         </div>
+        @if(!Auth::check() || !Auth::user()->hasRole('receptionist'))
         <a href="{{ route('guests.create') }}" class="btn-primary btn-sm rounded-lg shadow-sm">
             <i class="fas fa-user-plus text-xs"></i> Add Guest
         </a>
+        @endif
     </div>
 
     {{-- Table Card --}}

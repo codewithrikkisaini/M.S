@@ -22,9 +22,11 @@
         </div>
 
         <div class="flex items-center gap-2">
+            @if(!Auth::check() || !Auth::user()->hasRole('receptionist'))
             <button wire:click="openCreate" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer">
                 <i class="fas fa-plus"></i> New Ticket
             </button>
+            @endif
         </div>
     </div>
 

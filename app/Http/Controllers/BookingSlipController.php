@@ -10,13 +10,29 @@ class BookingSlipController extends Controller
 {
     public function download($pnr)
     {
-        $reservation = Reservation::with(['guest', 'hotel', 'rooms.roomType', 'payments'])
-            ->where('pnr', $pnr)
+        $cleanPnr = trim(strtoupper((string) $pnr));
+        $reservation = Reservation::withoutGlobalScopes()
+            ->with([
+                'guest' => fn($q) => $q->withoutGlobalScopes(),
+                'hotel',
+                'rooms' => fn($q) => $q->withoutGlobalScopes()->with('roomType'),
+                'payments' => fn($q) => $q->withoutGlobalScopes()
+            ])
+            ->where(function ($q) use ($cleanPnr, $pnr) {
+                $q->whereRaw('UPPER(TRIM(pnr)) = ?', [$cleanPnr])
+                  ->orWhere('pnr', $pnr);
+            })
             ->first();
 
-        if (!$reservation) {
-            $reservation = Reservation::with(['guest', 'hotel', 'rooms.roomType', 'payments'])
-                ->find($pnr);
+        if (!$reservation && is_numeric($pnr)) {
+            $reservation = Reservation::withoutGlobalScopes()
+                ->with([
+                    'guest' => fn($q) => $q->withoutGlobalScopes(),
+                    'hotel',
+                    'rooms' => fn($q) => $q->withoutGlobalScopes()->with('roomType'),
+                    'payments' => fn($q) => $q->withoutGlobalScopes()
+                ])
+                ->find((int) $pnr);
         }
 
         if (!$reservation) {

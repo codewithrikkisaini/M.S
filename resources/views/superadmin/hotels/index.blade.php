@@ -400,18 +400,13 @@
                             <input type="text" name="tax_id" x-model="editHotel.tax_id" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
                         </div>
 
-                        <div>
+                        <div class="sm:col-span-2">
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Account Status *</label>
                             <select name="account_status" x-model="editHotel.account_status" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:border-amber-500">
                                 <option value="pending_approval">Pending Approval</option>
                                 <option value="active">Active</option>
                                 <option value="suspended">Suspended</option>
                             </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Total Rooms Limit</label>
-                            <input type="number" name="rooms_count" x-model="editHotel.rooms_count" min="1" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500">
                         </div>
 
                         <div class="sm:col-span-2">
