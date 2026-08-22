@@ -34,12 +34,14 @@
         {{-- Notifications --}}
         <livewire:notifications.header-notifications />
 
-        {{-- Quick Action --}}
+        {{-- Quick Action (Hidden for Receptionist) --}}
+        @if(!Auth::check() || !Auth::user()->hasRole('receptionist'))
         <a href="{{ route('reservations.create') }}"
            class="hidden sm:inline-flex items-center gap-2 btn-primary btn-sm rounded-lg shadow-sm">
             <i class="fas fa-plus text-[10px]"></i>
             <span>New Booking</span>
         </a>
+        @endif
 
         {{-- User Dropdown --}}
         @auth

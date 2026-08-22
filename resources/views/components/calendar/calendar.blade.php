@@ -47,9 +47,11 @@
                 </button>
             </div>
             
+            @if(!Auth::check() || !Auth::user()->hasRole('receptionist'))
             <a href="{{ route('reservations.create') }}" class="btn-primary btn-sm rounded-lg shadow-sm">
                 <i class="fas fa-plus text-xs"></i> New Reservation
             </a>
+            @endif
         </div>
     </div>
 

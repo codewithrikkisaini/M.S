@@ -13,25 +13,26 @@
             </a>
             
             <h1 class="text-3xl font-black text-slate-900 tracking-tight">Track Your Booking</h1>
-            <p class="text-sm text-slate-500 mt-2">Enter your PNR and email to check your reservation status.</p>
+            <p class="text-sm text-slate-500 mt-2">Enter your PNR reference, Booking ID, Phone, or Email to check your reservation.</p>
         </div>
 
         {{-- Tracking Form --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8">
             <form wire:submit.prevent="trackBooking" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-slate-600 mb-1">PNR Number *</label>
-                    <input type="text" wire:model="pnr" class="w-full uppercase bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder:normal-case" placeholder="e.g. DJ7UKJ">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">PNR / Booking ID *</label>
+                    <input type="text" wire:model="pnr" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-semibold" placeholder="e.g. DJ7UKJ, RES-12, or Mobile">
                     @error('pnr') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Email Address</label>
-                    <input type="email" wire:model="email" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="e.g. name@example.com">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Email Address <span class="text-slate-400 font-normal">(Optional)</span></label>
+                    <input type="email" wire:model="email" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium" placeholder="e.g. name@example.com">
                     @error('email') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
                 <div class="md:col-span-1">
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
-                        Track <i class="fas fa-search text-xs"></i>
+                    <button type="submit" wire:loading.attr="disabled" class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-75 text-white font-bold text-sm py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <span wire:loading.remove>Track <i class="fas fa-search text-xs"></i></span>
+                        <span wire:loading><i class="fas fa-spinner fa-spin text-xs"></i> Searching...</span>
                     </button>
                 </div>
             </form>
@@ -134,7 +135,7 @@
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <span class="block text-sm font-bold text-slate-900">{{ $reservation->hotel->currency ?? '$' }}{{ number_format($room->pivot->price ?? 0, 2) }}</span>
+                                        <span class="block text-sm font-bold text-slate-900">{{ $reservation->hotel->currency ?? '₹' }}{{ number_format($room->pivot->price ?? 0, 2) }}</span>
                                         <span class="block text-[10px] text-slate-400">/ night</span>
                                     </div>
                                 </div>
@@ -143,8 +144,8 @@
 
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 text-white p-6 rounded-xl shadow-lg">
                             <div>
-                                <span class="block text-slate-400 text-xs mb-1">Total Amount Paid</span>
-                                <span class="block text-3xl font-black text-emerald-400">{{ $reservation->hotel->currency ?? '$' }}{{ number_format($reservation->total_paid, 2) }}</span>
+                                <span class="block text-slate-400 text-xs mb-1">{{ $reservation->total_paid > 0 ? 'Total Amount Paid' : 'Total Booking Amount' }}</span>
+                                <span class="block text-3xl font-black text-emerald-400">{{ $reservation->hotel->currency ?? '₹' }}{{ number_format($reservation->total_paid > 0 ? $reservation->total_paid : $reservation->estimated_total, 2) }}</span>
                             </div>
                             @if($reservation->status == 'Pending')
                                 <div class="bg-white/10 px-4 py-3 rounded-lg border border-white/10 text-sm">

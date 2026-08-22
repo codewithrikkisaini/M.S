@@ -5,9 +5,11 @@
             <h1 class="text-2xl font-black text-gray-900 tracking-tight">Reservations</h1>
             <p class="text-sm text-gray-500 mt-0.5">Manage bookings, check-ins, check-outs, and guest stays</p>
         </div>
+        @if(!Auth::check() || !Auth::user()->hasRole('receptionist'))
         <a href="{{ route('reservations.create') }}" class="btn-primary btn-sm rounded-lg shadow-sm">
             <i class="fas fa-plus text-xs"></i> New Reservation
         </a>
+        @endif
     </div>
 
     {{-- Filter/Search Card --}}

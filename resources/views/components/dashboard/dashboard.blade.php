@@ -17,9 +17,11 @@
             </p>
         </div>
         <div class="flex gap-2.5">
+            @if(!Auth::check() || !Auth::user()->hasRole('receptionist'))
             <a href="{{ route('reservations.index') }}" class="btn-primary btn-sm rounded-lg shadow-sm">
                 <i class="fas fa-plus text-xs"></i> New Booking
             </a>
+            @endif
             <a href="{{ route('housekeeping.index') }}" class="btn-secondary btn-sm rounded-lg shadow-sm">
                 <i class="fas fa-broom text-xs"></i> Housekeeping
             </a>
